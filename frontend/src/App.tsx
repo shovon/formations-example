@@ -152,20 +152,6 @@ function App() {
 								{circles.map(({ position: [x, y], color }, i) => (
 									<Compute key={i.toString()}>
 										{() => {
-											// const circlePosition = (
-											// 	transform
-											// 		.multiply(array([[x], [y], [1]]))
-											// 		.toArray() as number[][]
-											// ).flat();
-
-											// const circlePosition = start<Vector2>([x, y])
-											// 	._((pos) => scalarMulV2(pos, camera.zoom.linear))
-											// 	._((pos) => hadamardV2(pos, [1, -1]))
-											// 	._((pos) => addV2(pos, scalarMulV2(svgDimensions, 0.5)))
-											// 	._((pos) =>
-											// 		addV2(pos, hadamardV2(camera.position, [-1, 1]))
-											// 	).value;
-
 											const coordinates = (
 												transform
 													.multiply(array([[x], [y], [1]]))
@@ -180,6 +166,9 @@ function App() {
 
 											return (
 												<circle
+													onClick={() => {
+														alert("Entity clicked");
+													}}
 													fill={color}
 													stroke="black"
 													cx={xt}
@@ -191,7 +180,7 @@ function App() {
 									</Compute>
 								))}
 
-								<Compute>
+								{/* <Compute>
 									{() => {
 										const cursorPosition = start<Vector2>([
 											mousePosition[0],
@@ -213,7 +202,7 @@ function App() {
 											</text>
 										);
 									}}
-								</Compute>
+								</Compute> */}
 							</>
 						);
 					}}
