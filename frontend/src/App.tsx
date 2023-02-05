@@ -1,5 +1,5 @@
 import { css } from "@emotion/css";
-import { useReducer, useRef, useState, ReactNode } from "react";
+import { useReducer, useRef, useState, ReactNode, useEffect } from "react";
 import { LogarithmicValue } from "./logarithmic-value";
 import {
 	hadamard as hadamardV2,
@@ -42,13 +42,31 @@ function App() {
 		{ color: "green", position: [100, 100] },
 		{ color: "blue", position: [-100, -100] },
 		{ color: "yellow", position: [100, -100] },
+		{ color: "orange", position: [300, 0] },
 	]);
+
+	useEffect(() => {
+		const listener = (e: KeyboardEvent) => {
+			console.log(e.key);
+			if (e.key === "r") {
+				updateCamera({ zoom: LogarithmicValue.logarithmic(0) });
+			}
+		};
+		document.addEventListener("keydown", listener);
+
+		return () => {
+			document.removeEventListener("keydown", listener);
+		};
+	}, []);
 
 	return (
 		<div
 			ref={(ref) => {
 				divRef.current = ref;
 				if (!divRef.current) return;
+			}}
+			onKeyDown={(e) => {
+				console.log(e.key);
 			}}
 		>
 			<svg
@@ -73,21 +91,20 @@ function App() {
 								// Our new zoom
 								const newZoom = camera.zoom.addLogarithmic(-e.deltaY * 0.01);
 
-								const c = start(camera.position)._((pos) =>
-									addV2(
-										pos,
-										start(hadamardV2(dimensions, [-0.5, -0.5]))
-											._((t) => addV2(t, mousePositionRef.current))
-											._((t) =>
-												scalarMulV2(t, camera.zoom.linear - newZoom.linear)
-											)
-											._((t) => hadamardV2(t, [-1, 1])).value
+								const cursorCenter = start(mousePosition)
+									._((pos) => subV2(pos, scalarMulV2(dimensions, 0.5)))
+									._((pos) => hadamardV2(pos, [1, -1])).value;
+
+								const newCameraPosition = start(cursorCenter)
+									._((pos) => addV2(pos, camera.position))
+									._((pos) =>
+										scalarMulV2(pos, newZoom.linear / camera.zoom.linear)
 									)
-								).value;
+									._((pos) => subV2(pos, cursorCenter)).value;
 
 								updateCamera({
 									zoom: newZoom,
-									position: c,
+									position: newCameraPosition,
 								});
 							} else {
 								const delta = [e.deltaX, -e.deltaY] satisfies Vector2;
@@ -180,20 +197,27 @@ function App() {
 									</Compute>
 								))}
 
-								{/* <Compute>
+								<Compute>
 									{() => {
-										const cursorPosition = start<Vector2>([
-											mousePosition[0],
-											mousePosition[1],
-										])
+										// const cursorPosition = start<Vector2>(mousePosition)
+										// 	._((pos) => subV2(pos, scalarMulV2(svgDimensions, 0.5)))
+										// 	._((pos) => hadamardV2(pos, [1, -1]))
+										// 	._((pos) => scalarMulV2(pos, 1 / camera.zoom.linear))
+										// 	._((pos) =>
+										// 		addV2(
+										// 			pos,
+										// 			scalarMulV2(camera.position, 1 / camera.zoom.linear)
+										// 		)
+										// 	).value;
+
+										const cursorCenter = start(mousePosition)
 											._((pos) => subV2(pos, scalarMulV2(svgDimensions, 0.5)))
-											._((pos) => hadamardV2(pos, [1, -1]))
-											._((pos) => scalarMulV2(pos, 1 / camera.zoom.linear))
+											._((pos) => hadamardV2(pos, [1, -1])).value;
+
+										const cursorPosition = start(cursorCenter)
+											._((pos) => addV2(pos, camera.position))
 											._((pos) =>
-												addV2(
-													pos,
-													scalarMulV2(camera.position, 1 / camera.zoom.linear)
-												)
+												scalarMulV2(pos, 1 / camera.zoom.linear)
 											).value;
 
 										return (
@@ -202,7 +226,7 @@ function App() {
 											</text>
 										);
 									}}
-								</Compute> */}
+								</Compute>
 							</>
 						);
 					}}
