@@ -1,26 +1,20 @@
-import { Vector } from "./vector";
-import { Vector3 } from "./vector3";
+export type Vector2 = [number, number];
 
-export class Vector2 implements Vector {
-	constructor(public readonly x: number, public readonly y: number) {}
+export const toColumnVector = ([x, y]: Vector2) => [[x], [y]];
 
-	add({ x, y }: this): this {
-		return new Vector2(x + this.x, y + this.y) as this;
-	}
+export const add = ([x1, y1]: Vector2, [x2, y2]: Vector2): Vector2 => [
+	x1 + x2,
+	y1 + y2,
+];
 
-	sub(p: this): this {
-		return this.add(p.scalar(-1) as this);
-	}
+export const scalarMul = ([x, y]: Vector2, c: number): Vector2 => [
+	x * c,
+	y * c,
+];
 
-	scalar(c: number): this {
-		return new Vector2(this.x * c, this.y * c) as this;
-	}
+export const sub = (a: Vector2, b: Vector2) => add(a, scalarMul(b, -1));
 
-	hadamard({ x, y }: this): this {
-		return new Vector2(x * this.x, y * this.y) as this;
-	}
-
-	static fromVector3XY({ x, y }: Vector3): Vector2 {
-		return new Vector2(x, y);
-	}
-}
+export const hadamard = ([x1, y1]: Vector2, [x2, y2]: Vector2): Vector2 => [
+	x1 * x2,
+	y1 * y2,
+];

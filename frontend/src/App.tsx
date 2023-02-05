@@ -1,13 +1,20 @@
 import { css } from "@emotion/css";
 import { useReducer, useRef, useState, ReactNode } from "react";
 import { LogarithmicValue } from "./logarithmic-value";
-import { Vector2 } from "./vector2";
+import { hadamard, scalarMul as scalarMulV2, toColumnVector } from "./vector2";
 import { Compute } from "./Compute";
 import { scale2D, translate2D } from "./matrix";
-import { Vector3 } from "./vector3";
+import { array } from "vectorious";
+import {
+	Vector2,
+	sub as subV2,
+	hadamard as hadamardV2,
+	add as addV2,
+} from "./vector2";
+import { start } from "./pipe";
 
 type Camera = {
-	position: Vector2;
+	position: [number, number];
 	zoom: LogarithmicValue;
 };
 
@@ -16,22 +23,28 @@ function App() {
 		(state: Camera, partialState: Partial<Camera>) => Camera
 	>((state, partialState) => ({ ...state, ...partialState }), {
 		zoom: LogarithmicValue.logarithmic(0),
-		position: new Vector2(0, 0),
+		position: [0, 0],
 	});
 	const divRef = useRef<HTMLDivElement | null>();
 	const svgRef = useRef<SVGSVGElement | null>(null);
-	const mousePositionRef = useRef(new Vector2(0, 0));
+	const mousePositionRef = useRef<Vector2>([0, 0]);
 	const [, update] = useReducer(() => ({}), {});
+	const [circles, setCircles] = useState<[number, number][]>([
+		[-100, 100],
+		[100, 100],
+		[-100, -100],
+		[100, -100],
+	]);
 
 	return (
 		<div
 			onMouseMove={(e) => {
 				if (divRef.current) {
 					const rect = divRef.current.getBoundingClientRect();
-					const rectPos = new Vector2(rect.left, rect.top);
-					const clientXY = new Vector2(e.clientX, e.clientY);
+					const rectPos = [rect.left, rect.top] satisfies Vector2;
+					const clientXY = [e.clientX, e.clientY] satisfies Vector2;
 
-					mousePositionRef.current = clientXY.sub(rectPos);
+					mousePositionRef.current = subV2(clientXY, rectPos);
 				}
 			}}
 			ref={(ref) => {
@@ -45,23 +58,25 @@ function App() {
 						if (!divRef.current) return;
 
 						const rect = divRef.current.getBoundingClientRect();
-						const dimensions = new Vector2(rect.width, rect.height);
+						const dimensions = [rect.width, rect.height] satisfies Vector2;
 
 						if (e.ctrlKey) {
 							const newZoom = camera.zoom.addLogarithmic(-e.deltaY * 0.01);
 
-							const mousePosCentered = mousePositionRef.current
-								.sub(dimensions.scalar(1 / 2))
-								.hadamard(new Vector2(-1, -1));
+							const mousePositionCentered = start(mousePositionRef.current)
+								._((pos) => subV2(pos, scalarMulV2(dimensions, 1 / 2)))
+								._((pos) => hadamardV2(pos, [1, -1])).value;
 
-							const mousePosScaled = mousePosCentered.scalar(
+							const mousePosScaled = scalarMulV2(
+								mousePositionCentered,
 								newZoom.addLogarithmic(-camera.zoom.logarithmic).linear
 							);
 
-							const displacement = mousePosScaled.sub(mousePosCentered);
+							const displacement = subV2(mousePosScaled, mousePositionCentered);
 
-							const newPos = camera.position.add(
-								displacement.scalar(newZoom.linear)
+							const newPos = addV2(
+								camera.position,
+								scalarMulV2(displacement, 1 / newZoom.linear)
 							);
 
 							updateCamera({
@@ -69,10 +84,13 @@ function App() {
 								position: newPos,
 							});
 						} else {
-							const delta = new Vector2(-e.deltaX, -e.deltaY);
+							const delta = [-e.deltaX, -e.deltaY] satisfies Vector2;
 
 							updateCamera({
-								position: camera.position.add(delta),
+								position: addV2(
+									camera.position,
+									scalarMulV2(delta, 1 / camera.zoom.linear)
+								),
 							});
 						}
 					},
@@ -85,12 +103,11 @@ function App() {
 					if (ref === null || svgRef.current === ref) return;
 					svgRef.current = ref;
 
-					const observer = new ResizeObserver(() => {});
 					update();
 				}}
 				className={css`
 					display: block;
-					border: 1px solid black;
+					/* border: 1px solid black; */
 					box-sizing: border-box;
 					width: 100vw;
 					height: 100vh;
@@ -102,90 +119,47 @@ function App() {
 						if (!svg) return null;
 
 						const clientRect = svg.getBoundingClientRect();
-						const svgDimensions = new Vector2(
+						const svgDimensions = [
 							clientRect.width,
-							clientRect.height
-						);
+							clientRect.height,
+						] satisfies Vector2;
 
-						const transform = translate2D(svgDimensions.scalar(1 / 2))
+						const transform = translate2D(scalarMulV2(svgDimensions, 1 / 2))
 							.multiply(translate2D(camera.position))
-							.multiply(
-								scale2D({
-									x: camera.zoom.linear,
-									y: -camera.zoom.linear,
-								})
-							);
+							.multiply(scale2D([camera.zoom.linear, -camera.zoom.linear]));
 
 						return (
 							<>
-								<Compute>
-									{() => {
-										const circlePosition = Vector3.fromArray(
-											transform
-												.multiply(new Vector3(-100, 100, 1).columnVectorArray)
-												.toArray() as number[][]
-										);
+								{circles.map(([x, y], i) => (
+									<Compute key={i.toString()}>
+										{() => {
+											// const circlePosition = (
+											// 	transform
+											// 		.multiply(array([[x], [y], [1]]))
+											// 		.toArray() as number[][]
+											// ).flat();
 
-										return (
-											<circle
-												cx={circlePosition.x}
-												cy={circlePosition.y}
-												r={`${camera.zoom.linear * 50}`}
-											/>
-										);
-									}}
-								</Compute>
-								<Compute>
-									{() => {
-										const circlePosition = Vector3.fromArray(
-											transform
-												.multiply(new Vector3(100, 100, 1).columnVectorArray)
-												.toArray() as number[][]
-										);
+											const circlePosition = start<Vector2>([x, y])
+												._((pos) => addV2(pos, camera.position))
+												._((pos) =>
+													addV2(pos, scalarMulV2(svgDimensions, 1 / 2))
+												)
+												._((pos) => scalarMulV2(pos, camera.zoom.linear)).value;
 
-										return (
-											<circle
-												cx={circlePosition.x}
-												cy={circlePosition.y}
-												r={`${camera.zoom.linear * 50}`}
-											/>
-										);
-									}}
-								</Compute>
-								<Compute>
-									{() => {
-										const circlePosition = Vector3.fromArray(
-											transform
-												.multiply(new Vector3(-100, -100, 1).columnVectorArray)
-												.toArray() as number[][]
-										);
+											console.log(circlePosition);
 
-										return (
-											<circle
-												cx={circlePosition.x}
-												cy={circlePosition.y}
-												r={`${camera.zoom.linear * 50}`}
-											/>
-										);
-									}}
-								</Compute>
-								<Compute>
-									{() => {
-										const circlePosition = Vector3.fromArray(
-											transform
-												.multiply(new Vector3(100, -100, 1).columnVectorArray)
-												.toArray() as number[][]
-										);
-
-										return (
-											<circle
-												cx={circlePosition.x}
-												cy={circlePosition.y}
-												r={`${camera.zoom.linear * 50}`}
-											/>
-										);
-									}}
-								</Compute>
+											return (
+												<circle
+													fill="white"
+													stroke="black"
+													cx={circlePosition[0]}
+													cy={circlePosition[1]}
+													r={`${camera.zoom.linear * 50}`}
+												/>
+											);
+										}}
+									</Compute>
+								))}
 							</>
 						);
 					}}
