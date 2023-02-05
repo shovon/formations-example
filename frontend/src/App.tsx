@@ -7,9 +7,12 @@ import {
 	Vector2,
 	sub as subV2,
 	add as addV2,
+	toColumnVector,
 } from "./vector2";
 import { Compute } from "./Compute";
 import { start } from "./pipe";
+import { scale2D, translate2D } from "./matrix";
+import { array } from "vectorious";
 
 type Camera = {
 	position: [number, number];
@@ -136,6 +139,14 @@ function App() {
 						// 	.multiply(translate2D(camera.position))
 						// 	.multiply(scale2D([camera.zoom.linear, -camera.zoom.linear]));
 
+						const transform = translate2D(hadamardV2(svgDimensions, [0.5, 0.5]))
+							.multiply(scale2D([1, -1]))
+							.multiply(translate2D(scalarMulV2(camera.position, -1)))
+							.multiply(scale2D([camera.zoom.linear, camera.zoom.linear]));
+						// translate2D(hadamardV2(camera.position, [-1, 1]))
+						// .multiply(scale2D([camera.zoom.linear, -camera.zoom.linear]))
+						// .multiply(translate2D(scalarMulV2(svgDimensions, 0.5)));
+
 						return (
 							<>
 								{circles.map(({ position: [x, y], color }, i) => (
@@ -147,20 +158,32 @@ function App() {
 											// 		.toArray() as number[][]
 											// ).flat();
 
-											const circlePosition = start<Vector2>([x, y])
-												._((pos) => scalarMulV2(pos, camera.zoom.linear))
-												._((pos) => hadamardV2(pos, [1, -1]))
-												._((pos) => addV2(pos, scalarMulV2(svgDimensions, 0.5)))
-												._((pos) =>
-													addV2(pos, hadamardV2(camera.position, [-1, 1]))
-												).value;
+											// const circlePosition = start<Vector2>([x, y])
+											// 	._((pos) => scalarMulV2(pos, camera.zoom.linear))
+											// 	._((pos) => hadamardV2(pos, [1, -1]))
+											// 	._((pos) => addV2(pos, scalarMulV2(svgDimensions, 0.5)))
+											// 	._((pos) =>
+											// 		addV2(pos, hadamardV2(camera.position, [-1, 1]))
+											// 	).value;
+
+											const coordinates = (
+												transform
+													.multiply(array([[x], [y], [1]]))
+													.toArray() as number[][]
+											).flat();
+
+											console.assert(
+												coordinates.length >= 2,
+												"Expected to get a 3d vector, but got something else"
+											);
+											const [xt, yt] = coordinates;
 
 											return (
 												<circle
 													fill={color}
 													stroke="black"
-													cx={circlePosition[0]}
-													cy={circlePosition[1]}
+													cx={xt}
+													cy={yt}
 													r={`${camera.zoom.linear * 50}`}
 												/>
 											);
