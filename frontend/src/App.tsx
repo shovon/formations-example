@@ -3,6 +3,7 @@ import { useReducer, useRef, useState, ReactNode } from "react";
 import { LogarithmicValue } from "./logarithmic-value";
 import { Vector2 } from "./vector2";
 import { Compute } from "./Compute";
+import { translate2D } from "./matrix";
 
 type Camera = {
 	position: Vector2;

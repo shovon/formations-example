@@ -1,5 +1,6 @@
 import { Vector3 } from "./vector3";
 import { NDArray, array } from "vectorious";
+import { Vector } from "./vector";
 
 /**
  * Just a wrapper class for vectorious.
@@ -37,3 +38,23 @@ export class Matrix3x3 {
 		return array(this.value);
 	}
 }
+
+export const scale2D = ({ x, y }: { x: number; y: number }): Matrix3x3 => {
+	return new Matrix3x3(
+		array([
+			[x, 0, 0],
+			[0, y, 0],
+			[0, 0, 1],
+		])
+	);
+};
+
+export const translate2D = ({ x, y }: { x: number; y: number }): Matrix3x3 => {
+	return new Matrix3x3(
+		array([
+			[1, 0, x],
+			[0, 1, y],
+			[0, 0, 1],
+		])
+	);
+};
