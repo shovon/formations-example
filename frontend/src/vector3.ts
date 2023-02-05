@@ -38,12 +38,10 @@ export class Vector3 implements Vector {
 		return array([[this.x, this.y, this.z]]);
 	}
 
-	static fromArray(arr: number[][] | number[]): Vector3 {
+	static fromArray(arr: number[][]): Vector3 {
 		console.assert(
-			(arr.length !== 1 &&
-				arr.some((v) => typeof v !== "number" && v.length === 3)) ||
-				(arr.length !== 3 &&
-					arr.some((v) => typeof v !== "number" && v.length !== 1)),
+			(arr.length === 1 && arr.every((v) => v.length === 3)) ||
+				(arr.length === 3 && arr.every((v) => v.length === 1)),
 			"Expected either a 3x1 column vector array, 1x3 row vector, or an array of 3 elements but got something else",
 			arr
 		);
