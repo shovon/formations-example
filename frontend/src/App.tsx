@@ -35,38 +35,29 @@ function App() {
 	type CirclesState = {
 		position: Vector2;
 		color: string;
+		name: string;
+		isActive: boolean;
 	}[];
 
 	const [circles, setCircles] = useState<CirclesState>([
-		{ color: "red", position: [-100, 100] },
-		{ color: "green", position: [100, 100] },
-		{ color: "blue", position: [-100, -100] },
-		{ color: "yellow", position: [100, -100] },
-		{ color: "orange", position: [300, 0] },
+		{ isActive: false, name: "A", color: "red", position: [-100, 100] },
+		{ isActive: false, name: "B", color: "green", position: [100, 100] },
+		{ isActive: false, name: "C", color: "blue", position: [-100, -100] },
+		{ isActive: false, name: "D", color: "purple", position: [100, -100] },
+		{ isActive: false, name: "E", color: "orange", position: [300, 0] },
 	]);
 
-	useEffect(() => {
-		const listener = (e: KeyboardEvent) => {
-			console.log(e.key);
-			if (e.key === "r") {
-				updateCamera({ zoom: LogarithmicValue.logarithmic(0) });
-			}
-		};
-		document.addEventListener("keydown", listener);
-
-		return () => {
-			document.removeEventListener("keydown", listener);
-		};
-	}, []);
+	const activateCircle = (index: number) => {
+		setCircles(
+			circles.map((c, i) => (index === i ? { ...c, isActive: true } : c))
+		);
+	};
 
 	return (
 		<div
 			ref={(ref) => {
 				divRef.current = ref;
 				if (!divRef.current) return;
-			}}
-			onKeyDown={(e) => {
-				console.log(e.key);
 			}}
 		>
 			<svg
@@ -88,7 +79,6 @@ function App() {
 							const dimensions = [rect.width, rect.height] satisfies Vector2;
 
 							if (e.ctrlKey) {
-								// Our new zoom
 								const newZoom = camera.zoom.addLogarithmic(-e.deltaY * 0.01);
 
 								const cursorCenter = start(mousePosition)
@@ -151,65 +141,63 @@ function App() {
 							clientRect.height,
 						] satisfies Vector2;
 
-						// This is going to be useful. Keep this code
-						// const transform = translate2D(scalarMulV2(svgDimensions, 1 / 2))
-						// 	.multiply(translate2D(camera.position))
-						// 	.multiply(scale2D([camera.zoom.linear, -camera.zoom.linear]));
-
 						const transform = translate2D(hadamardV2(svgDimensions, [0.5, 0.5]))
 							.multiply(scale2D([1, -1]))
 							.multiply(translate2D(scalarMulV2(camera.position, -1)))
 							.multiply(scale2D([camera.zoom.linear, camera.zoom.linear]));
-						// translate2D(hadamardV2(camera.position, [-1, 1]))
-						// .multiply(scale2D([camera.zoom.linear, -camera.zoom.linear]))
-						// .multiply(translate2D(scalarMulV2(svgDimensions, 0.5)));
 
 						return (
 							<>
-								{circles.map(({ position: [x, y], color }, i) => (
-									<Compute key={i.toString()}>
-										{() => {
-											const coordinates = (
-												transform
-													.multiply(array([[x], [y], [1]]))
-													.toArray() as number[][]
-											).flat();
+								{circles.map(
+									({ position: [x, y], color, name, isActive }, i) => (
+										<Compute key={i.toString()}>
+											{() => {
+												const coordinates = (
+													transform
+														.multiply(array([[x], [y], [1]]))
+														.toArray() as number[][]
+												).flat();
 
-											console.assert(
-												coordinates.length >= 2,
-												"Expected to get a 3d vector, but got something else"
-											);
-											const [xt, yt] = coordinates;
+												console.assert(
+													coordinates.length >= 2,
+													"Expected to get a 3d vector, but got something else"
+												);
+												const [xt, yt] = coordinates;
 
-											return (
-												<circle
-													onClick={() => {
-														alert("Entity clicked");
-													}}
-													fill={color}
-													stroke="black"
-													cx={xt}
-													cy={yt}
-													r={`${camera.zoom.linear * 50}`}
-												/>
-											);
-										}}
-									</Compute>
-								))}
+												return (
+													<>
+														<circle
+															onClick={() => {
+																activateCircle(i);
+															}}
+															fill={"white"}
+															stroke={color}
+															strokeWidth={`${
+																camera.zoom.linear * 3 * (isActive ? 2 : 1)
+															}`}
+															cx={xt}
+															cy={yt}
+															r={`${camera.zoom.linear * 20}`}
+														/>
+														<text
+															x={`${xt + 0.25 * camera.zoom.linear}`}
+															y={`${yt + 1.5 * camera.zoom.linear}`}
+															fill={color}
+															fontSize={`${camera.zoom.linear}em`}
+															dominant-baseline="middle"
+															textAnchor="middle"
+														>
+															{name}
+														</text>
+													</>
+												);
+											}}
+										</Compute>
+									)
+								)}
 
 								<Compute>
 									{() => {
-										// const cursorPosition = start<Vector2>(mousePosition)
-										// 	._((pos) => subV2(pos, scalarMulV2(svgDimensions, 0.5)))
-										// 	._((pos) => hadamardV2(pos, [1, -1]))
-										// 	._((pos) => scalarMulV2(pos, 1 / camera.zoom.linear))
-										// 	._((pos) =>
-										// 		addV2(
-										// 			pos,
-										// 			scalarMulV2(camera.position, 1 / camera.zoom.linear)
-										// 		)
-										// 	).value;
-
 										const cursorCenter = start(mousePosition)
 											._((pos) => subV2(pos, scalarMulV2(svgDimensions, 0.5)))
 											._((pos) => hadamardV2(pos, [1, -1])).value;
@@ -221,7 +209,10 @@ function App() {
 											).value;
 
 										return (
-											<text x={`${mousePosition[0]}`} y={`${mousePosition[1]}`}>
+											<text
+												x={`${mousePosition[0] + 50}`}
+												y={`${mousePosition[1]}`}
+											>
 												{`(${cursorPosition[0]}, ${cursorPosition[1]})`}
 											</text>
 										);

@@ -1,27 +1,30 @@
-import { Vector } from "./vector";
+import { start } from "./pipe";
+import { sub, Vector2 } from "./vector2";
+import { scalarMul, add } from "./vector2";
 
-export const cubicBezier = <T extends Vector>(
+export const cubicBezier2d = (
 	t: number,
-	p0: T,
-	p1: T,
-	p2: T,
-	p3: T
+	p0: Vector2,
+	p1: Vector2,
+	p2: Vector2,
+	p3: Vector2
 ) =>
-	p0
-		.scalar((1 - t) ** 3)
-		.add(p1.scalar(3 * (1 - t) ** 2 * t))
-		.add(p2.scalar(3 * (1 - t) * t ** 2))
-		.add(p3.scalar(t ** 3));
+	start(p0)
+		._((p) => scalarMul(p, (1 - t) ** 3))
+		._((p) => add(p, scalarMul(p1, 3 * (1 - t) ** 2 * t)))
+		._((p) => add(p, scalarMul(p2, 3 * (1 - t) * t ** 2)))
+		._((p) => add(p, scalarMul(p3, t ** 3))).value;
 
-export const cubicBezierDeriv = <T extends Vector>(
+export const cubicBezierDeriv2d = (
 	t: number,
-	p0: T,
-	p1: T,
-	p2: T,
-	p3: T
-) =>
-	p1
-		.sub(p0)
-		.scalar(3 * (1 - t) ** 2)
-		.add(p2.sub(p1).scalar(6 * (1 - t) * t))
-		.add(p3.sub(p2).scalar(3 * t ** 2));
+	p0: Vector2,
+	p1: Vector2,
+	p2: Vector2,
+	p3: Vector2
+) => {
+	let result = [0, 0] satisfies [number, number];
+	result = add(result, scalarMul(sub(p1, p2), 3 * (1 - t) ** 2));
+	result = add(result, scalarMul(sub(p1, p2), 6 * (1 - t) * t));
+	result = add(result, scalarMul(sub(p3, p2), 3 * (1 - t) * t ** 2));
+	return result;
+};
