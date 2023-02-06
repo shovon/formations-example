@@ -60,10 +60,10 @@ function App() {
 	// TODO: move the circle storage logic to a separate class
 	const [circles, setCircles] = useState<CirclesState>([
 		{ state: "INACTIVE", name: "A", color: "red", position: [-100, 100] },
-		{ state: "INACTIVE", name: "B", color: "green", position: [100, 100] },
-		{ state: "INACTIVE", name: "C", color: "blue", position: [-100, -100] },
-		{ state: "INACTIVE", name: "D", color: "purple", position: [100, -100] },
-		{ state: "INACTIVE", name: "E", color: "orange", position: [300, 0] },
+		// { state: "INACTIVE", name: "B", color: "green", position: [100, 100] },
+		// { state: "INACTIVE", name: "C", color: "blue", position: [-100, -100] },
+		// { state: "INACTIVE", name: "D", color: "purple", position: [100, -100] },
+		// { state: "INACTIVE", name: "E", color: "orange", position: [300, 0] },
 	]);
 
 	const circleMouseDown = (index: number) => {
@@ -144,7 +144,6 @@ function App() {
 
 	const getCollidingCircle = (): [number, Circle] | null => {
 		const cursorPosition = getCursorPosition();
-		console.log(cursorPosition);
 
 		for (const [i, circle] of circles.entries()) {
 			const radius = CIRCLE_RADIUS;
@@ -200,6 +199,24 @@ function App() {
 		}
 	};
 
+	const onMouseUp = () => {
+		const indexCircle = getCollidingCircle();
+
+		if (indexCircle) {
+			const [index] = indexCircle;
+			circleMouseUp(index);
+			return;
+		}
+	};
+
+	useEffect(() => {
+		document.addEventListener("mouseup", onMouseUp);
+
+		return () => {
+			document.removeEventListener("mouseup", onMouseUp);
+		};
+	}, [circles]);
+
 	return (
 		<div
 			ref={(ref) => {
@@ -213,17 +230,6 @@ function App() {
 					if (indexCircle) {
 						const [index] = indexCircle;
 						circleMouseDown(index);
-						return;
-					}
-
-					deactivateAllCircles();
-				}}
-				onMouseUp={() => {
-					const indexCircle = getCollidingCircle();
-
-					if (indexCircle) {
-						const [index] = indexCircle;
-						circleMouseUp(index);
 						return;
 					}
 				}}
