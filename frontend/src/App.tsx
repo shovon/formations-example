@@ -8,17 +8,19 @@ import React, {
 } from "react";
 import { LogarithmicValue } from "./logarithmic-value";
 import {
-	hadamard as hadamardV2,
-	scalarMul as scalarMulV2,
+	hadamard as hadamard2,
+	scalarMul as scalarMul2,
 	Vector2,
-	sub as subV2,
-	add as addV2,
-	toColumnVector,
+	sub as sub2,
+	add as add2,
+	distance as distance2,
 } from "./vector2";
 import { Compute } from "./Compute";
 import { start } from "./pipe";
 import { scale2D, translate2D } from "./matrix";
 import { array } from "vectorious";
+
+const CIRCLE_RADIUS = 20;
 
 type Camera = {
 	position: [number, number];
@@ -117,9 +119,9 @@ function App() {
 
 	const getTransform = () => {
 		const svgDimensions = getSvgDimensions();
-		return translate2D(hadamardV2(svgDimensions, [0.5, 0.5]))
+		return translate2D(hadamard2(svgDimensions, [0.5, 0.5]))
 			.multiply(scale2D([1, -1]))
-			.multiply(translate2D(scalarMulV2(camera.position, -1)))
+			.multiply(translate2D(scalarMul2(camera.position, -1)))
 			.multiply(scale2D([camera.zoom.linear, camera.zoom.linear]));
 	};
 
@@ -127,16 +129,37 @@ function App() {
 		const svgDimensions = getSvgDimensions();
 
 		const cursorCenter = start(mousePositionRef.current)
-			._((pos) => subV2(pos, scalarMulV2(svgDimensions, 0.5)))
-			._((pos) => hadamardV2(pos, [1, -1])).value;
+			._((pos) => sub2(pos, scalarMul2(svgDimensions, 0.5)))
+			._((pos) => hadamard2(pos, [1, -1])).value;
 
 		return start(cursorCenter)
-			._((pos) => addV2(pos, camera.position))
-			._((pos) => scalarMulV2(pos, 1 / camera.zoom.linear)).value;
+			._((pos) => add2(pos, camera.position))
+			._((pos) => scalarMul2(pos, 1 / camera.zoom.linear)).value;
+	};
+
+	const getCollidingCircle = (): [number, Circle] | null => {
+		const transform = getTransform();
+		const cursorPosition = getCursorPosition();
+
+		for (const [i, circle] of circles.entries()) {
+			const circlePosition = (
+				array([[...circle.position, 1]])
+					.multiply(transform)
+					.toArray() as number[][]
+			).flat() as [number, number];
+
+			const radius = CIRCLE_RADIUS * camera.zoom.linear;
+
+			if (distance2(cursorPosition, circlePosition) < radius) {
+				return [i, circle];
+			}
+		}
+
+		return null;
 	};
 
 	const moveEvent = ([dx, dy]: Vector2) => {
-		const delta = scalarMulV2([dx, -dy], 1 / camera.zoom.linear);
+		const delta = scalarMul2([dx, -dy], 1 / camera.zoom.linear);
 
 		if (circles.some((c) => c.state === "PREACTIVE")) {
 			// when an inactive item is being moved…
@@ -149,7 +172,7 @@ function App() {
 				circles.map((c, i) =>
 					i !== index
 						? { ...c, state: "INACTIVE" }
-						: { ...c, state: "MOVING", position: addV2(c.position, delta) }
+						: { ...c, state: "MOVING", position: add2(c.position, delta) }
 				)
 			);
 		} else if (
@@ -158,8 +181,6 @@ function App() {
 			// when an active item is being moved…
 			//
 			// all active items will remain active, and move
-
-			console.log("Trying to move");
 
 			setCircles(
 				circles.map((c) => {
@@ -171,7 +192,7 @@ function App() {
 							return {
 								...c,
 								state: "MOVING",
-								position: addV2(c.position, delta),
+								position: add2(c.position, delta),
 							};
 						case "INACTIVE":
 							return c;
@@ -190,9 +211,14 @@ function App() {
 		>
 			<svg
 				onMouseDown={(e) => {
-					deactivateAllCircles();
+					const indexCircle = getCollidingCircle();
+					if (indexCircle) {
+						const [index] = indexCircle;
+						circleMouseUp(index);
+						return;
+					}
 
-					// TODO: this is where we handle the edge case when the mouses up
+					deactivateAllCircles();
 				}}
 				ref={(ref) => {
 					if (ref === null) {
@@ -215,15 +241,15 @@ function App() {
 								const newZoom = camera.zoom.addLogarithmic(-e.deltaY * 0.01);
 
 								const cursorCenter = start(mousePosition)
-									._((pos) => subV2(pos, scalarMulV2(dimensions, 0.5)))
-									._((pos) => hadamardV2(pos, [1, -1])).value;
+									._((pos) => sub2(pos, scalarMul2(dimensions, 0.5)))
+									._((pos) => hadamard2(pos, [1, -1])).value;
 
 								const newCameraPosition = start(cursorCenter)
-									._((pos) => addV2(pos, camera.position))
+									._((pos) => add2(pos, camera.position))
 									._((pos) =>
-										scalarMulV2(pos, newZoom.linear / camera.zoom.linear)
+										scalarMul2(pos, newZoom.linear / camera.zoom.linear)
 									)
-									._((pos) => subV2(pos, cursorCenter)).value;
+									._((pos) => sub2(pos, cursorCenter)).value;
 
 								updateCamera({
 									zoom: newZoom,
@@ -233,7 +259,7 @@ function App() {
 								const delta = [e.deltaX, -e.deltaY] satisfies Vector2;
 
 								updateCamera({
-									position: addV2(camera.position, delta),
+									position: add2(camera.position, delta),
 								});
 							}
 						},
@@ -250,7 +276,7 @@ function App() {
 						const rectPos = [rect.left, rect.top] satisfies Vector2;
 						const clientXY = [e.clientX, e.clientY] satisfies Vector2;
 
-						mousePositionRef.current = subV2(clientXY, rectPos);
+						mousePositionRef.current = sub2(clientXY, rectPos);
 
 						setMousePosition(mousePositionRef.current);
 
@@ -330,7 +356,6 @@ function App() {
 											return (
 												<>
 													<circle
-														onMouseDown={onMouseDown}
 														onMouseUp={onMouseUp}
 														fill={"white"}
 														stroke={color}
@@ -361,15 +386,7 @@ function App() {
 
 								<Compute>
 									{() => {
-										const cursorCenter = start(mousePosition)
-											._((pos) => subV2(pos, scalarMulV2(svgDimensions, 0.5)))
-											._((pos) => hadamardV2(pos, [1, -1])).value;
-
-										const cursorPosition = start(cursorCenter)
-											._((pos) => addV2(pos, camera.position))
-											._((pos) =>
-												scalarMulV2(pos, 1 / camera.zoom.linear)
-											).value;
+										const cursorPosition = getCursorPosition();
 
 										return (
 											<text
