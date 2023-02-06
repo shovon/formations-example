@@ -186,7 +186,6 @@ function App() {
 						case "PREACTIVE":
 						case "MOVING":
 						case "PRE_DEACTIVATE":
-							console.log(c.position, delta);
 							return {
 								...c,
 								state: "MOVING",
