@@ -210,15 +210,23 @@ function App() {
 			}}
 		>
 			<svg
-				onMouseDown={(e) => {
+				onMouseDown={() => {
+					const indexCircle = getCollidingCircle();
+					if (indexCircle) {
+						const [index] = indexCircle;
+						circleMouseDown(index);
+						return;
+					}
+
+					deactivateAllCircles();
+				}}
+				onMouseUp={() => {
 					const indexCircle = getCollidingCircle();
 					if (indexCircle) {
 						const [index] = indexCircle;
 						circleMouseUp(index);
 						return;
 					}
-
-					deactivateAllCircles();
 				}}
 				ref={(ref) => {
 					if (ref === null) {
@@ -356,7 +364,6 @@ function App() {
 											return (
 												<>
 													<circle
-														onMouseUp={onMouseUp}
 														fill={"white"}
 														stroke={color}
 														strokeWidth={`${
@@ -367,8 +374,6 @@ function App() {
 														r={`${camera.zoom.linear * 20}`}
 													/>
 													<text
-														onMouseDown={onMouseDown}
-														onMouseUp={onMouseUp}
 														x={`${xt}`}
 														y={`${yt + 1.75 * camera.zoom.linear}`}
 														fill={color}
