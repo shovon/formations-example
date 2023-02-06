@@ -88,17 +88,19 @@ function App() {
 	const circleMouseUp = (index: number) => {
 		setCircles(
 			circles.map((c, i) => {
-				if (i !== index) return c;
-
-				console.log(c.state);
+				if (i !== index) {
+					if (c.state === "MOVING") {
+						return { ...c, state: "ACTIVE" };
+					}
+					return c;
+				}
 
 				switch (c.state) {
 					case "INACTIVE":
+					case "ACTIVE":
 						return c;
 					case "PREACTIVE":
 						return { ...c, state: "ACTIVE" };
-					case "ACTIVE":
-						return c;
 					case "PRE_DEACTIVATE":
 						return { ...c, state: "INACTIVE" };
 					case "MOVING":
@@ -174,7 +176,6 @@ function App() {
 		} else if (
 			circles.some((c) => c.state === "MOVING" || c.state === "PRE_DEACTIVATE")
 		) {
-			// when an active item is being moved…
 			//
 			// all active items will remain active, and move
 
@@ -182,9 +183,10 @@ function App() {
 				circles.map((c) => {
 					switch (c.state) {
 						case "ACTIVE":
-						case "MOVING":
 						case "PREACTIVE":
+						case "MOVING":
 						case "PRE_DEACTIVATE":
+							console.log(c.position, delta);
 							return {
 								...c,
 								state: "MOVING",
@@ -218,6 +220,7 @@ function App() {
 				}}
 				onMouseUp={() => {
 					const indexCircle = getCollidingCircle();
+
 					if (indexCircle) {
 						const [index] = indexCircle;
 						circleMouseUp(index);
