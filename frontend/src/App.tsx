@@ -60,10 +60,10 @@ function App() {
 	// TODO: move the circle storage logic to a separate class
 	const [circles, setCircles] = useState<CirclesState>([
 		{ state: "INACTIVE", name: "A", color: "red", position: [-100, 100] },
-		// { state: "INACTIVE", name: "B", color: "green", position: [100, 100] },
-		// { state: "INACTIVE", name: "C", color: "blue", position: [-100, -100] },
-		// { state: "INACTIVE", name: "D", color: "purple", position: [100, -100] },
-		// { state: "INACTIVE", name: "E", color: "orange", position: [300, 0] },
+		{ state: "INACTIVE", name: "B", color: "green", position: [100, 100] },
+		{ state: "INACTIVE", name: "C", color: "blue", position: [-100, -100] },
+		{ state: "INACTIVE", name: "D", color: "purple", position: [100, -100] },
+		{ state: "INACTIVE", name: "E", color: "orange", position: [300, 0] },
 	]);
 
 	const circleMouseDown = (index: number) => {
@@ -205,7 +205,8 @@ function App() {
 		if (indexCircle) {
 			const [index] = indexCircle;
 			circleMouseUp(index);
-			return;
+		} else {
+			deactivateAllCircles();
 		}
 	};
 
