@@ -1,5 +1,11 @@
 import { css } from "@emotion/css";
-import { useReducer, useRef, useState, ReactNode, useEffect } from "react";
+import React, {
+	useReducer,
+	useRef,
+	useState,
+	ReactNode,
+	useEffect,
+} from "react";
 import { LogarithmicValue } from "./logarithmic-value";
 import {
 	hadamard as hadamardV2,
@@ -32,26 +38,104 @@ function App() {
 	const [mousePosition, setMousePosition] = useState<[number, number]>([0, 0]);
 	const [, update] = useReducer(() => ({}), {});
 
-	type CirclesState = {
+	type CircleState =
+		| "INACTIVE"
+		| "PREACTIVE"
+		| "ACTIVE"
+		| "PRE_DEACTIVATE"
+		| "MOVING";
+
+	type Circle = {
 		position: Vector2;
 		color: string;
 		name: string;
-		isActive: boolean;
-	}[];
+		state: CircleState;
+	};
 
+	type CirclesState = Circle[];
+
+	// TODO: move the circle storage logic to a separate class
 	const [circles, setCircles] = useState<CirclesState>([
-		{ isActive: false, name: "A", color: "red", position: [-100, 100] },
-		{ isActive: false, name: "B", color: "green", position: [100, 100] },
-		{ isActive: false, name: "C", color: "blue", position: [-100, -100] },
-		{ isActive: false, name: "D", color: "purple", position: [100, -100] },
-		{ isActive: false, name: "E", color: "orange", position: [300, 0] },
+		{ state: "INACTIVE", name: "A", color: "red", position: [-100, 100] },
+		{ state: "INACTIVE", name: "B", color: "green", position: [100, 100] },
+		{ state: "INACTIVE", name: "C", color: "blue", position: [-100, -100] },
+		{ state: "INACTIVE", name: "D", color: "purple", position: [100, -100] },
+		{ state: "INACTIVE", name: "E", color: "orange", position: [300, 0] },
 	]);
 
-	const activateCircle = (index: number) => {
+	const circleMouseDown = (index: number) => {
 		setCircles(
-			circles.map((c, i) => (index === i ? { ...c, isActive: true } : c))
+			circles.map((c, i) => {
+				if (i !== index) return c;
+
+				switch (c.state) {
+					case "INACTIVE":
+						return { ...c, state: "PREACTIVE" };
+					case "ACTIVE":
+						return { ...c, state: "PRE_DEACTIVATE" };
+					case "PRE_DEACTIVATE":
+					case "PREACTIVE":
+					case "MOVING":
+						return c;
+				}
+			})
 		);
 	};
+
+	const circleMouseUp = (index: number) => {
+		setCircles(
+			circles.map((c, i) => {
+				if (i !== index) return c;
+
+				switch (c.state) {
+					case "INACTIVE":
+						return c;
+					case "PREACTIVE":
+						return { ...c, state: "ACTIVE" };
+					case "ACTIVE":
+						return c;
+					case "PRE_DEACTIVATE":
+						return { ...c, state: "INACTIVE" };
+					case "MOVING":
+						return { ...c, state: "ACTIVE" };
+				}
+			})
+		);
+	};
+
+	const deactivateAllCircles = () => {
+		setCircles(circles.map((c) => ({ ...c, state: "INACTIVE" })));
+	};
+
+	const getSvgDimensions = () => {
+		const svg = svgRef.current;
+		const clientRect = svg
+			? svg.getBoundingClientRect()
+			: { width: 1, height: 1 };
+		return [clientRect.width, clientRect.height] satisfies Vector2;
+	};
+
+	const getTransform = () => {
+		const svgDimensions = getSvgDimensions();
+		return translate2D(hadamardV2(svgDimensions, [0.5, 0.5]))
+			.multiply(scale2D([1, -1]))
+			.multiply(translate2D(scalarMulV2(camera.position, -1)))
+			.multiply(scale2D([camera.zoom.linear, camera.zoom.linear]));
+	};
+
+	const getCursorPosition = () => {
+		const svgDimensions = getSvgDimensions();
+
+		const cursorCenter = start(mousePositionRef.current)
+			._((pos) => subV2(pos, scalarMulV2(svgDimensions, 0.5)))
+			._((pos) => hadamardV2(pos, [1, -1])).value;
+
+		return start(cursorCenter)
+			._((pos) => addV2(pos, camera.position))
+			._((pos) => scalarMulV2(pos, 1 / camera.zoom.linear)).value;
+	};
+
+	const moveEvent = ([x, y]: Vector2) => {};
 
 	return (
 		<div
@@ -61,6 +145,9 @@ function App() {
 			}}
 		>
 			<svg
+				onMouseDown={(e) => {
+					deactivateAllCircles();
+				}}
 				ref={(ref) => {
 					if (ref === null) {
 						return;
@@ -128,6 +215,12 @@ function App() {
 					box-sizing: border-box;
 					width: 100vw;
 					height: 100vh;
+					text {
+						-webkit-user-select: none;
+						-moz-user-select: none;
+						-ms-user-select: none;
+						user-select: none;
+					}
 				`}
 			>
 				<Compute>
@@ -141,60 +234,82 @@ function App() {
 							clientRect.height,
 						] satisfies Vector2;
 
-						const transform = translate2D(hadamardV2(svgDimensions, [0.5, 0.5]))
-							.multiply(scale2D([1, -1]))
-							.multiply(translate2D(scalarMulV2(camera.position, -1)))
-							.multiply(scale2D([camera.zoom.linear, camera.zoom.linear]));
+						const transform = getTransform();
 
 						return (
 							<>
-								{circles.map(
-									({ position: [x, y], color, name, isActive }, i) => (
-										<Compute key={i.toString()}>
-											{() => {
-												const coordinates = (
-													transform
-														.multiply(array([[x], [y], [1]]))
-														.toArray() as number[][]
-												).flat();
+								{circles.map(({ position: [x, y], color, name, state }, i) => (
+									<Compute key={i.toString()}>
+										{() => {
+											const onMouseDown = (e: {
+												stopPropagation: () => void;
+											}) => {
+												e.stopPropagation();
+												circleMouseDown(i);
+											};
 
-												console.assert(
-													coordinates.length >= 2,
-													"Expected to get a 3d vector, but got something else"
-												);
-												const [xt, yt] = coordinates;
+											const onMouseUp = (e: {
+												stopPropagation: () => void;
+											}) => {
+												e.stopPropagation();
+												circleMouseUp(i);
+											};
 
-												return (
-													<>
-														<circle
-															onClick={() => {
-																activateCircle(i);
-															}}
-															fill={"white"}
-															stroke={color}
-															strokeWidth={`${
-																camera.zoom.linear * 3 * (isActive ? 2 : 1)
-															}`}
-															cx={xt}
-															cy={yt}
-															r={`${camera.zoom.linear * 20}`}
-														/>
-														<text
-															x={`${xt + 0.25 * camera.zoom.linear}`}
-															y={`${yt + 1.5 * camera.zoom.linear}`}
-															fill={color}
-															fontSize={`${camera.zoom.linear}em`}
-															dominant-baseline="middle"
-															textAnchor="middle"
-														>
-															{name}
-														</text>
-													</>
-												);
-											}}
-										</Compute>
-									)
-								)}
+											const coordinates = (
+												transform
+													.multiply(array([[x], [y], [1]]))
+													.toArray() as number[][]
+											).flat();
+
+											console.assert(
+												coordinates.length >= 2,
+												"Expected to get a 3d vector, but got something else"
+											);
+											const [xt, yt] = coordinates;
+
+											const isActive = (state: CircleState): boolean => {
+												switch (state) {
+													case "ACTIVE":
+													case "MOVING":
+													case "PREACTIVE":
+													case "PRE_DEACTIVATE":
+														return true;
+													case "INACTIVE":
+														return false;
+												}
+											};
+
+											return (
+												<>
+													<circle
+														onMouseDown={onMouseDown}
+														onMouseUp={onMouseUp}
+														fill={"white"}
+														stroke={color}
+														strokeWidth={`${
+															camera.zoom.linear * 3 * (isActive(state) ? 2 : 1)
+														}`}
+														cx={xt}
+														cy={yt}
+														r={`${camera.zoom.linear * 20}`}
+													/>
+													<text
+														onMouseDown={onMouseDown}
+														onMouseUp={onMouseUp}
+														x={`${xt}`}
+														y={`${yt + 1.75 * camera.zoom.linear}`}
+														fill={color}
+														fontSize={`${camera.zoom.linear}em`}
+														dominantBaseline="middle"
+														textAnchor="middle"
+													>
+														{name}
+													</text>
+												</>
+											);
+										}}
+									</Compute>
+								))}
 
 								<Compute>
 									{() => {
@@ -210,6 +325,7 @@ function App() {
 
 										return (
 											<text
+												pointerEvents={"none"}
 												x={`${mousePosition[0] + 50}`}
 												y={`${mousePosition[1]}`}
 											>
