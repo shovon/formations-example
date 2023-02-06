@@ -14,6 +14,7 @@ import {
 	sub as sub2,
 	add as add2,
 	distance as distance2,
+	equals as equals2,
 } from "./vector2";
 import { Compute } from "./Compute";
 import { start } from "./pipe";
@@ -89,6 +90,8 @@ function App() {
 			circles.map((c, i) => {
 				if (i !== index) return c;
 
+				console.log(c.state);
+
 				switch (c.state) {
 					case "INACTIVE":
 						return c;
@@ -138,19 +141,12 @@ function App() {
 	};
 
 	const getCollidingCircle = (): [number, Circle] | null => {
-		const transform = getTransform();
 		const cursorPosition = getCursorPosition();
 
 		for (const [i, circle] of circles.entries()) {
-			const circlePosition = (
-				array([[...circle.position, 1]])
-					.multiply(transform)
-					.toArray() as number[][]
-			).flat() as [number, number];
-
 			const radius = CIRCLE_RADIUS * camera.zoom.linear;
 
-			if (distance2(cursorPosition, circlePosition) < radius) {
+			if (distance2(cursorPosition, circle.position) < radius) {
 				return [i, circle];
 			}
 		}
@@ -284,11 +280,13 @@ function App() {
 						const rectPos = [rect.left, rect.top] satisfies Vector2;
 						const clientXY = [e.clientX, e.clientY] satisfies Vector2;
 
-						mousePositionRef.current = sub2(clientXY, rectPos);
+						const newMousePosition = sub2(clientXY, rectPos);
+						if (!equals2(newMousePosition, mousePositionRef.current)) {
+							mousePositionRef.current = newMousePosition;
+							setMousePosition(mousePositionRef.current);
 
-						setMousePosition(mousePositionRef.current);
-
-						moveEvent([e.movementX, e.movementY]);
+							moveEvent([e.movementX, e.movementY]);
+						}
 					}
 				}}
 				className={css`
@@ -323,20 +321,6 @@ function App() {
 								{circles.map(({ position: [x, y], color, name, state }, i) => (
 									<Compute key={i.toString()}>
 										{() => {
-											const onMouseDown = (e: {
-												stopPropagation: () => void;
-											}) => {
-												e.stopPropagation();
-												circleMouseDown(i);
-											};
-
-											const onMouseUp = (e: {
-												stopPropagation: () => void;
-											}) => {
-												e.stopPropagation();
-												circleMouseUp(i);
-											};
-
 											const coordinates = (
 												transform
 													.multiply(array([[x], [y], [1]]))

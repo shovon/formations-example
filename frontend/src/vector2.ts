@@ -26,3 +26,6 @@ export const distance = (a: Vector2, b: Vector2): number => {
 	const [x, y] = sub(a, b);
 	return (x ** 2 + y ** 2) ** (1 / 2);
 };
+
+export const equals = ([x1, y1]: Vector2, [x2, y2]: Vector2): boolean =>
+	x1 === x2 && y1 === y2;
