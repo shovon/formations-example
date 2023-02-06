@@ -135,7 +135,51 @@ function App() {
 			._((pos) => scalarMulV2(pos, 1 / camera.zoom.linear)).value;
 	};
 
-	const moveEvent = ([x, y]: Vector2) => {};
+	const moveEvent = ([dx, dy]: Vector2) => {
+		const delta = scalarMulV2([dx, -dy], 1 / camera.zoom.linear);
+
+		if (circles.some((c) => c.state === "PREACTIVE")) {
+			// when an inactive item is being moved…
+			//
+			// all the other active items will become inactive and only move that one
+			// newly inactive item
+
+			const index = circles.findIndex((c) => c.state === "PREACTIVE");
+			setCircles(
+				circles.map((c, i) =>
+					i !== index
+						? { ...c, state: "INACTIVE" }
+						: { ...c, state: "MOVING", position: addV2(c.position, delta) }
+				)
+			);
+		} else if (
+			circles.some((c) => c.state === "MOVING" || c.state === "PRE_DEACTIVATE")
+		) {
+			// when an active item is being moved…
+			//
+			// all active items will remain active, and move
+
+			console.log("Trying to move");
+
+			setCircles(
+				circles.map((c) => {
+					switch (c.state) {
+						case "ACTIVE":
+						case "MOVING":
+						case "PREACTIVE":
+						case "PRE_DEACTIVATE":
+							return {
+								...c,
+								state: "MOVING",
+								position: addV2(c.position, delta),
+							};
+						case "INACTIVE":
+							return c;
+					}
+				})
+			);
+		}
+	};
 
 	return (
 		<div
@@ -147,6 +191,8 @@ function App() {
 			<svg
 				onMouseDown={(e) => {
 					deactivateAllCircles();
+
+					// TODO: this is where we handle the edge case when the mouses up
 				}}
 				ref={(ref) => {
 					if (ref === null) {
@@ -207,6 +253,8 @@ function App() {
 						mousePositionRef.current = subV2(clientXY, rectPos);
 
 						setMousePosition(mousePositionRef.current);
+
+						moveEvent([e.movementX, e.movementY]);
 					}
 				}}
 				className={css`
