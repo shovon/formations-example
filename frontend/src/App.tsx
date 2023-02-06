@@ -144,9 +144,10 @@ function App() {
 
 	const getCollidingCircle = (): [number, Circle] | null => {
 		const cursorPosition = getCursorPosition();
+		console.log(cursorPosition);
 
 		for (const [i, circle] of circles.entries()) {
-			const radius = CIRCLE_RADIUS * camera.zoom.linear;
+			const radius = CIRCLE_RADIUS;
 
 			if (distance2(cursorPosition, circle.position) < radius) {
 				return [i, circle];
