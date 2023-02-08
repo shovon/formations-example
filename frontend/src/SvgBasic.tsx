@@ -3,7 +3,7 @@ import { equals as equals2, sub as sub2, Vector2 } from "./vector2";
 
 export type SvgBasicProps = Omit<
 	React.SVGProps<SVGSVGElement>,
-	"onMouseUp" | "onWheel"
+	"onMouseUp" | "onWheel" | "onMouseMove"
 > & {
 	onMouseUp: () => void;
 	onWheel: (e: WheelEvent) => void;
@@ -13,6 +13,7 @@ export type SvgBasicProps = Omit<
 	// 	movementX: number;
 	// 	movementY: number;
 	// }) => void;
+	onMouseMove: (e: MouseEvent & { x: number; y: number }) => void;
 };
 
 export type SvgBasicObject = {
@@ -69,7 +70,15 @@ export const SvgBasic = forwardRef<SvgBasicObject, SvgBasicProps>(
 				onMouseDown={onMouseDown}
 				onMouseMove={(e) => {
 					if (svgRef.current) {
-						onMouseMove?.(e);
+						const rect = svgRef.current.getBoundingClientRect();
+						const rectPos = [rect.left, rect.top] satisfies Vector2;
+						const clientXY = [e.clientX, e.clientY] satisfies Vector2;
+
+						const [x, y] = sub2(clientXY, rectPos);
+
+						const evt = { ...e, x, y };
+
+						onMouseMove?.(evt);
 					}
 				}}
 				{...props}

@@ -261,13 +261,15 @@ function App() {
 
 					update();
 				}}
-				onMouseMove={(e) => {
+				onMouseMove={({ x, y, ...e }) => {
 					if (svgRef.current) {
 						const rect = svgRef.current.getBoundingClientRect();
 						const rectPos = [rect.left, rect.top] satisfies Vector2;
 						const clientXY = [e.clientX, e.clientY] satisfies Vector2;
 
-						const newMousePosition = sub2(clientXY, rectPos);
+						// const newMousePosition = sub2(clientXY, rectPos);
+						const newMousePosition = [x, y] satisfies [number, number];
+
 						if (!equals2(newMousePosition, mousePositionRef.current)) {
 							mousePositionRef.current = newMousePosition;
 							setMousePosition(mousePositionRef.current);
