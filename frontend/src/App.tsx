@@ -20,6 +20,7 @@ import { Compute } from "./Compute";
 import { start } from "./pipe";
 import { scale2D, translate2D } from "./matrix";
 import { array } from "vectorious";
+import { SvgBasic } from "./SvgBasic";
 
 const CIRCLE_RADIUS = 20;
 
@@ -219,7 +220,7 @@ function App() {
 
 	return (
 		<div>
-			<svg
+			<SvgBasic
 				onMouseDown={() => {
 					const indexCircle = getCollidingCircle();
 					if (indexCircle) {
@@ -397,7 +398,7 @@ function App() {
 				<text x="10" y="20">{`(${camera.position[0] / camera.zoom.linear}, ${
 					camera.position[1] / camera.zoom.linear
 				})`}</text>
-			</svg>
+			</SvgBasic>
 
 			<div
 				className={css`
