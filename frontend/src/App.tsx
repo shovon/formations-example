@@ -283,92 +283,81 @@ function App() {
 					}
 				`}
 			>
-				<Compute>
-					{() => {
-						const svg = svgRef.current;
-						if (!svg) return null;
+				<>
+					{circles
+						.slice()
+						.reverse()
+						.map(({ position: [x, y], color, name, state }, i) => (
+							<Compute key={i.toString()}>
+								{() => {
+									const coordinates = (
+										getTransform()
+											.multiply(array([[x], [y], [1]]))
+											.toArray() as number[][]
+									).flat();
 
-						return (
-							<>
-								{circles
-									.slice()
-									.reverse()
-									.map(({ position: [x, y], color, name, state }, i) => (
-										<Compute key={i.toString()}>
-											{() => {
-												const coordinates = (
-													getTransform()
-														.multiply(array([[x], [y], [1]]))
-														.toArray() as number[][]
-												).flat();
+									console.assert(
+										coordinates.length >= 2,
+										"Expected to get a 3d vector, but got something else"
+									);
+									const [xt, yt] = coordinates;
 
-												console.assert(
-													coordinates.length >= 2,
-													"Expected to get a 3d vector, but got something else"
-												);
-												const [xt, yt] = coordinates;
+									const isActive = (state: CircleState): boolean => {
+										switch (state) {
+											case "ACTIVE":
+											case "MOVING":
+											case "PREACTIVE":
+											case "PRE_DEACTIVATE":
+												return true;
+											case "INACTIVE":
+												return false;
+										}
+									};
 
-												const isActive = (state: CircleState): boolean => {
-													switch (state) {
-														case "ACTIVE":
-														case "MOVING":
-														case "PREACTIVE":
-														case "PRE_DEACTIVATE":
-															return true;
-														case "INACTIVE":
-															return false;
-													}
-												};
-
-												return (
-													<>
-														<circle
-															fill={"white"}
-															stroke={color}
-															strokeWidth={`${
-																camera.zoom.linear *
-																3 *
-																(isActive(state) ? 2 : 1)
-															}`}
-															cx={xt}
-															cy={yt}
-															r={`${camera.zoom.linear * 20}`}
-														/>
-														<text
-															x={`${xt}`}
-															y={`${yt + 1.75 * camera.zoom.linear}`}
-															fill={color}
-															fontSize={`${camera.zoom.linear}em`}
-															dominantBaseline="middle"
-															textAnchor="middle"
-														>
-															{name}
-														</text>
-													</>
-												);
-											}}
-										</Compute>
-									))}
-
-								<Compute>
-									{() => {
-										const cursorPosition = getCursorPosition();
-
-										return (
+									return (
+										<>
+											<circle
+												fill={"white"}
+												stroke={color}
+												strokeWidth={`${
+													camera.zoom.linear * 3 * (isActive(state) ? 2 : 1)
+												}`}
+												cx={xt}
+												cy={yt}
+												r={`${camera.zoom.linear * 20}`}
+											/>
 											<text
-												pointerEvents={"none"}
-												x={`${mousePosition[0] + 50}`}
-												y={`${mousePosition[1]}`}
+												x={`${xt}`}
+												y={`${yt + 1.75 * camera.zoom.linear}`}
+												fill={color}
+												fontSize={`${camera.zoom.linear}em`}
+												dominantBaseline="middle"
+												textAnchor="middle"
 											>
-												{`(${cursorPosition[0]}, ${cursorPosition[1]})`}
+												{name}
 											</text>
-										);
-									}}
-								</Compute>
-							</>
-						);
-					}}
-				</Compute>
+										</>
+									);
+								}}
+							</Compute>
+						))}
+
+					<Compute>
+						{() => {
+							const cursorPosition = getCursorPosition();
+
+							return (
+								<text
+									pointerEvents={"none"}
+									x={`${mousePosition[0] + 50}`}
+									y={`${mousePosition[1]}`}
+								>
+									{`(${cursorPosition[0]}, ${cursorPosition[1]})`}
+								</text>
+							);
+						}}
+					</Compute>
+				</>
 
 				<text x="10" y="20">{`(${camera.position[0] / camera.zoom.linear}, ${
 					camera.position[1] / camera.zoom.linear

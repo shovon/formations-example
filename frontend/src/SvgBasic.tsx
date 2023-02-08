@@ -7,7 +7,9 @@ export type SvgBasicProps = Omit<
 > & {
 	onMouseUp: () => void;
 	onWheel: (e: WheelEvent) => void;
-	onMouseMove: (e: MouseEvent & { x: number; y: number }) => void;
+	onMouseMove: (
+		e: React.MouseEvent<SVGSVGElement, MouseEvent> & { x: number; y: number }
+	) => void;
 };
 
 export type SvgBasicObject = {
