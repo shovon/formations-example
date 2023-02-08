@@ -7,12 +7,6 @@ export type SvgBasicProps = Omit<
 > & {
 	onMouseUp: () => void;
 	onWheel: (e: WheelEvent) => void;
-	// onMouseMove: (e: {
-	// 	x: number;
-	// 	y: number;
-	// 	movementX: number;
-	// 	movementY: number;
-	// }) => void;
 	onMouseMove: (e: MouseEvent & { x: number; y: number }) => void;
 };
 

@@ -221,10 +221,8 @@ function App() {
 					}
 				}}
 				onWheel={(e) => {
-					if (!svgRef.current) return;
-
-					const rect = svgRef.current.getBoundingClientRect();
-					const dimensions = [rect.width, rect.height] satisfies Vector2;
+					const [x, y] = getSvgDimensions();
+					const dimensions = [x, y] satisfies Vector2;
 
 					if (e.ctrlKey) {
 						const newZoom = camera.zoom.addLogarithmic(-e.deltaY * 0.01);
