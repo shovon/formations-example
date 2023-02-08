@@ -20,7 +20,7 @@ import { Compute } from "./Compute";
 import { start } from "./pipe";
 import { scale2D, translate2D } from "./matrix";
 import { array } from "vectorious";
-import { SvgBasic, SvgBasicObject } from "./SvgBasic";
+import { SvgWrapper, SvgWrapperObject } from "./svg-wrapper";
 
 const CIRCLE_RADIUS = 20;
 
@@ -36,7 +36,7 @@ function App() {
 		zoom: LogarithmicValue.logarithmic(0),
 		position: [0, 0],
 	});
-	const svgRef = useRef<SvgBasicObject | null>(null);
+	const drawingAreaRef = useRef<SvgWrapperObject | null>(null);
 	const mousePositionRef = useRef<Vector2>([0, 0]);
 	const [mousePosition, setMousePosition] = useState<[number, number]>([0, 0]);
 	const [, update] = useReducer(() => ({}), {});
@@ -115,7 +115,7 @@ function App() {
 	};
 
 	const getSvgDimensions = () => {
-		const svg = svgRef.current;
+		const svg = drawingAreaRef.current;
 		const clientRect = svg
 			? svg.getBoundingClientRect()
 			: { width: 1, height: 1 };
@@ -201,7 +201,7 @@ function App() {
 
 	return (
 		<div>
-			<SvgBasic
+			<SvgWrapper
 				onMouseUp={() => {
 					const indexCircle = getCollidingCircle();
 
@@ -252,8 +252,8 @@ function App() {
 					if (ref === null) {
 						return;
 					}
-					const currentRef = svgRef.current;
-					svgRef.current = ref;
+					const currentRef = drawingAreaRef.current;
+					drawingAreaRef.current = ref;
 
 					if (currentRef === ref) return;
 
@@ -362,7 +362,7 @@ function App() {
 				<text x="10" y="20">{`(${camera.position[0] / camera.zoom.linear}, ${
 					camera.position[1] / camera.zoom.linear
 				})`}</text>
-			</SvgBasic>
+			</SvgWrapper>
 
 			<div
 				className={css`

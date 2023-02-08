@@ -1,98 +1,76 @@
-import React, { useCallback, useEffect, useReducer, useRef } from "react";
+import { forwardRef, useEffect, useRef } from "react";
 import { sub as sub2, Vector2 } from "./vector2";
+import { WithBoundingClientRect } from "./with-bounding-client-rect";
 
-type SvgWrapperProps = Omit<
+export type SvgWrapperProps = Omit<
 	React.SVGProps<SVGSVGElement>,
-	"onMouseDown" | "onMouseMove" | "onMouseUp"
+	"onMouseUp" | "onWheel" | "onMouseMove"
 > & {
-	onMouseDown?: () => void;
-	onMouseMove?: (props: {
-		x: number;
-		y: number;
-		movementX: number;
-		movementY: number;
-	}) => void;
-	onMouseUp?: () => void;
-	onWheel?: (props: {
-		deltaX: number;
-		deltaY: number;
-		ctrlKey: boolean;
-	}) => void;
+	onMouseUp: () => void;
+	onWheel: (e: WheelEvent) => void;
+	onMouseMove: (
+		e: React.MouseEvent<SVGSVGElement, MouseEvent> & { x: number; y: number }
+	) => void;
 };
 
-export function SvgWrapper({
-	onMouseDown,
-	onMouseMove,
-	onMouseUp,
-	onWheel,
-	...svgProps
-}: SvgWrapperProps) {
-	const svgRef = useRef<SVGSVGElement | null>(null);
-	const onWheelCallback = useCallback(
-		(e: WheelEvent) => {
-			e.preventDefault();
+export type SvgWrapperObject = WithBoundingClientRect;
 
-			if (!svgRef.current) return;
+export const SvgWrapper = forwardRef<SvgWrapperObject, SvgWrapperProps>(
+	(
+		{ onMouseDown, onMouseMove, onMouseUp, onWheel, ...props },
+		forwardedRef
+	) => {
+		const svgRef = useRef<SVGSVGElement | null>(null);
 
-			(onWheel || (() => {}))(e);
-		},
-		[onWheel]
-	);
-	const [, update] = useReducer(() => ({}), {});
+		useEffect(() => {
+			document.addEventListener("mouseup", onMouseUp);
 
-	useEffect(() => {
-		const listener = onMouseUp || (() => {});
-		document.addEventListener("mouseup", onMouseUp || listener);
+			return () => {
+				document.removeEventListener("mouseup", onMouseUp);
+			};
+		}, [onMouseUp]);
 
-		return () => {
-			document.removeEventListener("mouseup", listener);
-		};
-	});
+		return (
+			<svg
+				ref={(ref) => {
+					if (typeof forwardedRef === "function") {
+						forwardedRef(ref);
+					} else if (forwardedRef) {
+						forwardedRef.current = ref;
+					}
+					if (ref === null) {
+						return;
+					}
+					svgRef.current = ref;
 
-	useEffect(() => {
-		return () => {
-			if (!svgRef.current) return;
+					svgRef.current.addEventListener(
+						"wheel",
+						(e) => {
+							e.preventDefault();
 
-			svgRef.current.removeEventListener("wheel", onWheelCallback);
-		};
-	}, [onWheel]);
+							if (!svgRef.current) return;
 
-	return (
-		<svg
-			ref={(ref) => {
-				if (ref === null) {
-					return;
-				}
-				const currentRef = svgRef.current;
-				svgRef.current = ref;
+							if (onWheel) onWheel(e as any as WheelEvent);
+						},
+						{ passive: false }
+					);
+				}}
+				onMouseDown={onMouseDown}
+				onMouseMove={(e) => {
+					if (svgRef.current) {
+						const rect = svgRef.current.getBoundingClientRect();
+						const rectPos = [rect.left, rect.top] satisfies Vector2;
+						const clientXY = [e.clientX, e.clientY] satisfies Vector2;
 
-				svgRef.current.addEventListener("wheel", onWheelCallback, {
-					passive: false,
-				});
+						const [x, y] = sub2(clientXY, rectPos);
 
-				if (currentRef === ref) return;
+						const evt = { ...e, x, y };
 
-				update();
-			}}
-			onMouseDown={() => {
-				(onMouseDown || (() => {}))();
-			}}
-			onMouseMove={(e) => {
-				if (svgRef.current) {
-					const rect = svgRef.current.getBoundingClientRect();
-					const rectPos = [rect.left, rect.top] satisfies Vector2;
-					const clientXY = [e.clientX, e.clientY] satisfies Vector2;
-
-					const [x, y] = sub2(clientXY, rectPos);
-					(onMouseMove || (() => {}))({
-						x,
-						y,
-						movementX: e.movementX,
-						movementY: e.movementY,
-					});
-				}
-			}}
-			{...svgProps}
-		/>
-	);
-}
+						onMouseMove?.(evt);
+					}
+				}}
+				{...props}
+			></svg>
+		);
+	}
+);
