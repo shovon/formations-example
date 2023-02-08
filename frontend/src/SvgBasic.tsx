@@ -1,10 +1,32 @@
 import { forwardRef, useEffect, useRef } from "react";
+import { equals as equals2, sub as sub2, Vector2 } from "./vector2";
 
-export type SvgBasicProps = Omit<React.SVGProps<SVGSVGElement>, "onMouseUp"> & {
+export type SvgBasicProps = Omit<
+	React.SVGProps<SVGSVGElement>,
+	"onMouseUp" | "onWheel"
+> & {
 	onMouseUp: () => void;
+	onWheel: (e: WheelEvent) => void;
+	// onMouseMove: (e: {
+	// 	x: number;
+	// 	y: number;
+	// 	movementX: number;
+	// 	movementY: number;
+	// }) => void;
 };
 
-export const SvgBasic = forwardRef<SVGSVGElement, SvgBasicProps>(
+export type SvgBasicObject = {
+	getBoundingClientRect(): {
+		left: number;
+		top: number;
+		right: number;
+		bottom: number;
+		width: number;
+		height: number;
+	};
+};
+
+export const SvgBasic = forwardRef<SvgBasicObject, SvgBasicProps>(
 	(
 		{ onMouseDown, onMouseMove, onMouseUp, onWheel, ...props },
 		forwardedRef
@@ -45,7 +67,9 @@ export const SvgBasic = forwardRef<SVGSVGElement, SvgBasicProps>(
 					);
 				}}
 				onMouseDown={onMouseDown}
-				onMouseMove={onMouseMove}
+				onMouseMove={(e) => {
+					onMouseMove?.(e);
+				}}
 				{...props}
 			></svg>
 		);

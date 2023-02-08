@@ -20,7 +20,7 @@ import { Compute } from "./Compute";
 import { start } from "./pipe";
 import { scale2D, translate2D } from "./matrix";
 import { array } from "vectorious";
-import { SvgBasic } from "./SvgBasic";
+import { SvgBasic, SvgBasicObject } from "./SvgBasic";
 
 const CIRCLE_RADIUS = 20;
 
@@ -36,7 +36,7 @@ function App() {
 		zoom: LogarithmicValue.logarithmic(0),
 		position: [0, 0],
 	});
-	const svgRef = useRef<SVGSVGElement | null>(null);
+	const svgRef = useRef<SvgBasicObject | null>(null);
 	const mousePositionRef = useRef<Vector2>([0, 0]);
 	const [mousePosition, setMousePosition] = useState<[number, number]>([0, 0]);
 	const [, update] = useReducer(() => ({}), {});
