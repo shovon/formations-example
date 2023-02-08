@@ -1,5 +1,5 @@
 import { forwardRef, useEffect, useRef } from "react";
-import { equals as equals2, sub as sub2, Vector2 } from "./vector2";
+import { sub as sub2, Vector2 } from "./vector2";
 
 export type SvgBasicProps = Omit<
 	React.SVGProps<SVGSVGElement>,
