@@ -262,15 +262,13 @@ function App() {
 					update();
 				}}
 				onMouseMove={({ x, y, ...e }) => {
-					if (svgRef.current) {
-						const newMousePosition = [x, y] satisfies [number, number];
+					const newMousePosition = [x, y] satisfies [number, number];
 
-						if (!equals2(newMousePosition, mousePositionRef.current)) {
-							mousePositionRef.current = newMousePosition;
-							setMousePosition(mousePositionRef.current);
+					if (!equals2(newMousePosition, mousePositionRef.current)) {
+						mousePositionRef.current = newMousePosition;
+						setMousePosition(mousePositionRef.current);
 
-							moveEvent([e.movementX, e.movementY]);
-						}
+						moveEvent([e.movementX, e.movementY]);
 					}
 				}}
 				className={css`
