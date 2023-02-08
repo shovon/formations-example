@@ -199,28 +199,19 @@ function App() {
 		}
 	};
 
-	const onMouseUp = () => {
-		const indexCircle = getCollidingCircle();
-
-		if (indexCircle) {
-			const [index] = indexCircle;
-			circleMouseUp(index);
-		} else {
-			deactivateAllCircles();
-		}
-	};
-
-	useEffect(() => {
-		document.addEventListener("mouseup", onMouseUp);
-
-		return () => {
-			document.removeEventListener("mouseup", onMouseUp);
-		};
-	}, [circles]);
-
 	return (
 		<div>
 			<SvgBasic
+				onMouseUp={() => {
+					const indexCircle = getCollidingCircle();
+
+					if (indexCircle) {
+						const [index] = indexCircle;
+						circleMouseUp(index);
+					} else {
+						deactivateAllCircles();
+					}
+				}}
 				onMouseDown={() => {
 					const indexCircle = getCollidingCircle();
 					if (indexCircle) {
