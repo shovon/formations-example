@@ -220,51 +220,42 @@ function App() {
 						return;
 					}
 				}}
+				onWheel={(e) => {
+					if (!svgRef.current) return;
+
+					const rect = svgRef.current.getBoundingClientRect();
+					const dimensions = [rect.width, rect.height] satisfies Vector2;
+
+					if (e.ctrlKey) {
+						const newZoom = camera.zoom.addLogarithmic(-e.deltaY * 0.01);
+
+						const cursorCenter = start(mousePosition)
+							._((pos) => sub2(pos, scalarMul2(dimensions, 0.5)))
+							._((pos) => hadamard2(pos, [1, -1])).value;
+
+						const newCameraPosition = start(cursorCenter)
+							._((pos) => add2(pos, camera.position))
+							._((pos) => scalarMul2(pos, newZoom.linear / camera.zoom.linear))
+							._((pos) => sub2(pos, cursorCenter)).value;
+
+						updateCamera({
+							zoom: newZoom,
+							position: newCameraPosition,
+						});
+					} else {
+						const delta = [e.deltaX, -e.deltaY] satisfies Vector2;
+
+						updateCamera({
+							position: add2(camera.position, delta),
+						});
+					}
+				}}
 				ref={(ref) => {
 					if (ref === null) {
 						return;
 					}
 					const currentRef = svgRef.current;
 					svgRef.current = ref;
-
-					svgRef.current.addEventListener(
-						"wheel",
-						(e) => {
-							e.preventDefault();
-
-							if (!svgRef.current) return;
-
-							const rect = svgRef.current.getBoundingClientRect();
-							const dimensions = [rect.width, rect.height] satisfies Vector2;
-
-							if (e.ctrlKey) {
-								const newZoom = camera.zoom.addLogarithmic(-e.deltaY * 0.01);
-
-								const cursorCenter = start(mousePosition)
-									._((pos) => sub2(pos, scalarMul2(dimensions, 0.5)))
-									._((pos) => hadamard2(pos, [1, -1])).value;
-
-								const newCameraPosition = start(cursorCenter)
-									._((pos) => add2(pos, camera.position))
-									._((pos) =>
-										scalarMul2(pos, newZoom.linear / camera.zoom.linear)
-									)
-									._((pos) => sub2(pos, cursorCenter)).value;
-
-								updateCamera({
-									zoom: newZoom,
-									position: newCameraPosition,
-								});
-							} else {
-								const delta = [e.deltaX, -e.deltaY] satisfies Vector2;
-
-								updateCamera({
-									position: add2(camera.position, delta),
-								});
-							}
-						},
-						{ passive: false }
-					);
 
 					if (currentRef === ref) return;
 
