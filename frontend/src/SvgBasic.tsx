@@ -68,7 +68,9 @@ export const SvgBasic = forwardRef<SvgBasicObject, SvgBasicProps>(
 				}}
 				onMouseDown={onMouseDown}
 				onMouseMove={(e) => {
-					onMouseMove?.(e);
+					if (svgRef.current) {
+						onMouseMove?.(e);
+					}
 				}}
 				{...props}
 			></svg>
