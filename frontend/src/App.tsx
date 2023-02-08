@@ -20,7 +20,7 @@ import { Compute } from "./Compute";
 import { start } from "./pipe";
 import { scale2D, translate2D } from "./matrix";
 import { array } from "vectorious";
-import { SvgWrapper, SvgWrapperObject } from "./svg-wrapper";
+import { SvgWrapper, SvgWrapperObject } from "./SvgWrapper";
 
 const CIRCLE_RADIUS = 20;
 
@@ -114,7 +114,7 @@ function App() {
 		setCircles(circles.map((c) => ({ ...c, state: "INACTIVE" })));
 	};
 
-	const getSvgDimensions = () => {
+	const getDrawingAreaDimensions = () => {
 		const svg = drawingAreaRef.current;
 		const clientRect = svg
 			? svg.getBoundingClientRect()
@@ -123,15 +123,15 @@ function App() {
 	};
 
 	const getTransform = () => {
-		const svgDimensions = getSvgDimensions();
-		return translate2D(hadamard2(svgDimensions, [0.5, 0.5]))
+		const drawingAreaDimensions = getDrawingAreaDimensions();
+		return translate2D(hadamard2(drawingAreaDimensions, [0.5, 0.5]))
 			.multiply(scale2D([1, -1]))
 			.multiply(translate2D(scalarMul2(camera.position, -1)))
 			.multiply(scale2D([camera.zoom.linear, camera.zoom.linear]));
 	};
 
 	const getCursorPosition = () => {
-		const svgDimensions = getSvgDimensions();
+		const svgDimensions = getDrawingAreaDimensions();
 
 		const cursorCenter = start(mousePositionRef.current)
 			._((pos) => sub2(pos, scalarMul2(svgDimensions, 0.5)))
@@ -221,7 +221,7 @@ function App() {
 					}
 				}}
 				onWheel={(e) => {
-					const [x, y] = getSvgDimensions();
+					const [x, y] = getDrawingAreaDimensions();
 					const dimensions = [x, y] satisfies Vector2;
 
 					if (e.ctrlKey) {
