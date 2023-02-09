@@ -236,6 +236,8 @@ function App() {
 						const [index] = indexCircle;
 						circleMouseUp(index);
 					}
+
+					setGlobalMouseState({ type: "MOUSE_INACTIVE" });
 				}}
 				onMouseDown={() => {
 					const indexCircle = getCollidingCircle();
@@ -418,6 +420,26 @@ function App() {
 								</>
 							);
 						})}
+
+					{(() => {
+						if (globalMouseState.type === "MOUSE_INACTIVE") return null;
+
+						const { startPosition } = globalMouseState;
+						const endPosition = mousePositionRef.current;
+
+						const width = Math.abs(startPosition[0] - endPosition[0]);
+						const height = Math.abs(startPosition[1] - endPosition[1]);
+
+						return (
+							<rect
+								x={`${globalMouseState.startPosition[0]}`}
+								y={`${globalMouseState.startPosition[1]}`}
+								width={width}
+								height={height}
+								style={{ fill: "#5566ff", fillOpacity: 0.5 }}
+							/>
+						);
+					})()}
 
 					{(() => {
 						const cursorPosition = getCursorPosition();
