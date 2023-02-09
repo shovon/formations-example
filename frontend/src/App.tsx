@@ -402,7 +402,7 @@ function App() {
 					{circles
 						.slice()
 						.reverse()
-						.map(({ position: [x, y], color, name, state }) => {
+						.map(({ position: [x, y], color, name, state }, i) => {
 							const coordinates = (
 								getTransform()
 									.multiply(array([[x], [y], [1]]))
@@ -428,7 +428,7 @@ function App() {
 							};
 
 							return (
-								<>
+								<g key={i}>
 									{isActive(state) ? (
 										<circle
 											stroke="black"
@@ -457,7 +457,7 @@ function App() {
 									>
 										{name}
 									</text>
-								</>
+								</g>
 							);
 						})}
 
