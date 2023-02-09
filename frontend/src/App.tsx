@@ -222,8 +222,6 @@ function App() {
 					if (indexCircle) {
 						const [index] = indexCircle;
 						circleMouseUp(index);
-					} else {
-						deactivateAllCircles();
 					}
 				}}
 				onMouseDown={() => {
@@ -232,6 +230,8 @@ function App() {
 						const [index] = indexCircle;
 						circleMouseDown(index);
 						return;
+					} else {
+						deactivateAllCircles();
 					}
 				}}
 				onWheel={(e) => {
