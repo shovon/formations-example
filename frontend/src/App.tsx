@@ -432,8 +432,14 @@ function App() {
 
 						return (
 							<rect
-								x={`${globalMouseState.startPosition[0]}`}
-								y={`${globalMouseState.startPosition[1]}`}
+								x={`${Math.min(
+									globalMouseState.startPosition[0],
+									endPosition[0]
+								)}`}
+								y={`${Math.min(
+									globalMouseState.startPosition[1],
+									endPosition[1]
+								)}`}
 								width={width}
 								height={height}
 								style={{ fill: "#5566ff", fillOpacity: 0.5 }}
