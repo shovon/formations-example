@@ -182,6 +182,46 @@ function App() {
 	};
 
 	const moveEvent = ([dx, dy]: Vector2) => {
+		if (globalMouseState.type === "MOUSE_ACTIVE") {
+			const topLeft = screenToSpace([
+				Math.min(
+					globalMouseState.startPosition[0],
+					mousePositionRef.current[0]
+				),
+				Math.min(
+					globalMouseState.startPosition[1],
+					mousePositionRef.current[1]
+				),
+			]);
+
+			const bottomRight = screenToSpace([
+				Math.max(
+					globalMouseState.startPosition[0],
+					mousePositionRef.current[0]
+				),
+				Math.max(
+					globalMouseState.startPosition[1],
+					mousePositionRef.current[1]
+				),
+			]);
+
+			setCircles(
+				circles.map((c) => {
+					if (
+						c.position[0] > topLeft[0] &&
+						c.position[0] < bottomRight[0] &&
+						c.position[1] < topLeft[1] &&
+						c.position[1] > bottomRight[1]
+					) {
+						return { ...c, state: "ACTIVE" };
+					}
+					return { ...c, state: "INACTIVE" };
+				})
+			);
+
+			return;
+		}
+
 		const delta = scalarMul2([dx, -dy], 1 / camera.zoom.linear);
 
 		if (circles.some((c) => c.state === "PREACTIVE")) {
