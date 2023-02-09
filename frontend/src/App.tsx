@@ -143,7 +143,7 @@ function App() {
 			._((pos) => scalarMul2(pos, 1 / camera.zoom.linear)).value;
 	};
 
-	const getViewporBounds = () => {
+	const getViewportBounds = () => {
 		const [width, height] = start(getDrawingAreaDimensions())._((d) =>
 			scalarMul2(d, 1 / camera.zoom.linear)
 		).value;
@@ -299,7 +299,7 @@ function App() {
 			>
 				<>
 					{(() => {
-						const { top, bottom } = getViewporBounds();
+						const { top, bottom } = getViewportBounds();
 
 						const [startX, startY] = start([0, top])._(([x, y]) =>
 							(
@@ -320,7 +320,7 @@ function App() {
 						return <path d={`M${startX} ${startY} V ${endY}`} stroke="black" />;
 					})()}
 					{(() => {
-						const { left, right } = getViewporBounds();
+						const { left, right } = getViewportBounds();
 
 						const [startX, startY] = start([left, 0])._(([x, y]) =>
 							(
@@ -330,7 +330,7 @@ function App() {
 							).flat()
 						).value;
 
-						const [, endY] = start([right, 0])._(([x, y]) =>
+						const [endX] = start([right, 0])._(([x, y]) =>
 							(
 								getTransform()
 									.multiply(array([[x], [y], [1]]))
@@ -338,7 +338,7 @@ function App() {
 							).flat()
 						).value;
 
-						return <path d={`M${startX} ${startY} H ${endY}`} stroke="black" />;
+						return <path d={`M${startX} ${startY} H ${endX}`} stroke="black" />;
 					})()}
 					{circles
 						.slice()
