@@ -35,7 +35,7 @@ type EditorProps = {
 		string,
 		{ position: Vector2; color: string; name: string }
 	>;
-	onPositionsChange?: () => void;
+	onPositionsChange?: (changes: ReadOnlyMap<number, Vector2>) => void;
 };
 
 export function Editor(props: EditorProps) {
@@ -66,93 +66,100 @@ export function Editor(props: EditorProps) {
 		| "MOVING";
 
 	type Circle = {
-		id: string;
 		position: Vector2;
 		color: string;
 		name: string;
 		state: CircleState;
 	};
 
-	type CirclesState = Circle[];
-
 	// TODO: move the circle storage logic to a separate class
-	const [circles, setCircles] = useState<CirclesState>([
-		{
-			id: "1",
-			state: "INACTIVE",
-			name: "A",
-			color: "red",
-			position: [-100, 100],
-		},
-		{
-			id: "2",
-			state: "INACTIVE",
-			name: "B",
-			color: "green",
-			position: [100, 100],
-		},
-		{
-			id: "3",
-			state: "INACTIVE",
-			name: "C",
-			color: "blue",
-			position: [-100, -100],
-		},
-		{
-			id: "4",
-			state: "INACTIVE",
-			name: "D",
-			color: "purple",
-			position: [100, -100],
-		},
-		{
-			id: "5",
-			state: "INACTIVE",
-			name: "E",
-			color: "orange",
-			position: [300, 0],
-		},
+	const [circles, setCircles] = useState<[string, Circle][]>([
+		[
+			"1",
+			{
+				state: "INACTIVE",
+				name: "A",
+				color: "red",
+				position: [-100, 100],
+			},
+		],
+		[
+			"2",
+			{
+				state: "INACTIVE",
+				name: "B",
+				color: "green",
+				position: [100, 100],
+			},
+		],
+		[
+			"3",
+			{
+				state: "INACTIVE",
+				name: "C",
+				color: "blue",
+				position: [-100, -100],
+			},
+		],
+		[
+			"4",
+			{
+				state: "INACTIVE",
+				name: "D",
+				color: "purple",
+				position: [100, -100],
+			},
+		],
+		[
+			"5",
+			{
+				state: "INACTIVE",
+				name: "E",
+				color: "orange",
+				position: [300, 0],
+			},
+		],
 	]);
 
-	const circleMouseDown = (index: number) => {
+	const circleMouseDown = (i: string) => {
 		setCircles(
-			circles.map((c, i) => {
-				if (i !== index) return c;
+			circles.map(([index, c]) => {
+				if (i !== index) return [index, c];
 
 				switch (c.state) {
 					case "INACTIVE":
-						return { ...c, state: "PREACTIVE" };
+						return [index, { ...c, state: "PREACTIVE" }];
 					case "ACTIVE":
-						return { ...c, state: "PRE_DEACTIVATE" };
+						return [index, { ...c, state: "PRE_DEACTIVATE" }];
 					case "PRE_DEACTIVATE":
 					case "PREACTIVE":
 					case "MOVING":
-						return c;
+						return [index, c];
 				}
 			})
 		);
 	};
 
-	const circleMouseUp = (index: number) => {
+	const circleMouseUp = (i: string) => {
 		setCircles(
-			circles.map((c, i) => {
+			circles.map(([index, c]) => {
 				if (i !== index) {
 					if (c.state === "MOVING") {
-						return { ...c, state: "ACTIVE" };
+						return [index, { ...c, state: "ACTIVE" }];
 					}
-					return c;
+					return [index, c];
 				}
 
 				switch (c.state) {
 					case "INACTIVE":
 					case "ACTIVE":
-						return c;
+						return [index, c];
 					case "PREACTIVE":
-						return { ...c, state: "ACTIVE" };
+						return [index, { ...c, state: "ACTIVE" }];
 					case "PRE_DEACTIVATE":
-						return { ...c, state: "INACTIVE" };
+						return [index, { ...c, state: "INACTIVE" }];
 					case "MOVING":
-						return { ...c, state: "ACTIVE" };
+						return [index, { ...c, state: "ACTIVE" }];
 				}
 			})
 		);
@@ -207,14 +214,14 @@ export function Editor(props: EditorProps) {
 		return { width, height, left, top, right, bottom };
 	};
 
-	const getCollidingCircle = (): [number, Circle] | null => {
+	const getCollidingCircle = (): [string, Circle] | null => {
 		const cursorPosition = getCursorPosition();
 
-		for (const [i, circle] of circles.entries()) {
+		for (const [, [index, circle]] of circles.entries()) {
 			const radius = CIRCLE_RADIUS;
 
 			if (distance2(cursorPosition, circle.position) < radius) {
-				return [i, circle];
+				return [index, circle];
 			}
 		}
 
@@ -246,16 +253,16 @@ export function Editor(props: EditorProps) {
 			]);
 
 			setCircles(
-				circles.map((c) => {
+				circles.map(([index, c]) => {
 					if (
 						c.position[0] > topLeft[0] &&
 						c.position[0] < bottomRight[0] &&
 						c.position[1] < topLeft[1] &&
 						c.position[1] > bottomRight[1]
 					) {
-						return { ...c, state: "ACTIVE" };
+						return [index, { ...c, state: "ACTIVE" }];
 					}
-					return { ...c, state: "INACTIVE" };
+					return [index, { ...c, state: "INACTIVE" }];
 				})
 			);
 
@@ -264,40 +271,51 @@ export function Editor(props: EditorProps) {
 
 		const delta = scalarMul2([dx, -dy], 1 / camera.zoom.linear);
 
-		if (circles.some((c) => c.state === "PREACTIVE")) {
+		if (circles.some(([, c]) => c.state === "PREACTIVE")) {
 			// when an inactive item is being moved…
 			//
 			// all the other active items will become inactive and only move that one
 			// newly inactive item
 
-			const index = circles.findIndex((c) => c.state === "PREACTIVE");
-			setCircles(
-				circles.map((c, i) =>
-					i !== index
-						? { ...c, state: "INACTIVE" }
-						: { ...c, state: "MOVING", position: add2(c.position, delta) }
-				)
-			);
+			const c = circles.find(([, c]) => c.state === "PREACTIVE");
+			if (c) {
+				const [index] = c;
+				setCircles(
+					circles.map(([i, c]) =>
+						i !== index
+							? [index, { ...c, state: "INACTIVE" }]
+							: [
+									index,
+									{ ...c, state: "MOVING", position: add2(c.position, delta) },
+							  ]
+					)
+				);
+			}
 		} else if (
-			circles.some((c) => c.state === "MOVING" || c.state === "PRE_DEACTIVATE")
+			circles.some(
+				([, c]) => c.state === "MOVING" || c.state === "PRE_DEACTIVATE"
+			)
 		) {
 			//
 			// all active items will remain active, and move
 
 			setCircles(
-				circles.map((c) => {
+				circles.map(([index, c]) => {
 					switch (c.state) {
 						case "ACTIVE":
 						case "PREACTIVE":
 						case "MOVING":
 						case "PRE_DEACTIVATE":
-							return {
-								...c,
-								state: "MOVING",
-								position: add2(c.position, delta),
-							};
+							return [
+								index,
+								{
+									...c,
+									state: "MOVING",
+									position: add2(c.position, delta),
+								},
+							];
 						case "INACTIVE":
-							return c;
+							return [index, c];
 					}
 				})
 			);
@@ -459,52 +477,65 @@ export function Editor(props: EditorProps) {
 								{circles
 									.slice()
 									.reverse()
-									.map(({ position: [x, y], color, name, state }, i) => {
-										const isActive = (state: CircleState): boolean => {
-											switch (state) {
-												case "ACTIVE":
-												case "MOVING":
-												case "PREACTIVE":
-												case "PRE_DEACTIVATE":
-													return true;
-												case "INACTIVE":
-													return false;
-											}
-										};
+									.map(
+										(
+											[
+												,
+												{
+													position: [x, y],
+													color,
+													name,
+													state,
+												},
+											],
+											i
+										) => {
+											const isActive = (state: CircleState): boolean => {
+												switch (state) {
+													case "ACTIVE":
+													case "MOVING":
+													case "PREACTIVE":
+													case "PRE_DEACTIVATE":
+														return true;
+													case "INACTIVE":
+														return false;
+												}
+											};
 
-										return (
-											<g key={i}>
-												{isActive(state) ? (
+											return (
+												<g key={i}>
+													{isActive(state) ? (
+														<circle
+															stroke="black"
+															fill="white"
+															strokeWidth={`${1}`}
+															cx={x}
+															cy={-y}
+															r={`${CIRCLE_RADIUS + 4}`}
+														></circle>
+													) : null}
 													<circle
-														stroke="black"
-														fill="white"
-														strokeWidth={`${1}`}
+														fill={"white"}
+														stroke={color}
+														strokeWidth={`3`}
 														cx={x}
 														cy={-y}
-														r={`${CIRCLE_RADIUS + 4}`}
-													></circle>
-												) : null}
-												<circle
-													fill={"white"}
-													stroke={color}
-													strokeWidth={`3`}
-													cx={x}
-													cy={-y}
-													r={`${CIRCLE_RADIUS}`}
-												/>
-												<text
-													x={`${x}`}
-													y={`${-y + 1.5}`}
-													fill={color}
-													fontSize={`${1}em`}
-													dominantBaseline="middle"
-													textAnchor="middle"
-												>
-													{name}
-												</text>
-											</g>
-										);
-									})}
+														r={`${CIRCLE_RADIUS}`}
+													/>
+													<text
+														x={`${x}`}
+														y={`${-y + 1.5}`}
+														fill={color}
+														fontSize={`${1}em`}
+														dominantBaseline="middle"
+														textAnchor="middle"
+													>
+														{name}
+													</text>
+												</g>
+											);
+										}
+									)}
 							</g>
 						);
 					})()}
