@@ -143,6 +143,19 @@ function App() {
 			._((pos) => scalarMul2(pos, 1 / camera.zoom.linear)).value;
 	};
 
+	const getViewporBounds = () => {
+		const [width, height] = start(getDrawingAreaDimensions())._((d) =>
+			scalarMul2(d, 1 / camera.zoom.linear)
+		).value;
+
+		const left = camera.position[0] - width / 2;
+		const top = camera.position[1] + height / 2;
+		const right = camera.position[0] + width / 2;
+		const bottom = camera.position[1] - height / 2;
+
+		return { width, height, left, top, right, bottom };
+	};
+
 	const getCollidingCircle = (): [number, Circle] | null => {
 		const cursorPosition = getCursorPosition();
 
@@ -285,10 +298,52 @@ function App() {
 				`}
 			>
 				<>
+					{(() => {
+						const { top, bottom } = getViewporBounds();
+
+						const [startX, startY] = start([0, top])._(([x, y]) =>
+							(
+								getTransform()
+									.multiply(array([[x], [y], [1]]))
+									.toArray() as number[][]
+							).flat()
+						).value;
+
+						const [, endY] = start([0, bottom])._(([x, y]) =>
+							(
+								getTransform()
+									.multiply(array([[x], [y], [1]]))
+									.toArray() as number[][]
+							).flat()
+						).value;
+
+						return <path d={`M${startX} ${startY} V ${endY}`} stroke="black" />;
+					})()}
+					{(() => {
+						const { left, right } = getViewporBounds();
+
+						const [startX, startY] = start([left, 0])._(([x, y]) =>
+							(
+								getTransform()
+									.multiply(array([[x], [y], [1]]))
+									.toArray() as number[][]
+							).flat()
+						).value;
+
+						const [, endY] = start([right, 0])._(([x, y]) =>
+							(
+								getTransform()
+									.multiply(array([[x], [y], [1]]))
+									.toArray() as number[][]
+							).flat()
+						).value;
+
+						return <path d={`M${startX} ${startY} H ${endY}`} stroke="black" />;
+					})()}
 					{circles
 						.slice()
 						.reverse()
-						.map(({ position: [x, y], color, name, state }, i) => {
+						.map(({ position: [x, y], color, name, state }) => {
 							const coordinates = (
 								getTransform()
 									.multiply(array([[x], [y], [1]]))
@@ -353,8 +408,8 @@ function App() {
 						return (
 							<text
 								pointerEvents={"none"}
-								x={`${mousePosition[0] + 50}`}
-								y={`${mousePosition[1]}`}
+								x={`${mousePositionRef.current[0] + 50}`}
+								y={`${mousePositionRef.current[1]}`}
 							>
 								{`(${cursorPosition[0]}, ${cursorPosition[1]})`}
 							</text>
