@@ -148,10 +148,12 @@ function App() {
 			scalarMul2(d, 1 / camera.zoom.linear)
 		).value;
 
-		const left = camera.position[0] - width / 2;
-		const top = camera.position[1] + height / 2;
-		const right = camera.position[0] + width / 2;
-		const bottom = camera.position[1] - height / 2;
+		// In the real space, pixels move at a rate proportional to the zoom.
+		// So it's best to divide the pixel position by the zoom
+		const left = camera.position[0] / camera.zoom.linear - width / 2;
+		const top = camera.position[1] / camera.zoom.linear + height / 2;
+		const right = camera.position[0] / camera.zoom.linear + width / 2;
+		const bottom = camera.position[1] / camera.zoom.linear - height / 2;
 
 		return { width, height, left, top, right, bottom };
 	};
@@ -212,6 +214,8 @@ function App() {
 			);
 		}
 	};
+
+	// TODO:
 
 	return (
 		<div>
@@ -298,6 +302,16 @@ function App() {
 				`}
 			>
 				<>
+					{(() => {
+						const [x, y] = start(camera.position)._(([x, y]) =>
+							(
+								getTransform()
+									.multiply(array([[x], [y], [1]]))
+									.toArray() as number[][]
+							).flat()
+						).value;
+						return <circle fill="red" cx={x} cy={y} r="2" />;
+					})()}
 					{(() => {
 						const { top, bottom } = getViewportBounds();
 
