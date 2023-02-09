@@ -16,7 +16,6 @@ import {
 	distance as distance2,
 	equals as equals2,
 } from "./vector2";
-import { Compute } from "./Compute";
 import { start } from "./pipe";
 import { scale2D, translate2D } from "./matrix";
 import { array } from "vectorious";
@@ -41,6 +40,14 @@ function App() {
 	const mousePositionRef = useRef<Vector2>([0, 0]);
 	const [mousePosition, setMousePosition] = useState<[number, number]>([0, 0]);
 	const [, update] = useReducer(() => ({}), {});
+
+	type GlobalMouseState =
+		| { type: "MOUSE_INACTIVE" }
+		| { type: "MOUSE_ACTIVE"; startPosition: [number, number] };
+
+	const [globalMouseState, setGlobalMouseState] = useState<GlobalMouseState>({
+		type: "MOUSE_INACTIVE",
+	});
 
 	type CircleState =
 		| "INACTIVE"
@@ -131,10 +138,10 @@ function App() {
 			.multiply(scale2D([camera.zoom.linear, camera.zoom.linear]));
 	};
 
-	const getCursorPosition = () => {
+	const screenToSpace = (position: Vector2): Vector2 => {
 		const svgDimensions = getDrawingAreaDimensions();
 
-		const cursorCenter = start(mousePositionRef.current)
+		const cursorCenter = start(position)
 			._((pos) => sub2(pos, scalarMul2(svgDimensions, 0.5)))
 			._((pos) => hadamard2(pos, [1, -1])).value;
 
@@ -142,6 +149,8 @@ function App() {
 			._((pos) => add2(pos, camera.position))
 			._((pos) => scalarMul2(pos, 1 / camera.zoom.linear)).value;
 	};
+
+	const getCursorPosition = () => screenToSpace(mousePositionRef.current);
 
 	const getViewportBounds = () => {
 		const [width, height] = start(getDrawingAreaDimensions())._((d) =>
@@ -236,6 +245,10 @@ function App() {
 						return;
 					} else {
 						deactivateAllCircles();
+						setGlobalMouseState({
+							type: "MOUSE_ACTIVE",
+							startPosition: [...mousePositionRef.current],
+						});
 					}
 				}}
 				onWheel={(e) => {
