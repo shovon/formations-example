@@ -399,67 +399,75 @@ function App() {
 
 						return <path d={`M${startX} ${startY} H ${endX}`} stroke="black" />;
 					})()}
-					{circles
-						.slice()
-						.reverse()
-						.map(({ position: [x, y], color, name, state }, i) => {
-							const coordinates = (
-								getTransform()
-									.multiply(array([[x], [y], [1]]))
-									.toArray() as number[][]
-							).flat();
 
-							console.assert(
-								coordinates.length >= 2,
-								"Expected to get a 3d vector, but got something else"
-							);
-							const [xt, yt] = coordinates;
+					{(() => {
+						// const transform = getTransform();
+						const transform = translate2D([0, 0]).multiply(
+							scale2D([camera.zoom.linear, camera.zoom.linear])
+						);
 
-							const isActive = (state: CircleState): boolean => {
-								switch (state) {
-									case "ACTIVE":
-									case "MOVING":
-									case "PREACTIVE":
-									case "PRE_DEACTIVATE":
-										return true;
-									case "INACTIVE":
-										return false;
-								}
-							};
+						const [width, height] = getDrawingAreaDimensions();
 
-							return (
-								<g key={i}>
-									{isActive(state) ? (
-										<circle
-											stroke="black"
-											fill="white"
-											strokeWidth={`${1}`}
-											cx={xt}
-											cy={yt}
-											r={`${camera.zoom.linear * (CIRCLE_RADIUS + 4)}`}
-										></circle>
-									) : null}
-									<circle
-										fill={"white"}
-										stroke={color}
-										strokeWidth={`${camera.zoom.linear * 3}`}
-										cx={xt}
-										cy={yt}
-										r={`${camera.zoom.linear * CIRCLE_RADIUS}`}
-									/>
-									<text
-										x={`${xt}`}
-										y={`${yt + 1.75 * camera.zoom.linear}`}
-										fill={color}
-										fontSize={`${camera.zoom.linear}em`}
-										dominantBaseline="middle"
-										textAnchor="middle"
-									>
-										{name}
-									</text>
-								</g>
-							);
-						})}
+						const mat = `translate(${-camera.position[0]}, ${
+							camera.position[1]
+						}) translate(${width / 2}, ${height / 2}) scale(${
+							camera.zoom.linear
+						})`;
+
+						return (
+							<g transform={mat}>
+								{circles
+									.slice()
+									.reverse()
+									.map(({ position: [x, y], color, name, state }, i) => {
+										const isActive = (state: CircleState): boolean => {
+											switch (state) {
+												case "ACTIVE":
+												case "MOVING":
+												case "PREACTIVE":
+												case "PRE_DEACTIVATE":
+													return true;
+												case "INACTIVE":
+													return false;
+											}
+										};
+
+										return (
+											<g key={i}>
+												{isActive(state) ? (
+													<circle
+														stroke="black"
+														fill="white"
+														strokeWidth={`${1}`}
+														cx={x}
+														cy={-y}
+														r={`${CIRCLE_RADIUS + 4}`}
+													></circle>
+												) : null}
+												<circle
+													fill={"white"}
+													stroke={color}
+													strokeWidth={`3`}
+													cx={x}
+													cy={-y}
+													r={`${CIRCLE_RADIUS}`}
+												/>
+												<text
+													x={`${x}`}
+													y={`${-y + 1.5}`}
+													fill={color}
+													fontSize={`${1}em`}
+													dominantBaseline="middle"
+													textAnchor="middle"
+												>
+													{name}
+												</text>
+											</g>
+										);
+									})}
+							</g>
+						);
+					})()}
 
 					{(() => {
 						if (globalMouseState.type === "MOUSE_INACTIVE") return null;
@@ -486,25 +494,7 @@ function App() {
 							/>
 						);
 					})()}
-
-					{(() => {
-						const cursorPosition = getCursorPosition();
-
-						return (
-							<text
-								pointerEvents={"none"}
-								x={`${mousePositionRef.current[0] + 50}`}
-								y={`${mousePositionRef.current[1]}`}
-							>
-								{`(${cursorPosition[0]}, ${cursorPosition[1]})`}
-							</text>
-						);
-					})()}
 				</>
-
-				<text x="10" y="20">{`(${camera.position[0] / camera.zoom.linear}, ${
-					camera.position[1] / camera.zoom.linear
-				})`}</text>
 			</SvgWrapper>
 
 			<div
