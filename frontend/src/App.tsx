@@ -495,10 +495,6 @@ function App() {
 						);
 					})()}
 				</>
-
-				<text x="10" y="20">{`(${camera.position[0] / camera.zoom.linear}, ${
-					camera.position[1] / camera.zoom.linear
-				})`}</text>
 			</SvgWrapper>
 
 			<div
