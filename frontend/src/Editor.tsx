@@ -21,6 +21,7 @@ import { scale2D, translate2D } from "./matrix";
 import { array } from "vectorious";
 import { SvgWrapper, SvgWrapperObject } from "./SvgWrapper";
 import { ENTITY_DIAMETER_IN_PIXELS } from "./constants";
+import { ReadOnlyMap } from "./readonly-map-set";
 
 const CIRCLE_RADIUS = ENTITY_DIAMETER_IN_PIXELS / 2;
 
@@ -30,8 +31,9 @@ type Camera = {
 };
 
 type EditorProps = {
-	circles: Iterable<
-		[string, { position: Vector2; color: string; name: string }]
+	circles: ReadOnlyMap<
+		string,
+		{ position: Vector2; color: string; name: string }
 	>;
 	onPositionsChange?: () => void;
 };
