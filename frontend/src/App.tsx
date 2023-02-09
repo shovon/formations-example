@@ -21,9 +21,9 @@ import { start } from "./pipe";
 import { scale2D, translate2D } from "./matrix";
 import { array } from "vectorious";
 import { SvgWrapper, SvgWrapperObject } from "./SvgWrapper";
-import { HUMAN_HEIGHT, PIXElS_PER_METER } from "./constants";
+import { ENTITY_DIAMETER_IN_PIXELS } from "./constants";
 
-const CIRCLE_RADIUS = (PIXElS_PER_METER * HUMAN_HEIGHT) / 2;
+const CIRCLE_RADIUS = ENTITY_DIAMETER_IN_PIXELS / 2;
 
 type Camera = {
 	position: [number, number];
@@ -302,16 +302,6 @@ function App() {
 				`}
 			>
 				<>
-					{(() => {
-						const [x, y] = start(camera.position)._(([x, y]) =>
-							(
-								getTransform()
-									.multiply(array([[x], [y], [1]]))
-									.toArray() as number[][]
-							).flat()
-						).value;
-						return <circle fill="red" cx={x} cy={y} r="2" />;
-					})()}
 					{(() => {
 						const { top, bottom } = getViewportBounds();
 
