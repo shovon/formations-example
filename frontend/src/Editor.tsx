@@ -166,7 +166,9 @@ export function Editor(props: EditorProps) {
 	};
 
 	const deactivateAllCircles = () => {
-		setCircles(circles.map((c) => ({ ...c, state: "INACTIVE" })));
+		setCircles(
+			circles.map(([index, c]) => [index, { ...c, state: "INACTIVE" }])
+		);
 	};
 
 	const getDrawingAreaDimensions = () => {
@@ -459,11 +461,6 @@ export function Editor(props: EditorProps) {
 					})()}
 
 					{(() => {
-						// const transform = getTransform();
-						const transform = translate2D([0, 0]).multiply(
-							scale2D([camera.zoom.linear, camera.zoom.linear])
-						);
-
 						const [width, height] = getDrawingAreaDimensions();
 
 						const mat = `translate(${-camera.position[0]}, ${
