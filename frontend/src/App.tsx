@@ -18,22 +18,33 @@ function App() {
 	const selections = useSet<string>();
 
 	return (
-		<Editor
-			entities={entities}
-			selections={selections}
-			onPositionsChange={(changes) => {
-				for (const [id, newPosition] of changes) {
-					const entity = entities.get(id);
-					if (entity) {
-						entities.set(id, { ...entity, position: newPosition });
+		<div
+			style={{
+				display: "flex",
+				flexDirection: "column",
+				width: "100vw",
+				height: "100vh",
+			}}
+		>
+			<Editor
+				style={{ flex: 1 }}
+				entities={entities}
+				selections={selections}
+				onPositionsChange={(changes) => {
+					for (const [id, newPosition] of changes) {
+						const entity = entities.get(id);
+						if (entity) {
+							entities.set(id, { ...entity, position: newPosition });
+						}
 					}
-				}
-			}}
-			onSelectionsChange={(newSelections) => {
-				selections.clear();
-				selections.add(...newSelections);
-			}}
-		/>
+				}}
+				onSelectionsChange={(newSelections) => {
+					selections.clear();
+					selections.add(...newSelections);
+				}}
+			/>
+			<div>Whoa dude</div>
+		</div>
 	);
 }
 

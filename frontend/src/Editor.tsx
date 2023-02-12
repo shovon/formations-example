@@ -30,6 +30,7 @@ type EditorProps = {
 	selections: Iterable<string>;
 	onPositionsChange?: (changes: Iterable<[string, Vector2]>) => void;
 	onSelectionsChange?: (changes: Iterable<string>) => void;
+	style?: React.CSSProperties | undefined;
 };
 
 // TODO: memoize the value of entities and selections.
@@ -38,6 +39,7 @@ export const Editor = ({
 	selections,
 	onPositionsChange,
 	onSelectionsChange,
+	style,
 }: EditorProps) => {
 	const [camera, updateCamera] = useReducer<
 		(state: Camera, partialState: Partial<Camera>) => Camera
@@ -198,9 +200,6 @@ export const Editor = ({
 				.map(([id]) => id)
 		);
 
-		for (const [id, c] of localEntities) {
-		}
-
 		return;
 	};
 
@@ -214,7 +213,7 @@ export const Editor = ({
 				if (!mouseState.event.wasSelected) {
 					deactivateAllEntities();
 					// selectedSet.add(mouseState.event.id);
-					onSelectionsChange?.([...selectionsSet, mouseState.event.id]);
+					onSelectionsChange?.([mouseState.event.id]);
 				}
 				const delta = scalarMul2([dx, -dy], 1 / camera.zoom.linear);
 				onPositionsChange?.(
@@ -230,255 +229,239 @@ export const Editor = ({
 	};
 
 	return (
-		<div>
-			<SvgWrapper
-				onMouseUp={() => {
-					const indexAndEntity = getEntityUnderCursor();
+		<SvgWrapper
+			style={style}
+			onMouseUp={() => {
+				const indexAndEntity = getEntityUnderCursor();
 
-					if (indexAndEntity) {
-						const [index] = indexAndEntity;
-						entityMouseUp(index);
-					}
+				if (indexAndEntity) {
+					const [index] = indexAndEntity;
+					entityMouseUp(index);
+				}
 
-					setMouseState({ type: "NOTHING" });
-				}}
-				onMouseDown={() => {
-					const indexAndEntity = getEntityUnderCursor();
-					if (indexAndEntity) {
-						const [index] = indexAndEntity;
-						setMouseState({
-							type: "MOUSE_DOWN",
-							event: {
-								type: "ITEM",
-								id: index,
-								wasSelected: selectionsSet.has(index),
-							},
-							hasMoved: false,
-						});
-						onSelectionsChange?.([...selectionsSet, index]);
-						return;
-					} else {
-						deactivateAllEntities();
-						setMouseState({
-							type: "MOUSE_DOWN",
-							event: {
-								type: "BLANK_SPACE",
-								startPosition: mousePositionRef.current,
-							},
-							hasMoved: false,
-						});
-					}
-				}}
-				onWheel={(e) => {
-					const [x, y] = getDrawingAreaDimensions();
-					const dimensions = [x, y] satisfies Vector2;
+				setMouseState({ type: "NOTHING" });
+			}}
+			onMouseDown={() => {
+				const indexAndEntity = getEntityUnderCursor();
+				if (indexAndEntity) {
+					const [index] = indexAndEntity;
+					setMouseState({
+						type: "MOUSE_DOWN",
+						event: {
+							type: "ITEM",
+							id: index,
+							wasSelected: selectionsSet.has(index),
+						},
+						hasMoved: false,
+					});
+					onSelectionsChange?.([...selectionsSet, index]);
+					return;
+				} else {
+					deactivateAllEntities();
+					setMouseState({
+						type: "MOUSE_DOWN",
+						event: {
+							type: "BLANK_SPACE",
+							startPosition: mousePositionRef.current,
+						},
+						hasMoved: false,
+					});
+				}
+			}}
+			onWheel={(e) => {
+				const [x, y] = getDrawingAreaDimensions();
+				const dimensions = [x, y] satisfies Vector2;
 
-					if (e.ctrlKey) {
-						const newZoom = camera.zoom.addLogarithmic(-e.deltaY * 0.01);
+				if (e.ctrlKey) {
+					const newZoom = camera.zoom.addLogarithmic(-e.deltaY * 0.01);
 
-						const cursorCenter = start(mousePositionRef.current)
-							._((pos) => sub2(pos, scalarMul2(dimensions, 0.5)))
-							._((pos) => hadamard2(pos, [1, -1])).value;
+					const cursorCenter = start(mousePositionRef.current)
+						._((pos) => sub2(pos, scalarMul2(dimensions, 0.5)))
+						._((pos) => hadamard2(pos, [1, -1])).value;
 
-						const newCameraPosition = start(cursorCenter)
-							._((pos) => add2(pos, camera.position))
-							._((pos) => scalarMul2(pos, newZoom.linear / camera.zoom.linear))
-							._((pos) => sub2(pos, cursorCenter)).value;
+					const newCameraPosition = start(cursorCenter)
+						._((pos) => add2(pos, camera.position))
+						._((pos) => scalarMul2(pos, newZoom.linear / camera.zoom.linear))
+						._((pos) => sub2(pos, cursorCenter)).value;
 
-						updateCamera({
-							zoom: newZoom,
-							position: newCameraPosition,
-						});
-					} else {
-						const delta = [e.deltaX, -e.deltaY] satisfies Vector2;
+					updateCamera({
+						zoom: newZoom,
+						position: newCameraPosition,
+					});
+				} else {
+					const delta = [e.deltaX, -e.deltaY] satisfies Vector2;
 
-						updateCamera({
-							position: add2(camera.position, delta),
-						});
-					}
-				}}
-				ref={(ref) => {
-					if (ref === null) {
-						return;
-					}
-					const currentRef = drawingAreaRef.current;
-					drawingAreaRef.current = ref;
+					updateCamera({
+						position: add2(camera.position, delta),
+					});
+				}
+			}}
+			ref={(ref) => {
+				if (ref === null) {
+					return;
+				}
+				const currentRef = drawingAreaRef.current;
+				drawingAreaRef.current = ref;
 
-					if (currentRef === ref) return;
+				if (currentRef === ref) return;
 
-					update();
-				}}
-				onMouseMove={({ x, y, ...e }) => {
-					const newMousePosition = [x, y] satisfies [number, number];
+				update();
+			}}
+			onMouseMove={({ x, y, ...e }) => {
+				const newMousePosition = [x, y] satisfies [number, number];
 
-					if (!equals2(newMousePosition, mousePositionRef.current)) {
-						mousePositionRef.current = newMousePosition;
-						setMousePosition(mousePositionRef.current);
+				if (!equals2(newMousePosition, mousePositionRef.current)) {
+					mousePositionRef.current = newMousePosition;
+					setMousePosition(mousePositionRef.current);
 
-						moveEvent([e.movementX, e.movementY]);
-					}
-				}}
-				className={css`
-					display: block;
-					/* border: 1px solid black; */
-					box-sizing: border-box;
-					width: 100vw;
-					height: 100vh;
-					text {
-						-webkit-user-select: none;
-						-moz-user-select: none;
-						-ms-user-select: none;
-						user-select: none;
-					}
-				`}
-			>
-				<>
-					{(() => {
-						const { top, bottom } = getViewportBounds();
+					moveEvent([e.movementX, e.movementY]);
+				}
+			}}
+			className={css`
+				display: block;
+				/* border: 1px solid black; */
+				box-sizing: border-box;
+				width: 100%;
+				text {
+					-webkit-user-select: none;
+					-moz-user-select: none;
+					-ms-user-select: none;
+					user-select: none;
+				}
+			`}
+		>
+			<>
+				{(() => {
+					const { top, bottom } = getViewportBounds();
 
-						const [startX, startY] = start([0, top])._(([x, y]) =>
-							(
-								getTransform()
-									.multiply(array([[x], [y], [1]]))
-									.toArray() as number[][]
-							).flat()
-						).value;
+					const [startX, startY] = start([0, top])._(([x, y]) =>
+						(
+							getTransform()
+								.multiply(array([[x], [y], [1]]))
+								.toArray() as number[][]
+						).flat()
+					).value;
 
-						const [, endY] = start([0, bottom])._(([x, y]) =>
-							(
-								getTransform()
-									.multiply(array([[x], [y], [1]]))
-									.toArray() as number[][]
-							).flat()
-						).value;
+					const [, endY] = start([0, bottom])._(([x, y]) =>
+						(
+							getTransform()
+								.multiply(array([[x], [y], [1]]))
+								.toArray() as number[][]
+						).flat()
+					).value;
 
-						return <path d={`M${startX} ${startY} V ${endY}`} stroke="#ccc" />;
-					})()}
-					{(() => {
-						const { left, right } = getViewportBounds();
+					return <path d={`M${startX} ${startY} V ${endY}`} stroke="#ccc" />;
+				})()}
+				{(() => {
+					const { left, right } = getViewportBounds();
 
-						const [startX, startY] = start([left, 0])._(([x, y]) =>
-							(
-								getTransform()
-									.multiply(array([[x], [y], [1]]))
-									.toArray() as number[][]
-							).flat()
-						).value;
+					const [startX, startY] = start([left, 0])._(([x, y]) =>
+						(
+							getTransform()
+								.multiply(array([[x], [y], [1]]))
+								.toArray() as number[][]
+						).flat()
+					).value;
 
-						const [endX] = start([right, 0])._(([x, y]) =>
-							(
-								getTransform()
-									.multiply(array([[x], [y], [1]]))
-									.toArray() as number[][]
-							).flat()
-						).value;
+					const [endX] = start([right, 0])._(([x, y]) =>
+						(
+							getTransform()
+								.multiply(array([[x], [y], [1]]))
+								.toArray() as number[][]
+						).flat()
+					).value;
 
-						return <path d={`M${startX} ${startY} H ${endX}`} stroke="#ccc" />;
-					})()}
+					return <path d={`M${startX} ${startY} H ${endX}`} stroke="#ccc" />;
+				})()}
 
-					{(() => {
-						const [width, height] = getDrawingAreaDimensions();
+				{(() => {
+					const [width, height] = getDrawingAreaDimensions();
 
-						const mat = `translate(${-camera.position[0]}, ${
-							camera.position[1]
-						}) translate(${width / 2}, ${height / 2}) scale(${
-							camera.zoom.linear
-						})`;
+					const mat = `translate(${-camera.position[0]}, ${
+						camera.position[1]
+					}) translate(${width / 2}, ${height / 2}) scale(${
+						camera.zoom.linear
+					})`;
 
-						return (
-							<g transform={mat}>
-								{localEntities
-									.slice()
-									.reverse()
-									.map(
-										(
-											[
-												id,
-												{
-													position: [x, y],
-													color,
-													name,
-												},
-											],
-											i
-										) => {
-											return (
-												<g key={i}>
-													{selectionsSet.has(id) ? (
-														<circle
-															stroke="black"
-															fill="white"
-															strokeWidth={`${1}`}
-															cx={x}
-															cy={-y}
-															r={`${CIRCLE_RADIUS + 4}`}
-														></circle>
-													) : null}
+					return (
+						<g transform={mat}>
+							{localEntities
+								.slice()
+								.reverse()
+								.map(
+									(
+										[
+											id,
+											{
+												position: [x, y],
+												color,
+												name,
+											},
+										],
+										i
+									) => {
+										return (
+											<g key={i}>
+												{selectionsSet.has(id) ? (
 													<circle
-														fill={"white"}
-														stroke={color}
-														strokeWidth={`3`}
+														stroke="black"
+														fill="white"
+														strokeWidth={`${1}`}
 														cx={x}
 														cy={-y}
-														r={`${CIRCLE_RADIUS}`}
-													/>
-													<text
-														x={`${x}`}
-														y={`${-y + 1.5}`}
-														fill={color}
-														fontSize={`${1}em`}
-														dominantBaseline="middle"
-														textAnchor="middle"
-													>
-														{name}
-													</text>
-												</g>
-											);
-										}
-									)}
-							</g>
-						);
-					})()}
+														r={`${CIRCLE_RADIUS + 4}`}
+													></circle>
+												) : null}
+												<circle
+													fill={"white"}
+													stroke={color}
+													strokeWidth={`3`}
+													cx={x}
+													cy={-y}
+													r={`${CIRCLE_RADIUS}`}
+												/>
+												<text
+													x={`${x}`}
+													y={`${-y + 1.5}`}
+													fill={color}
+													fontSize={`${1}em`}
+													dominantBaseline="middle"
+													textAnchor="middle"
+												>
+													{name}
+												</text>
+											</g>
+										);
+									}
+								)}
+						</g>
+					);
+				})()}
 
-					{(() => {
-						if (mouseState.type !== "MOUSE_DOWN") return null;
+				{(() => {
+					if (mouseState.type !== "MOUSE_DOWN") return null;
 
-						const { event } = mouseState;
+					const { event } = mouseState;
 
-						if (event.type !== "BLANK_SPACE") return null;
+					if (event.type !== "BLANK_SPACE") return null;
 
-						const { startPosition } = event;
-						const endPosition = mousePositionRef.current;
+					const { startPosition } = event;
+					const endPosition = mousePositionRef.current;
 
-						const width = Math.abs(startPosition[0] - endPosition[0]);
-						const height = Math.abs(startPosition[1] - endPosition[1]);
+					const width = Math.abs(startPosition[0] - endPosition[0]);
+					const height = Math.abs(startPosition[1] - endPosition[1]);
 
-						return (
-							<rect
-								x={`${Math.min(startPosition[0], endPosition[0])}`}
-								y={`${Math.min(startPosition[1], endPosition[1])}`}
-								width={width}
-								height={height}
-								style={{ fill: "#5566ff", fillOpacity: 0.5 }}
-							/>
-						);
-					})()}
-				</>
-			</SvgWrapper>
-
-			<div
-				className={css`
-					position: absolute;
-					font-size: 0.85em;
-					top: 0;
-					right: 0;
-					padding: 5px 10px;
-					background: #bbb;
-					border-bottom-left-radius: 5px;
-				`}
-			>
-				Top Right
-			</div>
-		</div>
+					return (
+						<rect
+							x={`${Math.min(startPosition[0], endPosition[0])}`}
+							y={`${Math.min(startPosition[1], endPosition[1])}`}
+							width={width}
+							height={height}
+							style={{ fill: "#5566ff", fillOpacity: 0.5 }}
+						/>
+					);
+				})()}
+			</>
+		</SvgWrapper>
 	);
 };

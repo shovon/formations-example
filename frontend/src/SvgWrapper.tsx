@@ -11,13 +11,14 @@ export type SvgWrapperProps = Omit<
 	onMouseMove: (
 		e: React.MouseEvent<SVGSVGElement, MouseEvent> & { x: number; y: number }
 	) => void;
+	style?: React.CSSProperties | undefined;
 };
 
 export type SvgWrapperObject = WithBoundingClientRect;
 
 export const SvgWrapper = forwardRef<SvgWrapperObject, SvgWrapperProps>(
 	(
-		{ onMouseDown, onMouseMove, onMouseUp, onWheel, ...props },
+		{ onMouseDown, onMouseMove, onMouseUp, onWheel, style, ...props },
 		forwardedRef
 	) => {
 		const svgRef = useRef<SVGSVGElement | null>(null);
@@ -32,6 +33,7 @@ export const SvgWrapper = forwardRef<SvgWrapperObject, SvgWrapperProps>(
 
 		return (
 			<svg
+				style={style}
 				ref={(ref) => {
 					if (typeof forwardedRef === "function") {
 						forwardedRef(ref);
