@@ -22,6 +22,7 @@ import { array } from "vectorious";
 import { SvgWrapper, SvgWrapperObject } from "./SvgWrapper";
 import { ENTITY_DIAMETER_IN_PIXELS } from "./constants";
 import { ReadOnlyMap } from "./readonly-map-set";
+import { useSet } from "./use-set";
 
 const CIRCLE_RADIUS = ENTITY_DIAMETER_IN_PIXELS / 2;
 
@@ -45,39 +46,53 @@ export function Editor(props: EditorProps) {
 		zoom: LogarithmicValue.logarithmic(0),
 		position: [0, 0],
 	});
+
 	const drawingAreaRef = useRef<SvgWrapperObject | null>(null);
 	const mousePositionRef = useRef<Vector2>([0, 0]);
+
 	const [mousePosition, setMousePosition] = useState<[number, number]>([0, 0]);
+
 	const [, update] = useReducer(() => ({}), {});
 
-	type GlobalMouseState =
-		| { type: "MOUSE_INACTIVE" }
-		| { type: "MOUSE_ACTIVE"; startPosition: [number, number] };
+	type MouseState =
+		| {
+				type: "NOTHING";
+		  }
+		| {
+				type: "MOUSE_DOWN";
+				event:
+					| {
+							type: "ITEM";
+							// Some boolean flag to determine whether the item being clicked
+							// was previously selected. useful information to determine
+							// whether to deselect the item when the user mouses up
+							wasSelected: boolean;
+							id: string;
+					  }
+					| {
+							type: "BLANK_SPACE";
+							startPosition: Vector2;
+					  };
+		  };
 
-	const [globalMouseState, setGlobalMouseState] = useState<GlobalMouseState>({
-		type: "MOUSE_INACTIVE",
+	const [mouseState, setMouseState] = useState<MouseState>({
+		type: "NOTHING",
 	});
-
-	type CircleState =
-		| "INACTIVE"
-		| "PREACTIVE"
-		| "ACTIVE"
-		| "PRE_DEACTIVATE"
-		| "MOVING";
 
 	type Circle = {
 		position: Vector2;
 		color: string;
 		name: string;
-		state: CircleState;
 	};
+
+	const selectedSet = useSet<string>();
+	const recentlyActivatedItemRef = useRef<string | null>(null);
 
 	// TODO: move the circle storage logic to a separate class
 	const [circles, setCircles] = useState<[string, Circle][]>([
 		[
 			"1",
 			{
-				state: "INACTIVE",
 				name: "A",
 				color: "red",
 				position: [-100, 100],
@@ -86,7 +101,6 @@ export function Editor(props: EditorProps) {
 		[
 			"2",
 			{
-				state: "INACTIVE",
 				name: "B",
 				color: "green",
 				position: [100, 100],
@@ -95,7 +109,6 @@ export function Editor(props: EditorProps) {
 		[
 			"3",
 			{
-				state: "INACTIVE",
 				name: "C",
 				color: "blue",
 				position: [-100, -100],
@@ -104,7 +117,6 @@ export function Editor(props: EditorProps) {
 		[
 			"4",
 			{
-				state: "INACTIVE",
 				name: "D",
 				color: "purple",
 				position: [100, -100],
@@ -113,7 +125,6 @@ export function Editor(props: EditorProps) {
 		[
 			"5",
 			{
-				state: "INACTIVE",
 				name: "E",
 				color: "orange",
 				position: [300, 0],
@@ -122,47 +133,15 @@ export function Editor(props: EditorProps) {
 	]);
 
 	const circleMouseDown = (i: string) => {
-		setCircles(
-			circles.map(([index, c]) => {
-				if (i !== index) return [index, c];
-
-				switch (c.state) {
-					case "INACTIVE":
-						return [index, { ...c, state: "PREACTIVE" }];
-					case "ACTIVE":
-						return [index, { ...c, state: "PRE_DEACTIVATE" }];
-					case "PRE_DEACTIVATE":
-					case "PREACTIVE":
-					case "MOVING":
-						return [index, c];
-				}
-			})
-		);
+		if (selectedSet.has(i)) {
+			recentlyActivatedItemRef.current = i;
+		}
 	};
 
 	const circleMouseUp = (i: string) => {
-		setCircles(
-			circles.map(([index, c]) => {
-				if (i !== index) {
-					if (c.state === "MOVING") {
-						return [index, { ...c, state: "ACTIVE" }];
-					}
-					return [index, c];
-				}
-
-				switch (c.state) {
-					case "INACTIVE":
-					case "ACTIVE":
-						return [index, c];
-					case "PREACTIVE":
-						return [index, { ...c, state: "ACTIVE" }];
-					case "PRE_DEACTIVATE":
-						return [index, { ...c, state: "INACTIVE" }];
-					case "MOVING":
-						return [index, { ...c, state: "ACTIVE" }];
-				}
-			})
-		);
+		if (selectedSet.has(i)) {
+			recentlyActivatedItemRef.current = null;
+		}
 	};
 
 	const deactivateAllCircles = () => {
@@ -216,7 +195,7 @@ export function Editor(props: EditorProps) {
 		return { width, height, left, top, right, bottom };
 	};
 
-	const getCollidingCircle = (): [string, Circle] | null => {
+	const getCircleUnerCursor = (): [string, Circle] | null => {
 		const cursorPosition = getCursorPosition();
 
 		for (const [, [index, circle]] of circles.entries()) {
@@ -230,97 +209,59 @@ export function Editor(props: EditorProps) {
 		return null;
 	};
 
-	const moveEvent = ([dx, dy]: Vector2) => {
-		if (globalMouseState.type === "MOUSE_ACTIVE") {
-			const topLeft = screenToSpace([
-				Math.min(
-					globalMouseState.startPosition[0],
-					mousePositionRef.current[0]
-				),
-				Math.min(
-					globalMouseState.startPosition[1],
-					mousePositionRef.current[1]
-				),
-			]);
+	const blankSpaceSelection = (startPosition: Vector2) => {
+		const topLeft = screenToSpace([
+			Math.min(startPosition[0], mousePositionRef.current[0]),
+			Math.min(startPosition[1], mousePositionRef.current[1]),
+		]);
 
-			const bottomRight = screenToSpace([
-				Math.max(
-					globalMouseState.startPosition[0],
-					mousePositionRef.current[0]
-				),
-				Math.max(
-					globalMouseState.startPosition[1],
-					mousePositionRef.current[1]
-				),
-			]);
+		const bottomRight = screenToSpace([
+			Math.max(startPosition[0], mousePositionRef.current[0]),
+			Math.max(startPosition[1], mousePositionRef.current[1]),
+		]);
 
-			setCircles(
-				circles.map(([index, c]) => {
-					if (
-						c.position[0] > topLeft[0] &&
-						c.position[0] < bottomRight[0] &&
-						c.position[1] < topLeft[1] &&
-						c.position[1] > bottomRight[1]
-					) {
-						return [index, { ...c, state: "ACTIVE" }];
-					}
-					return [index, { ...c, state: "INACTIVE" }];
-				})
-			);
+		setCircles(
+			circles.map(([index, c]) => {
+				if (
+					c.position[0] > topLeft[0] &&
+					c.position[0] < bottomRight[0] &&
+					c.position[1] < topLeft[1] &&
+					c.position[1] > bottomRight[1]
+				) {
+				}
+				return [index, { ...c, state: "INACTIVE" }];
+			})
+		);
 
-			return;
+		for (const [id, c] of circles) {
+			if (
+				c.position[0] > topLeft[0] &&
+				c.position[0] < bottomRight[0] &&
+				c.position[1] < topLeft[1] &&
+				c.position[1] > bottomRight[1]
+			) {
+				selectedSet.add(id);
+			}
 		}
 
-		const delta = scalarMul2([dx, -dy], 1 / camera.zoom.linear);
+		return;
+	};
 
-		if (circles.some(([, c]) => c.state === "PREACTIVE")) {
-			// when an inactive item is being moved…
-			//
-			// all the other active items will become inactive and only move that one
-			// newly inactive item
-
-			const c = circles.find(([, c]) => c.state === "PREACTIVE");
-			if (c) {
-				const [index] = c;
+	const moveEvent = ([dx, dy]: Vector2) => {
+		if (mouseState.type === "MOUSE_DOWN") {
+			if (mouseState.event.type === "BLANK_SPACE") {
+				blankSpaceSelection(mouseState.event.startPosition);
+			} else {
+				const delta = scalarMul2([dx, -dy], 1 / camera.zoom.linear);
 				setCircles(
-					circles.map(([i, c]) =>
-						i !== index
-							? [index, { ...c, state: "INACTIVE" }]
-							: [
-									index,
-									{ ...c, state: "MOVING", position: add2(c.position, delta) },
-							  ]
-					)
+					circles.map(([id, c]) => {
+						if (selectedSet.has(id)) {
+							return [id, { ...c, position: add2(c.position, delta) }];
+						}
+						return [id, c];
+					})
 				);
 			}
-		} else if (
-			circles.some(
-				([, c]) => c.state === "MOVING" || c.state === "PRE_DEACTIVATE"
-			)
-		) {
-			//
-			// all active items will remain active, and move
-
-			setCircles(
-				circles.map(([index, c]) => {
-					switch (c.state) {
-						case "ACTIVE":
-						case "PREACTIVE":
-						case "MOVING":
-						case "PRE_DEACTIVATE":
-							return [
-								index,
-								{
-									...c,
-									state: "MOVING",
-									position: add2(c.position, delta),
-								},
-							];
-						case "INACTIVE":
-							return [index, c];
-					}
-				})
-			);
 		}
 	};
 
@@ -330,26 +271,36 @@ export function Editor(props: EditorProps) {
 		<div>
 			<SvgWrapper
 				onMouseUp={() => {
-					const indexCircle = getCollidingCircle();
+					const indexCircle = getCircleUnerCursor();
 
 					if (indexCircle) {
 						const [index] = indexCircle;
 						circleMouseUp(index);
 					}
 
-					setGlobalMouseState({ type: "MOUSE_INACTIVE" });
+					setMouseState({ type: "NOTHING" });
 				}}
 				onMouseDown={() => {
-					const indexCircle = getCollidingCircle();
+					const indexCircle = getCircleUnerCursor();
 					if (indexCircle) {
 						const [index] = indexCircle;
-						circleMouseDown(index);
+						setMouseState({
+							type: "MOUSE_DOWN",
+							event: {
+								type: "ITEM",
+								id: index,
+								wasSelected: selectedSet.has(index),
+							},
+						});
 						return;
 					} else {
 						deactivateAllCircles();
-						setGlobalMouseState({
-							type: "MOUSE_ACTIVE",
-							startPosition: [...mousePositionRef.current],
+						setMouseState({
+							type: "MOUSE_DOWN",
+							event: {
+								type: "BLANK_SPACE",
+								startPosition: mousePositionRef.current,
+							},
 						});
 					}
 				}}
@@ -477,31 +428,18 @@ export function Editor(props: EditorProps) {
 									.map(
 										(
 											[
-												,
+												id,
 												{
 													position: [x, y],
 													color,
 													name,
-													state,
 												},
 											],
 											i
 										) => {
-											const isActive = (state: CircleState): boolean => {
-												switch (state) {
-													case "ACTIVE":
-													case "MOVING":
-													case "PREACTIVE":
-													case "PRE_DEACTIVATE":
-														return true;
-													case "INACTIVE":
-														return false;
-												}
-											};
-
 											return (
 												<g key={i}>
-													{isActive(state) ? (
+													{selectedSet.has(id) ? (
 														<circle
 															stroke="black"
 															fill="white"
@@ -538,9 +476,13 @@ export function Editor(props: EditorProps) {
 					})()}
 
 					{(() => {
-						if (globalMouseState.type === "MOUSE_INACTIVE") return null;
+						if (mouseState.type !== "MOUSE_DOWN") return null;
 
-						const { startPosition } = globalMouseState;
+						const { event } = mouseState;
+
+						if (event.type !== "BLANK_SPACE") return null;
+
+						const { startPosition } = event;
 						const endPosition = mousePositionRef.current;
 
 						const width = Math.abs(startPosition[0] - endPosition[0]);
@@ -548,14 +490,8 @@ export function Editor(props: EditorProps) {
 
 						return (
 							<rect
-								x={`${Math.min(
-									globalMouseState.startPosition[0],
-									endPosition[0]
-								)}`}
-								y={`${Math.min(
-									globalMouseState.startPosition[1],
-									endPosition[1]
-								)}`}
+								x={`${Math.min(startPosition[0], endPosition[0])}`}
+								y={`${Math.min(startPosition[1], endPosition[1])}`}
 								width={width}
 								height={height}
 								style={{ fill: "#5566ff", fillOpacity: 0.5 }}
