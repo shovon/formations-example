@@ -210,20 +210,31 @@ export const Editor = ({
 			if (mouseState.event.type === "BLANK_SPACE") {
 				blankSpaceSelection(mouseState.event.startPosition);
 			} else {
+				const delta = scalarMul2([dx, -dy], 1 / camera.zoom.linear);
+
 				if (!mouseState.event.wasSelected) {
 					deactivateAllEntities();
 					// selectedSet.add(mouseState.event.id);
 					onSelectionsChange?.([mouseState.event.id]);
+
+					const entityId = mouseState.event.id;
+
+					const idAndEntity = localEntities.find(([id]) => id === entityId);
+					if (idAndEntity) {
+						onPositionsChange?.([
+							[mouseState.event.id, add2(idAndEntity[1].position, delta)],
+						]);
+					}
+				} else {
+					onPositionsChange?.(
+						localEntities.map(([id, c]) => {
+							if (selectionsSet.has(id)) {
+								return [id, add2(c.position, delta)];
+							}
+							return [id, c.position];
+						})
+					);
 				}
-				const delta = scalarMul2([dx, -dy], 1 / camera.zoom.linear);
-				onPositionsChange?.(
-					localEntities.map(([id, c]) => {
-						if (selectionsSet.has(id)) {
-							return [id, add2(c.position, delta)];
-						}
-						return [id, c.position];
-					})
-				);
 			}
 		}
 	};

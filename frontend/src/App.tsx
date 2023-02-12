@@ -2,7 +2,7 @@ import { useCallback } from "react";
 import { Editor, Entity } from "./Editor";
 import { useMap } from "./use-map";
 import { useSet } from "./use-set";
-import { add } from "./vector2";
+import { add, Vector2 } from "./vector2";
 
 type EntityEntity = {
 	color: string;
@@ -25,6 +25,19 @@ function randomString(length: number = 10): string {
 		.map(() => chars[Math.floor(Math.random() * chars.length)])
 		.join("");
 }
+
+type Formation = {
+	name: string;
+	entities: Iterable<
+		[
+			string,
+			{
+				position: Vector2;
+				path: [Vector2, Vector2];
+			}
+		]
+	>;
+};
 
 function App() {
 	const eee = useMap<string, EntityEntity>([
