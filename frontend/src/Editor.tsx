@@ -21,7 +21,6 @@ import { scale2D, translate2D } from "./matrix";
 import { array } from "vectorious";
 import { SvgWrapper, SvgWrapperObject } from "./SvgWrapper";
 import { ENTITY_DIAMETER_IN_PIXELS } from "./constants";
-import { ReadOnlyMap } from "./readonly-map-set";
 import { useSet } from "./use-set";
 
 const CIRCLE_RADIUS = ENTITY_DIAMETER_IN_PIXELS / 2;
@@ -35,11 +34,18 @@ export type Entity = { position: Vector2; color: string; name: string };
 
 type EditorProps = {
 	entities: Iterable<[string, Entity]>;
+	selections: Iterable<string>;
 	onPositionsChange?: (changes: Iterable<[string, Vector2]>) => void;
+	onSelectionsChange?: (changes: Iterable<string>) => void;
 };
 
 // TODO: memoize the value of entities.
-export const Editor = ({ entities, onPositionsChange }: EditorProps) => {
+export const Editor = ({
+	entities,
+	selections,
+	onPositionsChange,
+	onSelectionsChange,
+}: EditorProps) => {
 	const [camera, updateCamera] = useReducer<
 		(state: Camera, partialState: Partial<Camera>) => Camera
 	>((state, partialState) => ({ ...state, ...partialState }), {
@@ -48,7 +54,7 @@ export const Editor = ({ entities, onPositionsChange }: EditorProps) => {
 	});
 
 	useEffect(() => {
-		setCircles([...entities]);
+		setEntities([...entities]);
 	}, [entities]);
 
 	const drawingAreaRef = useRef<SvgWrapperObject | null>(null);
@@ -93,7 +99,7 @@ export const Editor = ({ entities, onPositionsChange }: EditorProps) => {
 	const selectedSet = useSet<string>();
 
 	// TODO: move the circle storage logic to a separate class
-	const [circles, setCircles] = useState<[string, Circle][]>([...entities]);
+	const [circles, setEntities] = useState<[string, Circle][]>([...entities]);
 
 	const circleMouseUp = (i: string) => {
 		if (selectedSet.has(i)) {
@@ -108,7 +114,7 @@ export const Editor = ({ entities, onPositionsChange }: EditorProps) => {
 				onPositionsChange?.(
 					circles.map(([index, { position }]) => [index, position])
 				);
-				setCircles([...entities]);
+				setEntities([...entities]);
 			}
 		}
 	};
@@ -187,7 +193,7 @@ export const Editor = ({ entities, onPositionsChange }: EditorProps) => {
 			Math.max(startPosition[1], mousePositionRef.current[1]),
 		]);
 
-		setCircles(
+		setEntities(
 			circles.map(([index, c]) => {
 				if (
 					c.position[0] > topLeft[0] &&
@@ -226,7 +232,7 @@ export const Editor = ({ entities, onPositionsChange }: EditorProps) => {
 					selectedSet.add(mouseState.event.id);
 				}
 				const delta = scalarMul2([dx, -dy], 1 / camera.zoom.linear);
-				setCircles(
+				setEntities(
 					circles.map(([id, c]) => {
 						if (selectedSet.has(id)) {
 							return [id, { ...c, position: add2(c.position, delta) }];

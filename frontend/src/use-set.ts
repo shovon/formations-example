@@ -26,5 +26,8 @@ export const useSet = <K>(initial?: Iterable<K>) => {
 			fn(setRef.current);
 			update();
 		},
+		*[Symbol.iterator](): Iterator<K> {
+			yield* setRef.current;
+		},
 	};
 };

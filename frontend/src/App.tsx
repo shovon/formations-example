@@ -1,5 +1,6 @@
 import { Editor, Entity } from "./Editor";
 import { useMap } from "./use-map";
+import { useSet } from "./use-set";
 
 function App() {
 	const entities = useMap<string, Entity>([
@@ -9,10 +10,12 @@ function App() {
 		["4", { position: [100, -100], color: "purple", name: "D" }],
 		["5", { position: [300, 0], color: "orange", name: "E" }],
 	]);
+	const selections = useSet<string>();
 
 	return (
 		<Editor
 			entities={entities}
+			selections={selections}
 			onPositionsChange={(changes) => {
 				for (const [id, newPosition] of changes) {
 					const entity = entities.get(id);
