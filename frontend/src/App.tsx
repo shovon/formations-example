@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { Editor, Entity } from "./Editor";
+import { Editor, Entity, EntityPlacement } from "./Editor";
 import { useMap } from "./use-map";
 import { useSet } from "./use-set";
 import { add, Vector2 } from "./vector2";
@@ -40,7 +40,7 @@ type Formation = {
 };
 
 function App() {
-	const eee = useMap<string, EntityEntity>([
+	const entities = useMap<string, Entity>([
 		["1", { color: "red", name: "A" }],
 		["2", { color: "green", name: "B" }],
 		["3", { color: "blue", name: "C" }],
@@ -48,32 +48,38 @@ function App() {
 		["5", { color: "hsl(15, 100%, 72%)", name: "E" }],
 	]);
 
-	const entities = useMap<string, Entity>([
-		["1", { position: [-100, 100], color: "red", name: "A" }],
-		["2", { position: [100, 100], color: "green", name: "B" }],
-		["3", { position: [-100, -100], color: "blue", name: "C" }],
-		["4", { position: [100, -100], color: "purple", name: "D" }],
-		["5", { position: [300, 0], color: "hsl(15, 100%, 72%)", name: "E" }],
+	const placements = useMap<string, EntityPlacement>([
+		["1", { position: [-100, 100] }],
+		["2", { position: [100, 100] }],
+		["3", { position: [-100, -100] }],
+		["4", { position: [100, -100] }],
+		["5", { position: [300, 0] }],
 	]);
+
 	const selections = useSet<string>();
 
 	const addEntity = useCallback(() => {
-		const allEntities = [...entities];
-		const lastEntity = allEntities[allEntities.length - 1];
+		const allPlacements = [...placements];
+
+		const lastEntity = allPlacements[allPlacements.length - 1];
 		let position = [0, 0] satisfies [number, number];
 		if (lastEntity) {
 			position = add(lastEntity[1].position, [10, -10]);
 		}
+
 		const entity: Entity = {
-			position,
 			color: hslToStr(arbitraryHSL()),
 			name: randomString(),
 		};
+
+		const placemeent = { position };
+
 		let id = randomString();
 		while (entities.has(id)) {
 			id = randomString();
 		}
 		entities.set(id, entity);
+		placements.set(id, placemeent);
 	}, [entities]);
 
 	return (
@@ -84,12 +90,13 @@ function App() {
 					height: "100vh",
 				}}
 				entities={entities}
+				entityPlacements={placements}
 				selections={selections}
 				onPositionsChange={(changes) => {
 					for (const [id, newPosition] of changes) {
 						const entity = entities.get(id);
 						if (entity) {
-							entities.set(id, { ...entity, position: newPosition });
+							placements.set(id, { ...entity, position: newPosition });
 						}
 					}
 				}}
