@@ -284,6 +284,7 @@ export function Editor(props: EditorProps) {
 								wasSelected: selectedSet.has(index),
 							},
 						});
+						selectedSet.add(index);
 						return;
 					} else {
 						deactivateAllCircles();
