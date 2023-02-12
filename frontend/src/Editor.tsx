@@ -73,6 +73,7 @@ export function Editor(props: EditorProps) {
 							type: "BLANK_SPACE";
 							startPosition: Vector2;
 					  };
+				hasMoved: boolean;
 		  };
 
 	const [mouseState, setMouseState] = useState<MouseState>({
@@ -86,7 +87,6 @@ export function Editor(props: EditorProps) {
 	};
 
 	const selectedSet = useSet<string>();
-	const recentlyActivatedItemRef = useRef<string | null>(null);
 
 	// TODO: move the circle storage logic to a separate class
 	const [circles, setCircles] = useState<[string, Circle][]>([
@@ -134,7 +134,14 @@ export function Editor(props: EditorProps) {
 
 	const circleMouseUp = (i: string) => {
 		if (selectedSet.has(i)) {
-			recentlyActivatedItemRef.current = null;
+			if (mouseState.type === "MOUSE_DOWN" && !mouseState.hasMoved) {
+				const { event } = mouseState;
+				if (event.type === "ITEM") {
+					if (event.wasSelected) {
+						selectedSet.delete(i);
+					}
+				}
+			}
 		}
 	};
 
@@ -241,9 +248,15 @@ export function Editor(props: EditorProps) {
 
 	const moveEvent = ([dx, dy]: Vector2) => {
 		if (mouseState.type === "MOUSE_DOWN") {
+			setMouseState({ ...mouseState, hasMoved: true });
+
 			if (mouseState.event.type === "BLANK_SPACE") {
 				blankSpaceSelection(mouseState.event.startPosition);
 			} else {
+				if (!mouseState.event.wasSelected) {
+					deactivateAllCircles();
+					selectedSet.add(mouseState.event.id);
+				}
 				const delta = scalarMul2([dx, -dy], 1 / camera.zoom.linear);
 				setCircles(
 					circles.map(([id, c]) => {
@@ -283,6 +296,7 @@ export function Editor(props: EditorProps) {
 								id: index,
 								wasSelected: selectedSet.has(index),
 							},
+							hasMoved: false,
 						});
 						selectedSet.add(index);
 						return;
@@ -294,6 +308,7 @@ export function Editor(props: EditorProps) {
 								type: "BLANK_SPACE",
 								startPosition: mousePositionRef.current,
 							},
+							hasMoved: false,
 						});
 					}
 				}}
