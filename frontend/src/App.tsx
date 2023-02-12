@@ -24,6 +24,10 @@ function App() {
 					}
 				}
 			}}
+			onSelectionsChange={(newSelections) => {
+				selections.clear();
+				selections.add(...newSelections);
+			}}
 		/>
 	);
 }
