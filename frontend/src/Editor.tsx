@@ -23,10 +23,14 @@ type Camera = {
 	zoom: LogarithmicValue;
 };
 
-export type Entity = { position: Vector2; color: string; name: string };
+// export type Entity = { position: Vector2; color: string; name: string };
+
+export type Entity = { color: string; name: string };
+export type EntityPlacement = { position: Vector2 };
 
 type EditorProps = {
 	entities: Iterable<[string, Entity]>;
+	entityPlacements: Iterable<[string, EntityPlacement]>;
 	selections: Iterable<string>;
 	onPositionsChange?: (changes: Iterable<[string, Vector2]>) => void;
 	onSelectionsChange?: (changes: Iterable<string>) => void;
@@ -36,6 +40,7 @@ type EditorProps = {
 // TODO: memoize the value of entities and selections.
 export const Editor = ({
 	entities,
+	entityPlacements,
 	selections,
 	onPositionsChange,
 	onSelectionsChange,
@@ -50,7 +55,7 @@ export const Editor = ({
 	const selectionsSet = new Set(selections);
 
 	useEffect(() => {
-		setEntities([...entities]);
+		setLocalPlacements([...entityPlacements]);
 	}, [entities]);
 
 	const drawingAreaRef = useRef<SvgWrapperObject | null>(null);
@@ -85,9 +90,26 @@ export const Editor = ({
 	const [mouseState, setMouseState] = useState<MouseState>({
 		type: "NOTHING",
 	});
-	const [localEntities, setEntities] = useState<[string, Entity][]>([
-		...entities,
-	]);
+	const [localPlacements, setLocalPlacements] = useState<
+		[string, EntityPlacement][]
+	>([...entityPlacements]);
+
+	function combineEntityPlacements(): Iterable<
+		[string, Entity & EntityPlacement]
+	> {
+		function getEntity(id: string): EntityPlacement {
+			const e = new Map(entityPlacements).get(id);
+			if (!e) {
+				return { position: [0, 0] satisfies Vector2 };
+			}
+
+			return e;
+		}
+
+		return new Map(
+			[...entities].map(([id, entity]) => [id, { ...entity, ...getEntity(id) }])
+		);
+	}
 
 	const entityMouseUp = (i: string) => {
 		if (selectionsSet.has(i)) {
@@ -103,9 +125,9 @@ export const Editor = ({
 					}
 				} else if (mouseState.hasMoved) {
 					onPositionsChange?.(
-						localEntities.map(([index, { position }]) => [index, position])
+						localPlacements.map(([index, { position }]) => [index, position])
 					);
-					setEntities([...entities]);
+					setLocalPlacements([...entityPlacements]);
 				}
 			}
 		}
@@ -162,14 +184,14 @@ export const Editor = ({
 		return { width, height, left, top, right, bottom };
 	};
 
-	const getEntityUnderCursor = (): [string, Entity] | null => {
+	const getEntityUnderCursor = (): [string, EntityPlacement] | null => {
 		const cursorPosition = getCursorPosition();
 
-		for (const [, [index, entity]] of localEntities.entries()) {
+		for (const [, [index, placement]] of localPlacements.entries()) {
 			const radius = CIRCLE_RADIUS;
 
-			if (distance2(cursorPosition, entity.position) < radius) {
-				return [index, entity];
+			if (distance2(cursorPosition, placement.position) < radius) {
+				return [index, placement];
 			}
 		}
 
@@ -188,7 +210,7 @@ export const Editor = ({
 		]);
 
 		onSelectionsChange?.(
-			localEntities
+			localPlacements
 				.filter(([id, c]) => {
 					return (
 						c.position[0] > topLeft[0] &&
@@ -214,12 +236,11 @@ export const Editor = ({
 
 				if (!mouseState.event.wasSelected) {
 					deactivateAllEntities();
-					// selectedSet.add(mouseState.event.id);
 					onSelectionsChange?.([mouseState.event.id]);
 
 					const entityId = mouseState.event.id;
 
-					const idAndEntity = localEntities.find(([id]) => id === entityId);
+					const idAndEntity = localPlacements.find(([id]) => id === entityId);
 					if (idAndEntity) {
 						onPositionsChange?.([
 							[mouseState.event.id, add2(idAndEntity[1].position, delta)],
@@ -227,7 +248,7 @@ export const Editor = ({
 					}
 				} else {
 					onPositionsChange?.(
-						localEntities.map(([id, c]) => {
+						localPlacements.map(([id, c]) => {
 							if (selectionsSet.has(id)) {
 								return [id, add2(c.position, delta)];
 							}
@@ -396,7 +417,7 @@ export const Editor = ({
 
 					return (
 						<g transform={mat}>
-							{localEntities
+							{[...combineEntityPlacements()]
 								.slice()
 								.reverse()
 								.map(
