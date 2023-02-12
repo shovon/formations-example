@@ -1,11 +1,5 @@
 import { css } from "@emotion/css";
-import React, {
-	useReducer,
-	useRef,
-	useState,
-	ReactNode,
-	useEffect,
-} from "react";
+import { useReducer, useRef, useState, useEffect } from "react";
 import { LogarithmicValue } from "./logarithmic-value";
 import {
 	hadamard as hadamard2,
@@ -21,7 +15,6 @@ import { scale2D, translate2D } from "./matrix";
 import { array } from "vectorious";
 import { SvgWrapper, SvgWrapperObject } from "./SvgWrapper";
 import { ENTITY_DIAMETER_IN_PIXELS } from "./constants";
-import { useSet } from "./use-set";
 
 const CIRCLE_RADIUS = ENTITY_DIAMETER_IN_PIXELS / 2;
 
