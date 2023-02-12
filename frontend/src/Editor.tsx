@@ -15,6 +15,7 @@ import { scale2D, translate2D } from "./matrix";
 import { array } from "vectorious";
 import { SvgWrapper, SvgWrapperObject } from "./SvgWrapper";
 import { ENTITY_DIAMETER_IN_PIXELS } from "./constants";
+import { EntityPlacement } from "./formations";
 
 const CIRCLE_RADIUS = ENTITY_DIAMETER_IN_PIXELS / 2;
 
@@ -26,7 +27,6 @@ type Camera = {
 // export type Entity = { position: Vector2; color: string; name: string };
 
 export type Entity = { color: string; name: string };
-export type EntityPlacement = { position: Vector2 };
 
 type EditorProps = {
 	entities: Iterable<[string, Entity]>;

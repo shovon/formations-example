@@ -4,11 +4,6 @@ import { useMap } from "./use-map";
 import { useSet } from "./use-set";
 import { add, Vector2 } from "./vector2";
 
-type EntityEntity = {
-	color: string;
-	name: string;
-};
-
 function arbitraryHSL(): [number, number, number] {
 	return [Math.random() * 360, 0.5, 0.5];
 }
