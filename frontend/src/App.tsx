@@ -13,7 +13,7 @@ function App() {
 		["5", { position: [300, 0], color: "orange", name: "E" }],
 	]);
 
-	return <Editor circles={circles} />;
+	return <Editor entities={circles} />;
 }
 
 export default App;

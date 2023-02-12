@@ -32,9 +32,8 @@ type Camera = {
 };
 
 type EditorProps = {
-	circles: ReadOnlyMap<
-		string,
-		{ position: Vector2; color: string; name: string }
+	entities: Iterable<
+		[string, { position: Vector2; color: string; name: string }]
 	>;
 	onPositionsChange?: (changes: ReadOnlyMap<string, Vector2>) => void;
 };
@@ -90,46 +89,7 @@ export function Editor(props: EditorProps) {
 
 	// TODO: move the circle storage logic to a separate class
 	const [circles, setCircles] = useState<[string, Circle][]>([
-		[
-			"1",
-			{
-				name: "A",
-				color: "red",
-				position: [-100, 100],
-			},
-		],
-		[
-			"2",
-			{
-				name: "B",
-				color: "green",
-				position: [100, 100],
-			},
-		],
-		[
-			"3",
-			{
-				name: "C",
-				color: "blue",
-				position: [-100, -100],
-			},
-		],
-		[
-			"4",
-			{
-				name: "D",
-				color: "purple",
-				position: [100, -100],
-			},
-		],
-		[
-			"5",
-			{
-				name: "E",
-				color: "orange",
-				position: [300, 0],
-			},
-		],
+		...props.entities,
 	]);
 
 	const circleMouseUp = (i: string) => {
