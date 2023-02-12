@@ -35,11 +35,11 @@ export type Entity = { position: Vector2; color: string; name: string };
 
 type EditorProps = {
 	entities: Iterable<[string, Entity]>;
-	onPositionsChange?: (changes: ReadOnlyMap<string, Vector2>) => void;
+	onPositionsChange?: (changes: Iterable<[string, Vector2]>) => void;
 };
 
 // TODO: memoize the value of entities.
-export const Editor = (props: EditorProps) => {
+export const Editor = ({ entities, onPositionsChange }: EditorProps) => {
 	const [camera, updateCamera] = useReducer<
 		(state: Camera, partialState: Partial<Camera>) => Camera
 	>((state, partialState) => ({ ...state, ...partialState }), {
@@ -47,10 +47,14 @@ export const Editor = (props: EditorProps) => {
 		position: [0, 0],
 	});
 
+	useEffect(() => {
+		setCircles([...entities]);
+	}, [entities]);
+
 	const drawingAreaRef = useRef<SvgWrapperObject | null>(null);
 	const mousePositionRef = useRef<Vector2>([0, 0]);
 
-	const [mousePosition, setMousePosition] = useState<[number, number]>([0, 0]);
+	const [, setMousePosition] = useState<[number, number]>([0, 0]);
 
 	const [, update] = useReducer(() => ({}), {});
 
@@ -89,9 +93,7 @@ export const Editor = (props: EditorProps) => {
 	const selectedSet = useSet<string>();
 
 	// TODO: move the circle storage logic to a separate class
-	const [circles, setCircles] = useState<[string, Circle][]>([
-		...props.entities,
-	]);
+	const [circles, setCircles] = useState<[string, Circle][]>([...entities]);
 
 	const circleMouseUp = (i: string) => {
 		if (selectedSet.has(i)) {
@@ -102,6 +104,11 @@ export const Editor = (props: EditorProps) => {
 						selectedSet.delete(i);
 					}
 				}
+			} else if (mouseState.type === "MOUSE_DOWN" && mouseState.hasMoved) {
+				onPositionsChange?.(
+					circles.map(([index, { position }]) => [index, position])
+				);
+				setCircles([...entities]);
 			}
 		}
 	};
@@ -280,7 +287,7 @@ export const Editor = (props: EditorProps) => {
 					if (e.ctrlKey) {
 						const newZoom = camera.zoom.addLogarithmic(-e.deltaY * 0.01);
 
-						const cursorCenter = start(mousePosition)
+						const cursorCenter = start(mousePositionRef.current)
 							._((pos) => sub2(pos, scalarMul2(dimensions, 0.5)))
 							._((pos) => hadamard2(pos, [1, -1])).value;
 
