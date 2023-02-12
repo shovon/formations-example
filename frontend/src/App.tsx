@@ -14,7 +14,7 @@ function arbitraryHSL(): [number, number, number] {
 }
 
 function hslToStr([h, s, l]: [number, number, number]): string {
-	return `hsl(${h}, ${s}%, ${l}%)`;
+	return `hsl(${h}, ${s * 100}%, ${l * 100}%)`;
 }
 
 function randomString(length: number = 10): string {
@@ -27,6 +27,14 @@ function randomString(length: number = 10): string {
 }
 
 function App() {
+	const eee = useMap<string, EntityEntity>([
+		["1", { color: "red", name: "A" }],
+		["2", { color: "green", name: "B" }],
+		["3", { color: "blue", name: "C" }],
+		["4", { color: "purple", name: "D" }],
+		["5", { color: "hsl(15, 100%, 72%)", name: "E" }],
+	]);
+
 	const entities = useMap<string, Entity>([
 		["1", { position: [-100, 100], color: "red", name: "A" }],
 		["2", { position: [100, 100], color: "green", name: "B" }],
@@ -41,7 +49,7 @@ function App() {
 		const lastEntity = allEntities[allEntities.length - 1];
 		let position = [0, 0] satisfies [number, number];
 		if (lastEntity) {
-			position = add(position, [10, 10]);
+			position = add(lastEntity[1].position, [10, -10]);
 		}
 		const entity: Entity = {
 			position,
