@@ -31,14 +31,15 @@ type Camera = {
 	zoom: LogarithmicValue;
 };
 
+export type Entity = { position: Vector2; color: string; name: string };
+
 type EditorProps = {
-	entities: Iterable<
-		[string, { position: Vector2; color: string; name: string }]
-	>;
+	entities: Iterable<[string, Entity]>;
 	onPositionsChange?: (changes: ReadOnlyMap<string, Vector2>) => void;
 };
 
-export function Editor(props: EditorProps) {
+// TODO: memoize the value of entities.
+export const Editor = (props: EditorProps) => {
 	const [camera, updateCamera] = useReducer<
 		(state: Camera, partialState: Partial<Camera>) => Camera
 	>((state, partialState) => ({ ...state, ...partialState }), {
@@ -484,4 +485,4 @@ export function Editor(props: EditorProps) {
 			</div>
 		</div>
 	);
-}
+};

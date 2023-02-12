@@ -1,11 +1,8 @@
-import { Editor } from "./Editor";
-import { Vector2 } from "./vector2";
+import { Editor, Entity } from "./Editor";
+import { useMap } from "./use-map";
 
 function App() {
-	const circles = new Map<
-		string,
-		{ position: Vector2; color: string; name: string }
-	>([
+	const entities = useMap<string, Entity>([
 		["1", { position: [-100, 100], color: "red", name: "A" }],
 		["2", { position: [100, 100], color: "green", name: "B" }],
 		["3", { position: [-100, -100], color: "blue", name: "C" }],
@@ -13,7 +10,19 @@ function App() {
 		["5", { position: [300, 0], color: "orange", name: "E" }],
 	]);
 
-	return <Editor entities={circles} />;
+	return (
+		<Editor
+			entities={entities}
+			onPositionsChange={(changes) => {
+				for (const [id, newPosition] of changes) {
+					const entity = entities.get(id);
+					if (entity) {
+						entities.set(id, { ...entity, position: newPosition });
+					}
+				}
+			}}
+		/>
+	);
 }
 
 export default App;
