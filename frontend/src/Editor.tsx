@@ -132,12 +132,6 @@ export function Editor(props: EditorProps) {
 		],
 	]);
 
-	const circleMouseDown = (i: string) => {
-		if (selectedSet.has(i)) {
-			recentlyActivatedItemRef.current = i;
-		}
-	};
-
 	const circleMouseUp = (i: string) => {
 		if (selectedSet.has(i)) {
 			recentlyActivatedItemRef.current = null;
@@ -145,9 +139,7 @@ export function Editor(props: EditorProps) {
 	};
 
 	const deactivateAllCircles = () => {
-		setCircles(
-			circles.map(([index, c]) => [index, { ...c, state: "INACTIVE" }])
-		);
+		selectedSet.clear();
 	};
 
 	const getDrawingAreaDimensions = () => {

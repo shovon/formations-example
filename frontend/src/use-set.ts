@@ -14,6 +14,10 @@ export const useSet = <K>(initial?: Iterable<K>) => {
 		has(value: K): boolean {
 			return setRef.current.has(value);
 		},
+		clear() {
+			setRef.current.clear();
+			update();
+		},
 		custom(fn: (set: Set<K>) => void) {
 			fn(setRef.current);
 			update();
