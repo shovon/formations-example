@@ -217,19 +217,17 @@ export const Editor = ({
 					onSelectionsChange?.([...selectionsSet, mouseState.event.id]);
 				}
 				const delta = scalarMul2([dx, -dy], 1 / camera.zoom.linear);
-				setEntities(
+				onPositionsChange?.(
 					localEntities.map(([id, c]) => {
 						if (selectionsSet.has(id)) {
-							return [id, { ...c, position: add2(c.position, delta) }];
+							return [id, add2(c.position, delta)];
 						}
-						return [id, c];
+						return [id, c.position];
 					})
 				);
 			}
 		}
 	};
-
-	// TODO:
 
 	return (
 		<div>

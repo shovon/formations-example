@@ -2,6 +2,11 @@ import { Editor, Entity } from "./Editor";
 import { useMap } from "./use-map";
 import { useSet } from "./use-set";
 
+type EntityEntity = {
+	color: string;
+	name: string;
+};
+
 function App() {
 	const entities = useMap<string, Entity>([
 		["1", { position: [-100, 100], color: "red", name: "A" }],
