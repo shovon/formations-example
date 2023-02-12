@@ -363,7 +363,7 @@ export const Editor = ({ entities, onPositionsChange }: EditorProps) => {
 							).flat()
 						).value;
 
-						return <path d={`M${startX} ${startY} V ${endY}`} stroke="black" />;
+						return <path d={`M${startX} ${startY} V ${endY}`} stroke="#ccc" />;
 					})()}
 					{(() => {
 						const { left, right } = getViewportBounds();
@@ -384,7 +384,7 @@ export const Editor = ({ entities, onPositionsChange }: EditorProps) => {
 							).flat()
 						).value;
 
-						return <path d={`M${startX} ${startY} H ${endX}`} stroke="black" />;
+						return <path d={`M${startX} ${startY} H ${endX}`} stroke="#ccc" />;
 					})()}
 
 					{(() => {
