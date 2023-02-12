@@ -83,17 +83,11 @@ export const Editor = ({
 	const [mouseState, setMouseState] = useState<MouseState>({
 		type: "NOTHING",
 	});
+	const [localEntities, setEntities] = useState<[string, Entity][]>([
+		...entities,
+	]);
 
-	type Circle = {
-		position: Vector2;
-		color: string;
-		name: string;
-	};
-
-	// TODO: move the circle storage logic to a separate class
-	const [circles, setEntities] = useState<[string, Circle][]>([...entities]);
-
-	const circleMouseUp = (i: string) => {
+	const entityMouseUp = (i: string) => {
 		if (selectionsSet.has(i)) {
 			if (mouseState.type === "MOUSE_DOWN") {
 				if (!mouseState.hasMoved) {
@@ -107,7 +101,7 @@ export const Editor = ({
 					}
 				} else if (mouseState.hasMoved) {
 					onPositionsChange?.(
-						circles.map(([index, { position }]) => [index, position])
+						localEntities.map(([index, { position }]) => [index, position])
 					);
 					setEntities([...entities]);
 				}
@@ -115,7 +109,7 @@ export const Editor = ({
 		}
 	};
 
-	const deactivateAllCircles = () => {
+	const deactivateAllEntities = () => {
 		// selectedSet.clear();
 		// TODO: notify parent component that selections have been deleted
 		onSelectionsChange?.([]);
@@ -166,14 +160,14 @@ export const Editor = ({
 		return { width, height, left, top, right, bottom };
 	};
 
-	const getCircleUnderCursor = (): [string, Circle] | null => {
+	const getEntityUnderCursor = (): [string, Entity] | null => {
 		const cursorPosition = getCursorPosition();
 
-		for (const [, [index, circle]] of circles.entries()) {
+		for (const [, [index, entity]] of localEntities.entries()) {
 			const radius = CIRCLE_RADIUS;
 
-			if (distance2(cursorPosition, circle.position) < radius) {
-				return [index, circle];
+			if (distance2(cursorPosition, entity.position) < radius) {
+				return [index, entity];
 			}
 		}
 
@@ -192,7 +186,7 @@ export const Editor = ({
 		]);
 
 		onSelectionsChange?.(
-			circles
+			localEntities
 				.filter(([id, c]) => {
 					return (
 						c.position[0] > topLeft[0] &&
@@ -204,7 +198,7 @@ export const Editor = ({
 				.map(([id]) => id)
 		);
 
-		for (const [id, c] of circles) {
+		for (const [id, c] of localEntities) {
 		}
 
 		return;
@@ -218,13 +212,13 @@ export const Editor = ({
 				blankSpaceSelection(mouseState.event.startPosition);
 			} else {
 				if (!mouseState.event.wasSelected) {
-					deactivateAllCircles();
+					deactivateAllEntities();
 					// selectedSet.add(mouseState.event.id);
 					onSelectionsChange?.([...selectionsSet, mouseState.event.id]);
 				}
 				const delta = scalarMul2([dx, -dy], 1 / camera.zoom.linear);
 				setEntities(
-					circles.map(([id, c]) => {
+					localEntities.map(([id, c]) => {
 						if (selectionsSet.has(id)) {
 							return [id, { ...c, position: add2(c.position, delta) }];
 						}
@@ -241,19 +235,19 @@ export const Editor = ({
 		<div>
 			<SvgWrapper
 				onMouseUp={() => {
-					const indexCircle = getCircleUnderCursor();
+					const indexAndEntity = getEntityUnderCursor();
 
-					if (indexCircle) {
-						const [index] = indexCircle;
-						circleMouseUp(index);
+					if (indexAndEntity) {
+						const [index] = indexAndEntity;
+						entityMouseUp(index);
 					}
 
 					setMouseState({ type: "NOTHING" });
 				}}
 				onMouseDown={() => {
-					const indexCircle = getCircleUnderCursor();
-					if (indexCircle) {
-						const [index] = indexCircle;
+					const indexAndEntity = getEntityUnderCursor();
+					if (indexAndEntity) {
+						const [index] = indexAndEntity;
 						setMouseState({
 							type: "MOUSE_DOWN",
 							event: {
@@ -266,7 +260,7 @@ export const Editor = ({
 						onSelectionsChange?.([...selectionsSet, index]);
 						return;
 					} else {
-						deactivateAllCircles();
+						deactivateAllEntities();
 						setMouseState({
 							type: "MOUSE_DOWN",
 							event: {
@@ -395,7 +389,7 @@ export const Editor = ({
 
 						return (
 							<g transform={mat}>
-								{circles
+								{localEntities
 									.slice()
 									.reverse()
 									.map(
