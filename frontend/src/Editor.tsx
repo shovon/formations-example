@@ -36,7 +36,7 @@ type EditorProps = {
 		string,
 		{ position: Vector2; color: string; name: string }
 	>;
-	onPositionsChange?: (changes: ReadOnlyMap<number, Vector2>) => void;
+	onPositionsChange?: (changes: ReadOnlyMap<string, Vector2>) => void;
 };
 
 export function Editor(props: EditorProps) {
