@@ -44,7 +44,7 @@ export const Editor = ({
 	const [camera, updateCamera] = useReducer<
 		(state: Camera, partialState: Partial<Camera>) => Camera
 	>((state, partialState) => ({ ...state, ...partialState }), {
-		zoom: LogarithmicValue.logarithmic(0),
+		zoom: LogarithmicValue.logarithmic(0.5),
 		position: [0, 0],
 	});
 	const selectionsSet = new Set(selections);
@@ -428,7 +428,7 @@ export const Editor = ({
 													dominantBaseline="middle"
 													textAnchor="middle"
 												>
-													{name}
+													{name.slice(0, 1)}
 												</text>
 											</g>
 										);

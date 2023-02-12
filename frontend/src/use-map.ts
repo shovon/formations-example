@@ -12,6 +12,9 @@ export function useMap<K, V>(initialValues?: Iterable<[K, V]>) {
 			mapRef.current.set(key, value);
 			update();
 		},
+		has(key: K): boolean {
+			return mapRef.current.has(key);
+		},
 		*[Symbol.iterator](): Iterator<[K, V]> {
 			yield* mapRef.current;
 		},
