@@ -1,5 +1,6 @@
 import { useCallback } from "react";
-import { Editor, Entity, EntityPlacement } from "./Editor";
+import { Editor, Entity } from "./Editor";
+import { EntityPlacement } from "./formations";
 import { useMap } from "./use-map";
 import { useSet } from "./use-set";
 import { add, Vector2 } from "./vector2";
