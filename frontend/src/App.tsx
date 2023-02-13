@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { Editor, Entity } from "./Editor";
-import { EntityPlacement } from "./formations";
+import { EntityPlacement, FormationsList } from "./formations";
 import { useMap } from "./use-map";
 import { useSet } from "./use-set";
 import { add, Vector2 } from "./vector2";
@@ -52,6 +52,13 @@ function App() {
 		["5", { position: [300, 0] }],
 	]);
 
+	const formations: FormationsList = [
+		{
+			name: "1",
+			positions: placements,
+		},
+	];
+
 	const selections = useSet<string>();
 
 	const addEntity = useCallback(() => {
@@ -86,7 +93,8 @@ function App() {
 					height: "100vh",
 				}}
 				entities={entities}
-				entityPlacements={placements}
+				formations={formations}
+				currentFormationIndex={0}
 				selections={selections}
 				onPositionsChange={(changes) => {
 					for (const [id, newPosition] of changes) {

@@ -15,7 +15,11 @@ import { scale2D, translate2D } from "./matrix";
 import { array } from "vectorious";
 import { SvgWrapper, SvgWrapperObject } from "./SvgWrapper";
 import { ENTITY_DIAMETER_IN_PIXELS } from "./constants";
-import { EntityPlacement, FormationsList } from "./formations";
+import {
+	EntityPlacement,
+	FormationsList,
+	positionsFormation,
+} from "./formations";
 
 const CIRCLE_RADIUS = ENTITY_DIAMETER_IN_PIXELS / 2;
 
@@ -57,8 +61,15 @@ export const Editor = ({
 	const selectionsSet = new Set(selections);
 	const currentFormation = formations[currentFormationIndex];
 
+	const getCurrentPlacements = () =>
+		positionsFormation(entities, formations, currentFormationIndex);
+
+	function updateCurrentPlacements() {
+		setLocalPlacements([...getCurrentPlacements()]);
+	}
+
 	useEffect(() => {
-		setLocalPlacements([...currentFormation.positions]);
+		updateCurrentPlacements();
 	}, [entities, formations, currentFormationIndex]);
 
 	const drawingAreaRef = useRef<SvgWrapperObject | null>(null);
@@ -95,7 +106,7 @@ export const Editor = ({
 	});
 	const [localPlacements, setLocalPlacements] = useState<
 		[string, EntityPlacement][]
-	>([...formations[currentFormationIndex].positions]);
+	>([...getCurrentPlacements()]);
 
 	function combineEntityPlacements(): Iterable<
 		[string, Entity & EntityPlacement]

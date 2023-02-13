@@ -34,7 +34,7 @@ export const positionsFormation = (
 
 	// TODO: this looks insanely ugly
 
-	// First, look at current formation.
+	// Get all entities, and match them with positions in the current formation
 	for (const [id] of remainingEntities) {
 		const position = formationsWithMap[index].positions.get(id);
 		if (position) {
@@ -43,7 +43,8 @@ export const positionsFormation = (
 		}
 	}
 
-	// If nothing found look back.
+	// If there are any entities not matched in the current formation, then look
+	// at previous formations
 	for (const [id] of remainingEntities) {
 		for (let i = index - 1; i >= 0; i--) {
 			const position = formationsWithMap[i].positions.get(id);
@@ -74,3 +75,5 @@ export const positionsFormation = (
 
 	return entityPositions;
 };
+
+export const updateFormationPlacements = {};
