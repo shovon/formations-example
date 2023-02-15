@@ -127,9 +127,9 @@ export const performance = ({ entities, formations }: PerformanceProject) => ({
 
 			setPositions(positions: Iterable<[string, Vector2]>): PerformanceProject {
 				return produce({ entities, formations }, (draft) => {
-					draft.formations[index].positions = map(
-						positions,
-						([id, position]) => [id, { position }]
+					draft.formations[index].positions = unionKV(
+						map(entities, ([id]) => [id, entityPlacement(id)]),
+						map(positions, ([id, position]) => [id, { position }])
 					);
 				});
 			},
