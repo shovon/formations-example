@@ -23,7 +23,7 @@ export function getKV<K, V>(it: Iterable<[K, V]>, key: K): V | undefined {
 	}
 }
 
-export function* setKV<K, V>(
+export function setKV<K, V>(
 	it: Iterable<[K, V]>,
 	key: K,
 	value: V

@@ -113,10 +113,10 @@ function App() {
 			name: randomString(),
 		});
 
-		// draft = performanceProject
-		// 	.getFormation(0)
-		// 	.entity(id)
-		// 	.setPlacement(placement);
+		draft = performanceProject
+			.getFormation(0)
+			.entity(id)
+			.setPlacement(placement);
 
 		setProject(draft);
 	}, [performanceProject]);
