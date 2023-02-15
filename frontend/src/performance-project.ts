@@ -96,7 +96,7 @@ export const performance = ({ entities, formations }: PerformanceProject) => ({
 							return;
 						}
 						const { positions } = formations[index];
-						formations[index].positions = setKV(positions, id, placement);
+						draft.formations[index].positions = setKV(positions, id, placement);
 					});
 				},
 
