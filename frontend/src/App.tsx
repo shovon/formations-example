@@ -117,6 +117,8 @@ function App() {
 			.entity(id)
 			.setPlacement(placement);
 
+		console.log(draft);
+
 		setProject(draft);
 	}, [performanceProject]);
 

@@ -30,8 +30,17 @@ export function setKV<K, V>(
 ): Iterable<[K, V]> {
 	return {
 		*[Symbol.iterator]() {
+			let found = false;
 			for (const [k, v] of it) {
-				yield k === key ? [k, value] : [k, v];
+				if (k === key) {
+					found = true;
+					yield [k, value];
+				} else {
+					yield [k, v];
+				}
+			}
+			if (!found) {
+				yield [key, value];
 			}
 		},
 	};
