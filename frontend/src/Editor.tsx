@@ -17,9 +17,11 @@ import { SvgWrapper, SvgWrapperObject } from "./SvgWrapper";
 import { ENTITY_DIAMETER_IN_PIXELS } from "./constants";
 import {
 	EntityPlacement,
+	Formation,
 	FormationsList,
-	positionsFormation,
+	placementsInsideFormation,
 } from "./formations";
+import { ReadOnlyPerformanceProject } from "./performance-project";
 
 const CIRCLE_RADIUS = ENTITY_DIAMETER_IN_PIXELS / 2;
 
@@ -33,19 +35,25 @@ type Camera = {
 export type Entity = { color: string; name: string };
 
 type EditorProps = {
-	entities: Iterable<[string, Entity]>;
-	formations: FormationsList;
+	performanceProject: ReadOnlyPerformanceProject;
 	selections: Iterable<string>;
-	onPositionsChange?: (changes: Iterable<[string, Vector2]>) => void;
+	onPositionsChange?: (
+		changes: Iterable<[string, Vector2]>,
+		formationIndex: number
+	) => void;
 	onSelectionsChange?: (changes: Iterable<string>) => void;
 	style?: React.CSSProperties | undefined;
 	currentFormationIndex: number;
 };
 
 // TODO: memoize the value of entities and selections.
+// TODO: handle the edge case where there are no formations
+// TODO: this code is beginning to look really ugly. Time to refactor things
+// NOTE: is there too much dependence on the concept of a "project"?
+//   Maybe there is. But one benefit of being given access to a project is that
+//   it gives the editor some flexibility
 export const Editor = ({
-	entities,
-	formations,
+	performanceProject,
 	selections,
 	onPositionsChange,
 	onSelectionsChange,
@@ -59,18 +67,21 @@ export const Editor = ({
 		position: [0, 0],
 	});
 	const selectionsSet = new Set(selections);
-	const currentFormation = formations[currentFormationIndex];
-
-	const getCurrentPlacements = () =>
-		positionsFormation(entities, formations, currentFormationIndex);
+	const currentFormation = performanceProject.formations[currentFormationIndex];
 
 	function updateCurrentPlacements() {
-		setLocalPlacements([...getCurrentPlacements()]);
+		setLocalPlacements([
+			...performanceProject.getFormationPlacements(currentFormationIndex),
+		]);
 	}
 
 	useEffect(() => {
 		updateCurrentPlacements();
-	}, [entities, formations, currentFormationIndex]);
+	}, [
+		performanceProject.entities,
+		performanceProject.formations,
+		currentFormationIndex,
+	]);
 
 	const drawingAreaRef = useRef<SvgWrapperObject | null>(null);
 	const mousePositionRef = useRef<Vector2>([0, 0]);
@@ -106,7 +117,7 @@ export const Editor = ({
 	});
 	const [localPlacements, setLocalPlacements] = useState<
 		[string, EntityPlacement][]
-	>([...getCurrentPlacements()]);
+	>([...performanceProject.getFormationPlacements(currentFormationIndex)]);
 
 	function combineEntityPlacements(): Iterable<
 		[string, Entity & EntityPlacement]
@@ -121,7 +132,10 @@ export const Editor = ({
 		}
 
 		return new Map(
-			[...entities].map(([id, entity]) => [id, { ...entity, ...getEntity(id) }])
+			[...performanceProject.entities].map(([id, entity]) => [
+				id,
+				{ ...entity, ...getEntity(id) },
+			])
 		);
 	}
 
@@ -139,7 +153,8 @@ export const Editor = ({
 					}
 				} else if (mouseState.hasMoved) {
 					onPositionsChange?.(
-						localPlacements.map(([index, { position }]) => [index, position])
+						localPlacements.map(([index, { position }]) => [index, position]),
+						currentFormationIndex
 					);
 					setLocalPlacements([...currentFormation.positions]);
 				}
@@ -225,7 +240,7 @@ export const Editor = ({
 
 		onSelectionsChange?.(
 			localPlacements
-				.filter(([id, c]) => {
+				.filter(([, c]) => {
 					return (
 						c.position[0] > topLeft[0] &&
 						c.position[0] < bottomRight[0] &&
@@ -256,9 +271,10 @@ export const Editor = ({
 
 					const idAndEntity = localPlacements.find(([id]) => id === entityId);
 					if (idAndEntity) {
-						onPositionsChange?.([
-							[mouseState.event.id, add2(idAndEntity[1].position, delta)],
-						]);
+						onPositionsChange?.(
+							[[mouseState.event.id, add2(idAndEntity[1].position, delta)]],
+							currentFormationIndex
+						);
 					}
 				} else {
 					onPositionsChange?.(
@@ -267,7 +283,8 @@ export const Editor = ({
 								return [id, add2(c.position, delta)];
 							}
 							return [id, c.position];
-						})
+						}),
+						currentFormationIndex
 					);
 				}
 			}

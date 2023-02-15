@@ -8,9 +8,18 @@ export type Formation = {
 	positions: Iterable<[string, { position: Vector2 }]>;
 };
 
+export type ReadOnlyFormation = {
+	readonly name: string;
+	positions: Iterable<readonly [string, { readonly position: Vector2 }]>;
+};
+
+// Meh, this is just for testing purposes
+declare const foo: Formation;
+const bar: ReadOnlyFormation = foo;
+
 export type FormationsList = Formation[];
 
-export const positionsFormation = (
+export const placementsInsideFormation = (
 	entities: Iterable<[string, Entity]>,
 	formations: FormationsList,
 	index: number
@@ -77,3 +86,10 @@ export const positionsFormation = (
 };
 
 export const updateFormationPlacements = {};
+
+const useFormations = (
+	entities: Iterable<[string, Entity]>,
+	formations: FormationsList
+) => {
+	return {};
+};
