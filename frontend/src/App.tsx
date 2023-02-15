@@ -46,8 +46,6 @@ type Formation = {
 function App() {
 	const [currentFormationIndex, setCurrentFormationIndex] = useState(0);
 
-	// The current formation index here
-	const [, update] = useReducer(() => ({}), {});
 	const projRef = useRef(
 		new PerformanceProject(
 			[
