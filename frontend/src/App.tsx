@@ -48,7 +48,7 @@ function App() {
 
 	// The current formation index here
 	const [, update] = useReducer(() => ({}), {});
-	const performanceProject = usePerformance(
+	const projRef = useRef(
 		new PerformanceProject(
 			[
 				["1", { color: "red", name: "A" }],
@@ -71,6 +71,7 @@ function App() {
 			]
 		)
 	);
+	const performanceProject = usePerformance(projRef.current);
 
 	const {
 		formations,
