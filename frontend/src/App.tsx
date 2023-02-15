@@ -141,7 +141,6 @@ function App() {
 						const entity = entities.get(id);
 						if (entity) {
 							setEntityPlacement(formationIndex, id, {
-								...entity,
 								position: newPosition,
 							});
 						}
