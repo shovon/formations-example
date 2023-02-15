@@ -15,13 +15,7 @@ import { scale2D, translate2D } from "./matrix";
 import { array } from "vectorious";
 import { SvgWrapper, SvgWrapperObject } from "./SvgWrapper";
 import { ENTITY_DIAMETER_IN_PIXELS } from "./constants";
-import {
-	EntityPlacement,
-	Formation,
-	FormationsList,
-	placementsInsideFormation,
-} from "./formations";
-import { ReadOnlyPerformanceProject } from "./performance-project";
+import { EntityPlacement, Performance } from "./performance-project";
 
 const CIRCLE_RADIUS = ENTITY_DIAMETER_IN_PIXELS / 2;
 
@@ -35,7 +29,7 @@ type Camera = {
 export type Entity = { color: string; name: string };
 
 type EditorProps = {
-	performanceProject: ReadOnlyPerformanceProject;
+	performance: Performance;
 	selections: Iterable<string>;
 	onPositionsChange?: (
 		changes: Iterable<[string, Vector2]>,
@@ -53,7 +47,7 @@ type EditorProps = {
 //   Maybe there is. But one benefit of being given access to a project is that
 //   it gives the editor some flexibility
 export const Editor = ({
-	performanceProject,
+	performance,
 	selections,
 	onPositionsChange,
 	onSelectionsChange,
@@ -67,21 +61,15 @@ export const Editor = ({
 		position: [0, 0],
 	});
 	const selectionsSet = new Set(selections);
-	const currentFormation = performanceProject.formations[currentFormationIndex];
+	const currentFormation = performance.getFormation(currentFormationIndex);
 
 	function updateCurrentPlacements() {
-		setLocalPlacements([
-			...performanceProject.getFormationPlacements(currentFormationIndex),
-		]);
+		setLocalPlacements([...currentFormation.placements]);
 	}
 
 	useEffect(() => {
 		updateCurrentPlacements();
-	}, [
-		performanceProject.entities,
-		performanceProject.formations,
-		currentFormationIndex,
-	]);
+	}, [performance]);
 
 	const drawingAreaRef = useRef<SvgWrapperObject | null>(null);
 	const mousePositionRef = useRef<Vector2>([0, 0]);
@@ -117,13 +105,13 @@ export const Editor = ({
 	});
 	const [localPlacements, setLocalPlacements] = useState<
 		[string, EntityPlacement][]
-	>([...performanceProject.getFormationPlacements(currentFormationIndex)]);
+	>([...currentFormation.placements]);
 
 	function combineEntityPlacements(): Iterable<
 		[string, Entity & EntityPlacement]
 	> {
 		function getEntity(id: string): EntityPlacement {
-			const e = new Map(currentFormation.positions).get(id);
+			const e = new Map(currentFormation.placements).get(id);
 			if (!e) {
 				return { position: [0, 0] satisfies Vector2 };
 			}
@@ -132,7 +120,7 @@ export const Editor = ({
 		}
 
 		return new Map(
-			[...performanceProject.entities].map(([id, entity]) => [
+			[...performance.entities].map(([id, entity]) => [
 				id,
 				{ ...entity, ...getEntity(id) },
 			])
@@ -156,7 +144,7 @@ export const Editor = ({
 						localPlacements.map(([index, { position }]) => [index, position]),
 						currentFormationIndex
 					);
-					setLocalPlacements([...currentFormation.positions]);
+					setLocalPlacements([...currentFormation.placements]);
 				}
 			}
 		}

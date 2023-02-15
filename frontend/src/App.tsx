@@ -1,15 +1,14 @@
-import { useCallback, useReducer, useRef, useState } from "react";
-import { Editor, Entity } from "./Editor";
+import { useCallback, useRef, useState } from "react";
+import { Editor } from "./Editor";
+import { hasKV, map } from "./iterable-helpers";
 import {
 	EntityPlacement,
-	FormationsList,
-	placementsInsideFormation,
-} from "./formations";
-import { map } from "./iterable-helpers";
-import { PerformanceProject, usePerformance } from "./performance-project";
-import { useMap } from "./use-map";
+	performance,
+	PerformanceProject,
+} from "./performance-project";
 import { useSet } from "./use-set";
 import { add, Vector2 } from "./vector2";
+import produce from "immer";
 
 function arbitraryHSL(): [number, number, number] {
 	return [Math.random() * 360, 0.5, 0.5];
@@ -45,39 +44,29 @@ type Formation = {
 
 function App() {
 	const [currentFormationIndex, setCurrentFormationIndex] = useState(0);
+	const [{ formations, entities }, setProject] = useState<PerformanceProject>({
+		entities: [
+			["1", { color: "red", name: "A" }],
+			["2", { color: "green", name: "B" }],
+			["3", { color: "blue", name: "C" }],
+			["4", { color: "purple", name: "D" }],
+			["5", { color: "hsl(15, 100%, 72%)", name: "E" }],
+		],
+		formations: [
+			{
+				name: "Formation 1",
+				positions: new Map([
+					["1", { position: [-100, 100] }],
+					["2", { position: [100, 100] }],
+					["3", { position: [-100, -100] }],
+					["4", { position: [100, -100] }],
+					["5", { position: [300, 0] }],
+				]),
+			},
+		],
+	});
 
-	const projRef = useRef(
-		new PerformanceProject(
-			[
-				["1", { color: "red", name: "A" }],
-				["2", { color: "green", name: "B" }],
-				["3", { color: "blue", name: "C" }],
-				["4", { color: "purple", name: "D" }],
-				["5", { color: "hsl(15, 100%, 72%)", name: "E" }],
-			],
-			[
-				{
-					name: "Formation 1",
-					positions: new Map([
-						["1", { position: [-100, 100] }],
-						["2", { position: [100, 100] }],
-						["3", { position: [-100, -100] }],
-						["4", { position: [100, -100] }],
-						["5", { position: [300, 0] }],
-					]),
-				},
-			]
-		)
-	);
-	const performanceProject = usePerformance(projRef.current);
-
-	const {
-		formations,
-		getFormationPlacements,
-		pushFormation,
-		entities,
-		setEntityPlacement,
-	} = performanceProject;
+	const performanceProject = performance({ formations, entities });
 
 	const selections = useSet<string>();
 
@@ -93,12 +82,14 @@ function App() {
 	};
 
 	const currentFormationPlacements = () =>
-		getFormationPlacements(currentFormationIndex);
+		performanceProject.getFormation(currentFormationIndex).placements;
 
 	const addEntity = useCallback(() => {
+		let draft = { formations, entities };
+
 		// The basis case where the formations list is empty:
 		if ([...formations].length === 0) {
-			pushFormation(newFormationName());
+			draft = performanceProject.pushFormation(newFormationName());
 		}
 
 		const allPlacements = [...currentFormationPlacements()];
@@ -109,26 +100,31 @@ function App() {
 			position = add(lastEntity[1].position, [10, -10]);
 		}
 
-		const placement = { position };
+		const placement = { position } satisfies EntityPlacement;
 
 		// TODO: don't use a random string
 		let id = randomString();
-		while (entities.has(id)) {
+		while (hasKV(entities, id)) {
 			id = randomString();
 		}
-		// entities.set(id, entity);
 
-		performanceProject.setEntity(id, hslToStr(arbitraryHSL()), randomString());
+		draft = performanceProject.addEntity(id, {
+			color: hslToStr(arbitraryHSL()),
+			name: randomString(),
+		});
 
-		// List of placements
+		draft = performanceProject
+			.getFormation(0)
+			.entity(id)
+			.setPlacement(placement);
 
-		setEntityPlacement(currentFormationIndex, id, placement);
+		setProject(draft);
 	}, [entities]);
 
 	return (
 		<div>
 			<Editor
-				performanceProject={performanceProject}
+				performance={performanceProject}
 				style={{
 					width: "100vw",
 					height: "100vh",
@@ -136,14 +132,11 @@ function App() {
 				currentFormationIndex={0}
 				selections={selections}
 				onPositionsChange={(changes, formationIndex) => {
-					for (const [id, newPosition] of changes) {
-						const entity = entities.get(id);
-						if (entity) {
-							setEntityPlacement(formationIndex, id, {
-								position: newPosition,
-							});
-						}
-					}
+					setProject(
+						performanceProject
+							.getFormation(formationIndex)
+							.setPositions(changes)
+					);
 				}}
 				onSelectionsChange={(newSelections) => {
 					selections.clear();

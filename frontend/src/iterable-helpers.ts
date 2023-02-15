@@ -1,10 +1,14 @@
-export function* map<T, V>(
+export function map<T, V>(
 	iterable: Iterable<T>,
 	mapping: (x: T) => V
 ): Iterable<V> {
-	for (const it of iterable) {
-		yield mapping(it);
-	}
+	return {
+		*[Symbol.iterator]() {
+			for (const it of iterable) {
+				yield mapping(it);
+			}
+		},
+	};
 }
 
 export function getKV<K, V>(it: Iterable<[K, V]>, key: K): V | undefined {
@@ -24,9 +28,17 @@ export function* setKV<K, V>(
 	key: K,
 	value: V
 ): Iterable<[K, V]> {
-	for (const [k, v] of it) {
-		yield k === key ? [k, value] : [k, v];
-	}
+	return {
+		*[Symbol.iterator]() {
+			for (const [k, v] of it) {
+				yield k === key ? [k, value] : [k, v];
+			}
+		},
+	};
+}
+
+export function unionKV<K, V>(it1: Iterable<[K, V]>, it2: Iterable<[K, V]>) {
+	return new Map([...it1, ...it2]);
 }
 
 export function hasKV<K>(it: Iterable<[K, unknown]>, key: K): boolean {

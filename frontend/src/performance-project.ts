@@ -1,142 +1,144 @@
 import { useReducer } from "react";
-import { Entity } from "./Editor";
-import { EntityPlacement, Formation, FormationsList } from "./formations";
-import { getKV, hasKV, map, setKV } from "./iterable-helpers";
+import { getKV, hasKV, map, setKV, unionKV } from "./iterable-helpers";
 import { ReadOnlyMap } from "./readonly-map-set";
+import produce from "immer";
 import { Vector2 } from "./vector2";
 
 // TODO: move to immer, and store edit history
 
-export interface ReadOnlyPerformanceProject {
-	readonly entities: ReadOnlyMap<string, Entity>;
-	getEntityPlacementAtFormation(
-		formationIndex: number,
-		entityId: string
-	): EntityPlacement;
-	getFormationPlacements(
-		formationIndex: number
-	): Iterable<[string, EntityPlacement]>;
-	readonly formations: readonly Formation[];
-}
-
-export class PerformanceProject implements ReadOnlyPerformanceProject {
-	private _entities: Map<string, Entity>;
-
-	constructor(
-		entities: Iterable<[string, Entity]> = [],
-		private _formations: FormationsList = []
-	) {
-		this._entities = new Map(entities);
-	}
-
-	get entities(): ReadOnlyMap<string, Entity> {
-		return this._entities;
-	}
-
-	getEntityPlacementAtFormation(
-		formationIndex: number,
-		entityId: string
-	): EntityPlacement {
-		if (formationIndex < 0 || formationIndex > this._formations.length) {
-			return { position: [0, 0] };
-		}
-
-		const formation = this._formations[formationIndex];
-		const placement = getKV(formation.positions, entityId);
-
-		if (placement) {
-			return placement;
-		}
-
-		if (!placement) {
-			const formation = this._formations
-				.slice(0, formationIndex)
-				.reverse()
-				.find((f) => hasKV(f.positions, entityId));
-			if (formation) {
-				const entity = getKV(formation.positions, entityId);
-				if (entity) {
-					return entity;
-				}
-			}
-		}
-
-		if (!placement) {
-			const formation = this._formations
-				.slice(formationIndex + 1)
-				.find((f) => hasKV(f.positions, entityId));
-			if (formation) {
-				const entity = getKV(formation.positions, entityId);
-				if (entity) {
-					return entity;
-				}
-			}
-		}
-
-		return { position: [0, 0] };
-	}
-
-	getFormationPlacements(
-		formationIndex: number
-	): Iterable<[string, EntityPlacement]> {
-		return map(this._entities, ([id]) => [
-			id,
-			this.getEntityPlacementAtFormation(formationIndex, id),
-		]);
-	}
-
-	setEntity(id: string, name: string, color: string) {
-		this._entities.set(id, { name, color });
-	}
-
-	setEntityPlacement(
-		formationIndex: number,
-		entityId: string,
-		placement: EntityPlacement
-	) {
-		if (formationIndex < 0 || formationIndex > this._formations.length) {
-			return;
-		}
-		const { positions } = this._formations[formationIndex];
-		this._formations[formationIndex].positions = [
-			...setKV(positions, entityId, placement),
-		];
-	}
-
-	pushFormation(name: string) {
-		this._formations.push({ name, positions: [] });
-	}
-
-	get formations(): readonly Formation[] {
-		return this._formations;
-	}
-}
-
-// Yeah, this is beginning to look ugly
-export const usePerformance = (project: PerformanceProject) => {
-	const [, update] = useReducer(() => ({}), {});
-
-	return {
-		entities: project.entities,
-		setEntity: (id: string, name: string, color: string) => {
-			project.setEntity(id, name, color);
-			update();
-		},
-		setEntityPlacement: (
-			formationIndex: number,
-			entityId: string,
-			placement: EntityPlacement
-		) => {
-			project.setEntityPlacement(formationIndex, entityId, placement);
-			update();
-		},
-		pushFormation: (name: string) => {
-			project.pushFormation(name);
-			update();
-		},
-		getEntityPlacementAtFormation:
-			project.getEntityPlacementAtFormation.bind(project),
-		getFormationPlacements: project.getFormationPlacements.bind(project),
-		formations: project.formations,
-	};
+export type Entity = {
+	color: string;
+	name: string;
 };
+
+export type EntityPlacement = { position: Vector2 };
+
+export type Formation = {
+	name: string;
+	positions: Iterable<[string, EntityPlacement]>;
+};
+
+export type PerformanceProject = {
+	entities: Iterable<[string, Entity]>;
+	formations: Formation[];
+};
+
+// TODO: unit test this
+export const performance = ({ entities, formations }: PerformanceProject) => ({
+	get entities() {
+		return entities;
+	},
+
+	addEntity: (id: string, entity: Entity): PerformanceProject => {
+		return produce({ entities, formations }, (draft) => {
+			draft.entities = [...entities, [id, entity]];
+		});
+	},
+
+	pushFormation: (name: string) => {
+		return produce({ entities, formations }, (draft) => {
+			formations.push({ name, positions: [] });
+		});
+	},
+
+	getFormation: (index: number) => {
+		const entityPlacement = (entityId: string): EntityPlacement => {
+			if (index < 0 || index > formations.length) {
+				return { position: [0, 0] };
+			}
+
+			const formation = formations[index];
+			const placement = getKV(formation.positions, entityId);
+
+			if (placement) {
+				return placement;
+			}
+
+			if (!placement) {
+				const formation = formations
+					.slice(0, index)
+					.reverse()
+					.find((f) => hasKV(f.positions, entityId));
+				if (formation) {
+					const entity = getKV(formation.positions, entityId);
+					if (entity) {
+						return entity;
+					}
+				}
+			}
+
+			if (!placement) {
+				const formation = formations
+					.slice(index + 1)
+					.find((f) => hasKV(f.positions, entityId));
+				if (formation) {
+					const entity = getKV(formation.positions, entityId);
+					if (entity) {
+						return entity;
+					}
+				}
+			}
+
+			return { position: [0, 0] };
+		};
+
+		// TODO: this nesting is really confusing. Unnest it all, please
+
+		return {
+			entity: (id: string) => ({
+				get placement(): EntityPlacement {
+					return entityPlacement(id);
+				},
+
+				setPlacement: (placement: EntityPlacement): PerformanceProject => {
+					return produce({ entities, formations }, (draft) => {
+						if (index < 0 || index > formations.length) {
+							return;
+						}
+						const { positions } = formations[index];
+						formations[index].positions = setKV(positions, id, placement);
+					});
+				},
+
+				setAttributes: (attributes: Partial<Entity>): PerformanceProject => {
+					return produce({ entities, formations }, (draft) => {
+						draft.entities = setKV(entities, id, {
+							...(getKV(entities, id) || { color: "black", name: "" }),
+							...attributes,
+						});
+					});
+				},
+			}),
+
+			get placements(): Iterable<[string, EntityPlacement]> {
+				return map(entities, ([id]) => [id, entityPlacement(id)]);
+			},
+
+			setPlacements(
+				placements: Iterable<[string, EntityPlacement]>
+			): PerformanceProject {
+				return produce({ entities, formations }, (draft) => {
+					draft.formations[index].positions = unionKV(
+						formations[index].positions,
+						placements
+					);
+				});
+			},
+
+			setPositions(positions: Iterable<[string, Vector2]>): PerformanceProject {
+				return produce({ entities, formations }, (draft) => {
+					draft.formations[index].positions = map(
+						positions,
+						([id, position]) => [id, { position }]
+					);
+				});
+			},
+
+			get formations(): readonly Formation[] {
+				return formations;
+			},
+		};
+	},
+});
+
+export type Performance = ReturnType<typeof performance>;
