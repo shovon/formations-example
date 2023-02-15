@@ -98,14 +98,9 @@ export class PerformanceProject implements ReadOnlyPerformanceProject {
 			return;
 		}
 		const { positions } = this._formations[formationIndex];
-		console.log(formationIndex, positions, [
+		this._formations[formationIndex].positions = [
 			...setKV(positions, entityId, placement),
-		]);
-		this._formations[formationIndex].positions = setKV(
-			positions,
-			entityId,
-			placement
-		);
+		];
 	}
 
 	pushFormation(name: string) {
