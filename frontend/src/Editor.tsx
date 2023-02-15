@@ -15,6 +15,7 @@ import { scale2D, translate2D } from "./matrix";
 import { array } from "vectorious";
 import { SvgWrapper, SvgWrapperObject } from "./SvgWrapper";
 import { ENTITY_DIAMETER_IN_PIXELS } from "./constants";
+import { EntityPlacement, Performance } from "./performance-project";
 
 const CIRCLE_RADIUS = ENTITY_DIAMETER_IN_PIXELS / 2;
 
@@ -26,25 +27,32 @@ type Camera = {
 // export type Entity = { position: Vector2; color: string; name: string };
 
 export type Entity = { color: string; name: string };
-export type EntityPlacement = { position: Vector2 };
 
 type EditorProps = {
-	entities: Iterable<[string, Entity]>;
-	entityPlacements: Iterable<[string, EntityPlacement]>;
+	performance: Performance;
 	selections: Iterable<string>;
-	onPositionsChange?: (changes: Iterable<[string, Vector2]>) => void;
+	onPositionsChange?: (
+		changes: Iterable<[string, Vector2]>,
+		formationIndex: number
+	) => void;
 	onSelectionsChange?: (changes: Iterable<string>) => void;
 	style?: React.CSSProperties | undefined;
+	currentFormationIndex: number;
 };
 
 // TODO: memoize the value of entities and selections.
+// TODO: handle the edge case where there are no formations
+// TODO: this code is beginning to look really ugly. Time to refactor things
+// NOTE: is there too much dependence on the concept of a "project"?
+//   Maybe there is. But one benefit of being given access to a project is that
+//   it gives the editor some flexibility
 export const Editor = ({
-	entities,
-	entityPlacements,
+	performance,
 	selections,
 	onPositionsChange,
 	onSelectionsChange,
 	style,
+	currentFormationIndex,
 }: EditorProps) => {
 	const [camera, updateCamera] = useReducer<
 		(state: Camera, partialState: Partial<Camera>) => Camera
@@ -53,10 +61,15 @@ export const Editor = ({
 		position: [0, 0],
 	});
 	const selectionsSet = new Set(selections);
+	const currentFormation = performance.getFormation(currentFormationIndex);
+
+	function updateCurrentPlacements() {
+		setLocalPlacements([...currentFormation.placements]);
+	}
 
 	useEffect(() => {
-		setLocalPlacements([...entityPlacements]);
-	}, [entities]);
+		updateCurrentPlacements();
+	}, [performance]);
 
 	const drawingAreaRef = useRef<SvgWrapperObject | null>(null);
 	const mousePositionRef = useRef<Vector2>([0, 0]);
@@ -77,7 +90,7 @@ export const Editor = ({
 							// Some boolean flag to determine whether the item being clicked
 							// was previously selected. useful information to determine
 							// whether to deselect the item when the user mouses up
-							wasSelected: boolean;
+							wasPreviouslySelected: boolean;
 							id: string;
 					  }
 					| {
@@ -92,13 +105,13 @@ export const Editor = ({
 	});
 	const [localPlacements, setLocalPlacements] = useState<
 		[string, EntityPlacement][]
-	>([...entityPlacements]);
+	>([...currentFormation.placements]);
 
 	function combineEntityPlacements(): Iterable<
 		[string, Entity & EntityPlacement]
 	> {
 		function getEntity(id: string): EntityPlacement {
-			const e = new Map(entityPlacements).get(id);
+			const e = new Map(currentFormation.placements).get(id);
 			if (!e) {
 				return { position: [0, 0] satisfies Vector2 };
 			}
@@ -107,7 +120,10 @@ export const Editor = ({
 		}
 
 		return new Map(
-			[...entities].map(([id, entity]) => [id, { ...entity, ...getEntity(id) }])
+			[...performance.entities].map(([id, entity]) => [
+				id,
+				{ ...entity, ...getEntity(id) },
+			])
 		);
 	}
 
@@ -117,7 +133,7 @@ export const Editor = ({
 				if (!mouseState.hasMoved) {
 					const { event } = mouseState;
 					if (event.type === "ITEM") {
-						if (event.wasSelected) {
+						if (event.wasPreviouslySelected) {
 							const s = new Set(selections);
 							s.delete(i);
 							onSelectionsChange?.(s);
@@ -125,9 +141,10 @@ export const Editor = ({
 					}
 				} else if (mouseState.hasMoved) {
 					onPositionsChange?.(
-						localPlacements.map(([index, { position }]) => [index, position])
+						localPlacements.map(([index, { position }]) => [index, position]),
+						currentFormationIndex
 					);
-					setLocalPlacements([...entityPlacements]);
+					setLocalPlacements([...currentFormation.placements]);
 				}
 			}
 		}
@@ -211,7 +228,7 @@ export const Editor = ({
 
 		onSelectionsChange?.(
 			localPlacements
-				.filter(([id, c]) => {
+				.filter(([, c]) => {
 					return (
 						c.position[0] > topLeft[0] &&
 						c.position[0] < bottomRight[0] &&
@@ -234,7 +251,7 @@ export const Editor = ({
 			} else {
 				const delta = scalarMul2([dx, -dy], 1 / camera.zoom.linear);
 
-				if (!mouseState.event.wasSelected) {
+				if (!mouseState.event.wasPreviouslySelected) {
 					deactivateAllEntities();
 					onSelectionsChange?.([mouseState.event.id]);
 
@@ -242,9 +259,10 @@ export const Editor = ({
 
 					const idAndEntity = localPlacements.find(([id]) => id === entityId);
 					if (idAndEntity) {
-						onPositionsChange?.([
-							[mouseState.event.id, add2(idAndEntity[1].position, delta)],
-						]);
+						onPositionsChange?.(
+							[[mouseState.event.id, add2(idAndEntity[1].position, delta)]],
+							currentFormationIndex
+						);
 					}
 				} else {
 					onPositionsChange?.(
@@ -253,7 +271,8 @@ export const Editor = ({
 								return [id, add2(c.position, delta)];
 							}
 							return [id, c.position];
-						})
+						}),
+						currentFormationIndex
 					);
 				}
 			}
@@ -282,7 +301,7 @@ export const Editor = ({
 						event: {
 							type: "ITEM",
 							id: index,
-							wasSelected: selectionsSet.has(index),
+							wasPreviouslySelected: selectionsSet.has(index),
 						},
 						hasMoved: false,
 					});
