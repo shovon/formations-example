@@ -81,18 +81,17 @@ function App() {
 		return `Formation ${latest}`;
 	};
 
-	const currentFormationPlacements = () =>
-		performanceProject.getFormation(currentFormationIndex).placements;
-
 	const addEntity = useCallback(() => {
 		let draft = { formations, entities };
 
 		// The basis case where the formations list is empty:
 		if ([...formations].length === 0) {
-			draft = performanceProject.pushFormation(newFormationName());
+			draft = performance(draft).pushFormation(newFormationName());
 		}
 
-		const allPlacements = [...currentFormationPlacements()];
+		const allPlacements = [
+			...performance(draft).getFormation(currentFormationIndex).placements,
+		];
 
 		const lastEntity = allPlacements[allPlacements.length - 1];
 		let position = [0, 0] satisfies [number, number];
@@ -108,12 +107,12 @@ function App() {
 			id = randomString();
 		}
 
-		draft = performanceProject.addEntity(id, {
+		draft = performance(draft).addEntity(id, {
 			color: hslToStr(arbitraryHSL()),
 			name: randomString(),
 		});
 
-		draft = performanceProject
+		draft = performance(draft)
 			.getFormation(0)
 			.entity(id)
 			.setPlacement(placement);

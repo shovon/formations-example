@@ -99,8 +99,6 @@ export const performance = ({ entities, formations }: PerformanceProject) => ({
 						draft.formations[index].positions = [
 							...setKV(positions, id, placement),
 						];
-
-						console.log(draft.formations[index].positions);
 					});
 				},
 
