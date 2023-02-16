@@ -15,7 +15,12 @@ import { scale2D, translate2D } from "./matrix";
 import { array } from "vectorious";
 import { SvgWrapper, SvgWrapperObject } from "./SvgWrapper";
 import { ENTITY_DIAMETER_IN_PIXELS } from "./constants";
-import { EntityPlacement, Performance } from "./performance-project";
+import {
+	EntityPlacement,
+	FormationHelpers,
+	Performance,
+} from "./performance-project";
+import { getKV } from "./iterable-helpers";
 
 const CIRCLE_RADIUS = ENTITY_DIAMETER_IN_PIXELS / 2;
 
@@ -107,22 +112,18 @@ export const Editor = ({
 		[string, EntityPlacement][]
 	>([...currentFormation.placements]);
 
-	function combineEntityPlacements(): Iterable<
-		[string, Entity & EntityPlacement]
-	> {
-		function getEntity(id: string): EntityPlacement {
-			const e = new Map(currentFormation.placements).get(id);
-			if (!e) {
-				return { position: [0, 0] satisfies Vector2 };
-			}
-
-			return e;
-		}
+	function combineEntityPlacements(
+		formation: FormationHelpers
+	): Iterable<[string, { entity: Entity; placement: EntityPlacement }]> {
+		const getEntity = (id: string): EntityPlacement =>
+			getKV(formation.placements, id) ?? {
+				position: [0, 0] satisfies Vector2,
+			};
 
 		return new Map(
 			[...performance.entities].map(([id, entity]) => [
 				id,
-				{ ...entity, ...getEntity(id) },
+				{ entity, placement: getEntity(id) },
 			])
 		);
 	}
@@ -425,6 +426,12 @@ export const Editor = ({
 				})()}
 
 				{(() => {
+					// The next formation
+					const nextFormationIndex = currentFormationIndex + 1;
+					if (nextFormationIndex >= performance.formationsCount) {
+						return null;
+					}
+
 					const [width, height] = getDrawingAreaDimensions();
 
 					const mat = `translate(${-camera.position[0]}, ${
@@ -435,7 +442,11 @@ export const Editor = ({
 
 					return (
 						<g transform={mat}>
-							{[...combineEntityPlacements()]
+							{[
+								...combineEntityPlacements(
+									performance.getFormation(nextFormationIndex)
+								),
+							]
 								.slice()
 								.reverse()
 								.map(
@@ -443,9 +454,75 @@ export const Editor = ({
 										[
 											id,
 											{
-												position: [x, y],
-												color,
-												name,
+												entity: { color, name },
+												placement: {
+													position: [x, y],
+												},
+											},
+										],
+										i
+									) => {
+										return (
+											<g key={i} opacity={0.25}>
+												{selectionsSet.has(id) ? (
+													<circle
+														stroke="black"
+														fill="white"
+														strokeWidth={`${1}`}
+														cx={x}
+														cy={-y}
+														r={`${CIRCLE_RADIUS + 4}`}
+													></circle>
+												) : null}
+												<circle
+													fill={"white"}
+													stroke={color}
+													strokeWidth={`3`}
+													cx={x}
+													cy={-y}
+													r={`${CIRCLE_RADIUS}`}
+												/>
+												<text
+													x={`${x}`}
+													y={`${-y + 1.5}`}
+													fill={color}
+													fontSize={`${1}em`}
+													dominantBaseline="middle"
+													textAnchor="middle"
+												>
+													{name.slice(0, 1)}
+												</text>
+											</g>
+										);
+									}
+								)}
+						</g>
+					);
+				})()}
+
+				{(() => {
+					const [width, height] = getDrawingAreaDimensions();
+
+					const mat = `translate(${-camera.position[0]}, ${
+						camera.position[1]
+					}) translate(${width / 2}, ${height / 2}) scale(${
+						camera.zoom.linear
+					})`;
+
+					return (
+						<g transform={mat}>
+							{[...combineEntityPlacements(currentFormation)]
+								.slice()
+								.reverse()
+								.map(
+									(
+										[
+											id,
+											{
+												entity: { color, name },
+												placement: {
+													position: [x, y],
+												},
 											},
 										],
 										i

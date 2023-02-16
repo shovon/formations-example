@@ -80,6 +80,7 @@ function App() {
 		let draft = { formations, entities };
 
 		// The basis case where the formations list is empty:
+
 		if ([...formations].length === 0) {
 			draft = performance(draft).pushFormation(newFormationName());
 		}

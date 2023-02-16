@@ -47,6 +47,22 @@ export const performance = ({ entities, formations }: PerformanceProject) => ({
 		});
 	},
 
+	get formationsCount(): number {
+		return formations.length;
+	},
+
+	// TODO: refactor `getFormation` to `formations.at()`
+	//
+	// Perhaps something like this:
+	//
+	// get formations() {
+	//   return {
+	//     get count(): number {
+	//       return formations.length;
+	//     }
+	//   }
+	// }
+
 	getFormation: (index: number) => {
 		const entityPlacement = (entityId: string): EntityPlacement => {
 			if (index < 0 || index > formations.length) {
@@ -88,9 +104,11 @@ export const performance = ({ entities, formations }: PerformanceProject) => ({
 			return { position: [0, 0] };
 		};
 
-		// TODO: this nesting is really confusing. Unnest it all, please
-
 		return {
+			get exists(): boolean {
+				return 0 < index && index < formations.length;
+			},
+
 			entity: (id: string) => ({
 				get placement(): EntityPlacement {
 					return entityPlacement(id);
@@ -151,3 +169,4 @@ export const performance = ({ entities, formations }: PerformanceProject) => ({
 });
 
 export type Performance = ReturnType<typeof performance>;
+export type FormationHelpers = ReturnType<Performance["getFormation"]>;
