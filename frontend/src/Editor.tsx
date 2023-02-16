@@ -127,6 +127,7 @@ export const Editor = ({
 		);
 	}
 
+	// TODO: be able to also click entity from next and previous formations
 	const entityMouseUp = (i: string) => {
 		if (selectionsSet.has(i)) {
 			if (mouseState.type === "MOUSE_DOWN") {
@@ -151,8 +152,6 @@ export const Editor = ({
 	};
 
 	const deactivateAllEntities = () => {
-		// selectedSet.clear();
-		// TODO: notify parent component that selections have been deleted
 		onSelectionsChange?.([]);
 	};
 
