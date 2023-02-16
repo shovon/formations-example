@@ -192,7 +192,11 @@ function App() {
 				{formations.map((formation, i) => {
 					return (
 						<div
+							onClick={() => {
+								setCurrentFormationIndex(i);
+							}}
 							style={{
+								background: "white",
 								borderWidth: 4,
 								borderStyle: "solid",
 								borderColor: i === currentFormationIndex ? "red" : "black",
