@@ -46,6 +46,70 @@ type EditorProps = {
 	currentFormationIndex: number;
 };
 
+const EntityObject = ({
+	isSelected,
+	x,
+	y,
+	color,
+	name,
+}: {
+	isSelected: boolean;
+	x: number;
+	y: number;
+	color: string;
+	name: string;
+}) => {
+	return (
+		<g>
+			{isSelected ? (
+				<circle
+					stroke="black"
+					fill="white"
+					strokeWidth={`${1}`}
+					cx={x}
+					cy={-y}
+					r={`${CIRCLE_RADIUS + 4}`}
+				></circle>
+			) : null}
+			<circle
+				fill={"white"}
+				stroke={color}
+				strokeWidth={`3`}
+				cx={x}
+				cy={-y}
+				r={`${CIRCLE_RADIUS}`}
+			/>
+			<text
+				x={`${x}`}
+				y={`${-y + 1.5}`}
+				fill={color}
+				fontSize={`${1}em`}
+				dominantBaseline="middle"
+				textAnchor="middle"
+			>
+				{name.slice(0, 1)}
+			</text>
+		</g>
+	);
+};
+
+const StraightPath = ({
+	from: [x1, y1],
+	to: [x2, y2],
+}: {
+	from: Vector2;
+	to: Vector2;
+}) => {
+	return (
+		<path
+			d={`M ${x1} ${-y1} L ${(x1 + x2) / 2} ${-(y1 + y2) / 2} L ${x2} ${-y2}`}
+			stroke="black"
+			fill="transparent"
+			markerMid="url(#arrowhead)"
+		/>
+	);
+};
+
 // TODO: memoize the value of entities and selections.
 // TODO: handle the edge case where there are no formations
 // TODO: this code is beginning to look really ugly. Time to refactor things
@@ -79,8 +143,6 @@ export const Editor = ({
 
 	const drawingAreaRef = useRef<SvgWrapperObject | null>(null);
 	const mousePositionRef = useRef<Vector2>([0, 0]);
-
-	const [, setMousePosition] = useState<[number, number]>([0, 0]);
 
 	const [, update] = useReducer(() => ({}), {});
 
@@ -280,6 +342,12 @@ export const Editor = ({
 		}
 	};
 
+	const [width, height] = getDrawingAreaDimensions();
+
+	const mat = `translate(${-camera.position[0]}, ${
+		camera.position[1]
+	}) translate(${width / 2}, ${height / 2}) scale(${camera.zoom.linear})`;
+
 	return (
 		<SvgWrapper
 			style={style}
@@ -364,7 +432,7 @@ export const Editor = ({
 
 				if (!equals2(newMousePosition, mousePositionRef.current)) {
 					mousePositionRef.current = newMousePosition;
-					setMousePosition(mousePositionRef.current);
+					update();
 
 					moveEvent([e.movementX, e.movementY]);
 				}
@@ -382,6 +450,18 @@ export const Editor = ({
 				}
 			`}
 		>
+			<defs>
+				<marker
+					id="arrowhead"
+					markerWidth="10"
+					markerHeight="7"
+					refX="0"
+					refY="3.5"
+					orient="auto"
+				>
+					<polygon points="0 0, 10 3.5, 0 7" />
+				</marker>
+			</defs>
 			<>
 				{(() => {
 					const { top, bottom } = getViewportBounds();
@@ -437,33 +517,13 @@ export const Editor = ({
 						previousFormationIndex
 					);
 
-					const [width, height] = getDrawingAreaDimensions();
-
-					const mat = `translate(${-camera.position[0]}, ${
-						camera.position[1]
-					}) translate(${width / 2}, ${height / 2}) scale(${
-						camera.zoom.linear
-					})`;
-
 					const directions = joinPlacements(
 						previousFormation.placements,
 						currentFormation.placements
 					);
 
 					return (
-						<g transform={mat}>
-							<defs>
-								<marker
-									id="arrowhead"
-									markerWidth="10"
-									markerHeight="7"
-									refX="0"
-									refY="3.5"
-									orient="auto"
-								>
-									<polygon points="0 0, 10 3.5, 0 7" />
-								</marker>
-							</defs>
+						<g transform={mat} opacity={0.25}>
 							{[...directions].map(
 								([
 									,
@@ -476,17 +536,7 @@ export const Editor = ({
 										},
 									},
 								]) => {
-									const mid = scalarMul2(add2([x1, y1], [x2, y2]), 0.5);
-									return (
-										<>
-											<path
-												d={`M ${x1} ${-y1} L ${(x1 + x2) /2} ${-(y1 + y2) / 2} L ${x2} ${-y2}`}
-												stroke="black"
-												fill="transparent"
-												markerMid="url(#arrowhead)"
-											/>
-										</>
-									);
+									return <StraightPath from={[x1, y1]} to={[x2, y2]} />;
 								}
 							)}
 							{[
@@ -510,36 +560,14 @@ export const Editor = ({
 										i
 									) => {
 										return (
-											<g key={i} opacity={0.25}>
-												{selectionsSet.has(id) ? (
-													<circle
-														stroke="black"
-														fill="white"
-														strokeWidth={`${1}`}
-														cx={x}
-														cy={-y}
-														r={`${CIRCLE_RADIUS + 4}`}
-													></circle>
-												) : null}
-												<circle
-													fill={"white"}
-													stroke={color}
-													strokeWidth={`3`}
-													cx={x}
-													cy={-y}
-													r={`${CIRCLE_RADIUS}`}
-												/>
-												<text
-													x={`${x}`}
-													y={`${-y + 1.5}`}
-													fill={color}
-													fontSize={`${1}em`}
-													dominantBaseline="middle"
-													textAnchor="middle"
-												>
-													{name.slice(0, 1)}
-												</text>
-											</g>
+											<EntityObject
+												key={i}
+												isSelected={selectionsSet.has(id)}
+												x={x}
+												y={y}
+												color={color}
+												name={name}
+											/>
 										);
 									}
 								)}
@@ -556,33 +584,13 @@ export const Editor = ({
 
 					const nextFormation = performance.getFormation(nextFormationIndex);
 
-					const [width, height] = getDrawingAreaDimensions();
-
-					const mat = `translate(${-camera.position[0]}, ${
-						camera.position[1]
-					}) translate(${width / 2}, ${height / 2}) scale(${
-						camera.zoom.linear
-					})`;
-
 					const directions = joinPlacements(
 						currentFormation.placements,
 						nextFormation.placements
 					);
 
 					return (
-						<g transform={mat}>
-							<defs>
-								<marker
-									id="arrowhead"
-									markerWidth="10"
-									markerHeight="7"
-									refX="0"
-									refY="3.5"
-									orient="auto"
-								>
-									<polygon points="0 0, 10 3.5, 0 7" />
-								</marker>
-							</defs>
+						<g transform={mat} opacity={0.25}>
 							{[...directions].map(
 								([
 									,
@@ -595,17 +603,7 @@ export const Editor = ({
 										},
 									},
 								]) => {
-									const mid = scalarMul2(add2([x1, y1], [x2, y2]), 0.5);
-									return (
-										<>
-											<path
-												d={`M ${x1} ${-y1} L ${(x1 + x2) /2} ${-(y1 + y2) / 2} L ${x2} ${-y2}`}
-												stroke="black"
-												fill="transparent"
-												markerMid="url(#arrowhead)"
-											/>
-										</>
-									);
+									return <StraightPath from={[x1, y1]} to={[x2, y2]} />;
 								}
 							)}
 							{[
@@ -629,36 +627,14 @@ export const Editor = ({
 										i
 									) => {
 										return (
-											<g key={i} opacity={0.25}>
-												{selectionsSet.has(id) ? (
-													<circle
-														stroke="black"
-														fill="white"
-														strokeWidth={`${1}`}
-														cx={x}
-														cy={-y}
-														r={`${CIRCLE_RADIUS + 4}`}
-													></circle>
-												) : null}
-												<circle
-													fill={"white"}
-													stroke={color}
-													strokeWidth={`3`}
-													cx={x}
-													cy={-y}
-													r={`${CIRCLE_RADIUS}`}
-												/>
-												<text
-													x={`${x}`}
-													y={`${-y + 1.5}`}
-													fill={color}
-													fontSize={`${1}em`}
-													dominantBaseline="middle"
-													textAnchor="middle"
-												>
-													{name.slice(0, 1)}
-												</text>
-											</g>
+											<EntityObject
+												key={i}
+												x={x}
+												y={y}
+												isSelected={selectionsSet.has(id)}
+												color={color}
+												name={name}
+											/>
 										);
 									}
 								)}
@@ -667,14 +643,6 @@ export const Editor = ({
 				})()}
 
 				{(() => {
-					const [width, height] = getDrawingAreaDimensions();
-
-					const mat = `translate(${-camera.position[0]}, ${
-						camera.position[1]
-					}) translate(${width / 2}, ${height / 2}) scale(${
-						camera.zoom.linear
-					})`;
-
 					return (
 						<g transform={mat}>
 							{[...combineEntityPlacements(currentFormation)]
@@ -694,36 +662,14 @@ export const Editor = ({
 										i
 									) => {
 										return (
-											<g key={i}>
-												{selectionsSet.has(id) ? (
-													<circle
-														stroke="black"
-														fill="white"
-														strokeWidth={`${1}`}
-														cx={x}
-														cy={-y}
-														r={`${CIRCLE_RADIUS + 4}`}
-													></circle>
-												) : null}
-												<circle
-													fill={"white"}
-													stroke={color}
-													strokeWidth={`3`}
-													cx={x}
-													cy={-y}
-													r={`${CIRCLE_RADIUS}`}
-												/>
-												<text
-													x={`${x}`}
-													y={`${-y + 1.5}`}
-													fill={color}
-													fontSize={`${1}em`}
-													dominantBaseline="middle"
-													textAnchor="middle"
-												>
-													{name.slice(0, 1)}
-												</text>
-											</g>
+											<EntityObject
+												key={i}
+												isSelected={selectionsSet.has(id)}
+												x={x}
+												y={y}
+												name={name}
+												color={color}
+											/>
 										);
 									}
 								)}
@@ -731,6 +677,7 @@ export const Editor = ({
 					);
 				})()}
 
+				{/* This stays */}
 				{(() => {
 					if (mouseState.type !== "MOUSE_DOWN") return null;
 
