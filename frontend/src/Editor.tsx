@@ -94,20 +94,44 @@ const EntityObject = ({
 	);
 };
 
+const Marker = ({ id, color }: { id: string; color: string }) => {
+	return (
+		<defs>
+			<marker
+				id={`arrowhead-${btoa(id)}`}
+				markerWidth="10"
+				markerHeight="7"
+				refX="0"
+				refY="3.5"
+				orient="auto"
+			>
+				<polygon points="0 0, 10 3.5, 0 7" fill={color} />
+			</marker>
+		</defs>
+	);
+};
+
 const StraightPath = ({
+	id,
+	color,
 	from: [x1, y1],
 	to: [x2, y2],
 }: {
+	id: string;
+	color?: string;
 	from: Vector2;
 	to: Vector2;
 }) => {
 	return (
-		<path
-			d={`M ${x1} ${-y1} L ${(x1 + x2) / 2} ${-(y1 + y2) / 2} L ${x2} ${-y2}`}
-			stroke="black"
-			fill="transparent"
-			markerMid="url(#arrowhead)"
-		/>
+		<>
+			<Marker id={id} color={color ?? "black"} />
+			<path
+				d={`M ${x1} ${-y1} L ${(x1 + x2) / 2} ${-(y1 + y2) / 2} L ${x2} ${-y2}`}
+				stroke={color ?? "black"}
+				fill="transparent"
+				markerMid={`url(#arrowhead-${btoa(id)})`}
+			/>
+		</>
 	);
 };
 
@@ -479,18 +503,6 @@ export const Editor = ({
 				}
 			`}
 		>
-			<defs>
-				<marker
-					id="arrowhead"
-					markerWidth="10"
-					markerHeight="7"
-					refX="0"
-					refY="3.5"
-					orient="auto"
-				>
-					<polygon points="0 0, 10 3.5, 0 7" />
-				</marker>
-			</defs>
 			<>
 				{(() => {
 					const { top, bottom } = getViewportBounds();
@@ -566,7 +578,13 @@ export const Editor = ({
 									},
 								]) => {
 									return (
-										<StraightPath key={id} from={[x1, y1]} to={[x2, y2]} />
+										<StraightPath
+											key={id}
+											id={id}
+											color={getKV(performance.entities, id)?.color}
+											from={[x1, y1]}
+											to={[x2, y2]}
+										/>
 									);
 								}
 							)}
@@ -635,7 +653,13 @@ export const Editor = ({
 									},
 								]) => {
 									return (
-										<StraightPath key={id} from={[x1, y1]} to={[x2, y2]} />
+										<StraightPath
+											id={id}
+											color={getKV(performance.entities, id)?.color}
+											key={id}
+											from={[x1, y1]}
+											to={[x2, y2]}
+										/>
 									);
 								}
 							)}
