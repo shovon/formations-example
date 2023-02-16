@@ -46,6 +46,53 @@ type EditorProps = {
 	currentFormationIndex: number;
 };
 
+const EntityObject = ({
+	isSelected,
+	x,
+	y,
+	color,
+	name,
+}: {
+	isSelected: boolean;
+	x: number;
+	y: number;
+	color: string;
+	name: string;
+}) => {
+	return (
+		<g>
+			{isSelected ? (
+				<circle
+					stroke="black"
+					fill="white"
+					strokeWidth={`${1}`}
+					cx={x}
+					cy={-y}
+					r={`${CIRCLE_RADIUS + 4}`}
+				></circle>
+			) : null}
+			<circle
+				fill={"white"}
+				stroke={color}
+				strokeWidth={`3`}
+				cx={x}
+				cy={-y}
+				r={`${CIRCLE_RADIUS}`}
+			/>
+			<text
+				x={`${x}`}
+				y={`${-y + 1.5}`}
+				fill={color}
+				fontSize={`${1}em`}
+				dominantBaseline="middle"
+				textAnchor="middle"
+			>
+				{name.slice(0, 1)}
+			</text>
+		</g>
+	);
+};
+
 // TODO: memoize the value of entities and selections.
 // TODO: handle the edge case where there are no formations
 // TODO: this code is beginning to look really ugly. Time to refactor things
@@ -480,7 +527,9 @@ export const Editor = ({
 									return (
 										<>
 											<path
-												d={`M ${x1} ${-y1} L ${(x1 + x2) /2} ${-(y1 + y2) / 2} L ${x2} ${-y2}`}
+												d={`M ${x1} ${-y1} L ${(x1 + x2) / 2} ${
+													-(y1 + y2) / 2
+												} L ${x2} ${-y2}`}
 												stroke="black"
 												fill="transparent"
 												markerMid="url(#arrowhead)"
@@ -510,36 +559,14 @@ export const Editor = ({
 										i
 									) => {
 										return (
-											<g key={i} opacity={0.25}>
-												{selectionsSet.has(id) ? (
-													<circle
-														stroke="black"
-														fill="white"
-														strokeWidth={`${1}`}
-														cx={x}
-														cy={-y}
-														r={`${CIRCLE_RADIUS + 4}`}
-													></circle>
-												) : null}
-												<circle
-													fill={"white"}
-													stroke={color}
-													strokeWidth={`3`}
-													cx={x}
-													cy={-y}
-													r={`${CIRCLE_RADIUS}`}
-												/>
-												<text
-													x={`${x}`}
-													y={`${-y + 1.5}`}
-													fill={color}
-													fontSize={`${1}em`}
-													dominantBaseline="middle"
-													textAnchor="middle"
-												>
-													{name.slice(0, 1)}
-												</text>
-											</g>
+											<EntityObject
+												key={i}
+												isSelected={selectionsSet.has(id)}
+												x={x}
+												y={-y}
+												color={color}
+												name={name}
+											/>
 										);
 									}
 								)}
@@ -595,11 +622,12 @@ export const Editor = ({
 										},
 									},
 								]) => {
-									const mid = scalarMul2(add2([x1, y1], [x2, y2]), 0.5);
 									return (
 										<>
 											<path
-												d={`M ${x1} ${-y1} L ${(x1 + x2) /2} ${-(y1 + y2) / 2} L ${x2} ${-y2}`}
+												d={`M ${x1} ${-y1} L ${(x1 + x2) / 2} ${
+													-(y1 + y2) / 2
+												} L ${x2} ${-y2}`}
 												stroke="black"
 												fill="transparent"
 												markerMid="url(#arrowhead)"
@@ -731,6 +759,7 @@ export const Editor = ({
 					);
 				})()}
 
+				{/* This stays */}
 				{(() => {
 					if (mouseState.type !== "MOUSE_DOWN") return null;
 
