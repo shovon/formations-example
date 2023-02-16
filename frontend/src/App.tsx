@@ -40,8 +40,6 @@ type Formation = {
 	>;
 };
 
-// TODO: switch to immer. This is getting waaaay out of hand
-
 function App() {
 	const [currentFormationIndex, setCurrentFormationIndex] = useState(2);
 	const [{ formations, entities }, setProject] = useState<PerformanceProject>({
@@ -54,6 +52,7 @@ function App() {
 		],
 		formations: [
 			{
+				id: "formation1",
 				name: "Formation 1",
 				positions: new Map([
 					["1", { position: [-100, 100] }],
@@ -64,17 +63,17 @@ function App() {
 				]),
 			},
 			{
-				name: "Formation 1",
+				id: "formation2",
+				name: "Formation 2",
 				positions: new Map([["1", { position: [-100, 50] }]]),
 			},
 			{
-				name: "Formation 1",
+				id: "formation3",
+				name: "Formation 3",
 				positions: new Map([["5", { position: [100, 0] }]]),
 			},
 		],
 	});
-
-	console.log(currentFormationIndex);
 
 	const performanceProject = performance({ formations, entities });
 
@@ -133,12 +132,18 @@ function App() {
 	}, [performanceProject]);
 
 	return (
-		<div>
+		<div
+			style={{
+				height: "100vh",
+				display: "flex",
+				flexDirection: "column",
+			}}
+		>
 			<Editor
 				performance={performanceProject}
 				style={{
+					flex: "1",
 					width: "100vw",
-					height: "100vh",
 				}}
 				currentFormationIndex={currentFormationIndex}
 				selections={selections}
@@ -170,6 +175,42 @@ function App() {
 				>
 					Add Entity
 				</button>
+			</div>
+
+			<div
+				style={{
+					display: "flex",
+					borderTop: "1px solid #aaa",
+					height: 100,
+					overflowX: "scroll",
+					overflowY: "hidden",
+					padding: 5,
+				}}
+			>
+				{formations.map((formation, i) => {
+					return (
+						<div
+							onClick={() => {
+								setCurrentFormationIndex(i);
+							}}
+							style={{
+								background: "white",
+								borderWidth: 4,
+								borderStyle: "solid",
+								borderColor: i === currentFormationIndex ? "red" : "black",
+								boxSizing: "border-box",
+								borderRadius: 8,
+								padding: "5px 10px",
+								width: 200,
+								height: "100%",
+								marginRight: i < formations.length - 1 ? 5 : 0,
+							}}
+							key={formation.id}
+						>
+							{formation.name}
+						</div>
+					);
+				})}
 			</div>
 		</div>
 	);

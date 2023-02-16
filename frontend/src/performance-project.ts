@@ -14,6 +14,7 @@ export type Entity = {
 export type EntityPlacement = { position: Vector2 };
 
 export type Formation = {
+	id: string;
 	name: string;
 	positions: Iterable<[string, EntityPlacement]>;
 };
@@ -37,7 +38,12 @@ export const performance = ({ entities, formations }: PerformanceProject) => ({
 
 	pushFormation: (name: string) => {
 		return produce({ entities, formations }, (draft) => {
-			formations.push({ name, positions: [] });
+			const ids = new Set(formations.map(({ id }) => id));
+			let idNumber = formations.length;
+			while (ids.has(idNumber.toString())) {
+				idNumber++;
+			}
+			formations.push({ id: idNumber.toString(), name, positions: [] });
 		});
 	},
 
