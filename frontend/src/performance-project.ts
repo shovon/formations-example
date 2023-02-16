@@ -43,7 +43,7 @@ export const performance = ({ entities, formations }: PerformanceProject) => ({
 			while (ids.has(idNumber.toString())) {
 				idNumber++;
 			}
-			formations.push({ id: idNumber.toString(), name, positions: [] });
+			draft.formations.push({ id: idNumber.toString(), name, positions: [] });
 		});
 	},
 
