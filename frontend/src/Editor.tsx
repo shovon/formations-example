@@ -264,14 +264,34 @@ export const Editor = ({
 		return { width, height, left, top, right, bottom };
 	};
 
-	const getEntityUnderCursor = (): [string, EntityPlacement] | null => {
+	const getEntityUnderCursor = (): [string, EntityPlacement, number] | null => {
 		const cursorPosition = getCursorPosition();
 
-		for (const [, [index, placement]] of localPlacements.entries()) {
-			const radius = CIRCLE_RADIUS;
+		const radius = CIRCLE_RADIUS;
 
+		for (const [, [id, placement]] of localPlacements.entries()) {
 			if (distance2(cursorPosition, placement.position) < radius) {
-				return [index, placement];
+				return [id, placement, currentFormationIndex];
+			}
+		}
+
+		const previousFormationIndex = currentFormationIndex - 1;
+		const previousFormation = performance.getFormation(previousFormationIndex);
+		if (previousFormation.exists) {
+			for (const [id, placement] of previousFormation.placements) {
+				if (distance2(cursorPosition, placement.position) < radius) {
+					return [id, placement, previousFormationIndex];
+				}
+			}
+		}
+
+		const nextFormationIndex = currentFormationIndex - 1;
+		const nextFormation = performance.getFormation(nextFormationIndex);
+		if (nextFormation.exists) {
+			for (const [id, placement] of nextFormation.placements) {
+				if (distance2(cursorPosition, placement.position) < radius) {
+					return [id, placement, nextFormationIndex];
+				}
 			}
 		}
 
@@ -362,9 +382,9 @@ export const Editor = ({
 				setMouseState({ type: "NOTHING" });
 			}}
 			onMouseDown={() => {
-				const indexAndEntity = getEntityUnderCursor();
-				if (indexAndEntity) {
-					const [index] = indexAndEntity;
+				const idAndEntity = getEntityUnderCursor();
+				if (idAndEntity) {
+					const [index] = idAndEntity;
 					setMouseState({
 						type: "MOUSE_DOWN",
 						event: {
