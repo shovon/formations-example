@@ -400,6 +400,9 @@ export const Editor = ({
 					onSelectionsChange?.([...selectionsSet, id]);
 					if (formationIndex !== currentFormationIndex) {
 						onFormationIndexChange?.(formationIndex);
+						setLocalPlacements([
+							...performance.getFormation(formationIndex).placements,
+						]);
 					}
 					return;
 				} else {
