@@ -387,17 +387,17 @@ export const Editor = ({
 			onMouseDown={() => {
 				const idAndEntity = getEntityUnderCursor();
 				if (idAndEntity) {
-					const [index, , formationIndex] = idAndEntity;
+					const [id, , formationIndex] = idAndEntity;
 					setMouseState({
 						type: "MOUSE_DOWN",
 						event: {
 							type: "ITEM",
-							id: index,
-							wasPreviouslySelected: selectionsSet.has(index),
+							id,
+							wasPreviouslySelected: selectionsSet.has(id),
 						},
 						hasMoved: false,
 					});
-					onSelectionsChange?.([...selectionsSet, index]);
+					onSelectionsChange?.([...selectionsSet, id]);
 					if (formationIndex !== currentFormationIndex) {
 						onFormationIndexChange?.(formationIndex);
 					}
