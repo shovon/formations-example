@@ -43,7 +43,7 @@ type Formation = {
 // TODO: switch to immer. This is getting waaaay out of hand
 
 function App() {
-	const [currentFormationIndex, setCurrentFormationIndex] = useState(0);
+	const [currentFormationIndex, setCurrentFormationIndex] = useState(2);
 	const [{ formations, entities }, setProject] = useState<PerformanceProject>({
 		entities: [
 			["1", { color: "red", name: "A" }],
@@ -63,8 +63,18 @@ function App() {
 					["5", { position: [300, 0] }],
 				]),
 			},
+			{
+				name: "Formation 1",
+				positions: new Map([["1", { position: [-100, 50] }]]),
+			},
+			{
+				name: "Formation 1",
+				positions: new Map([["5", { position: [100, 0] }]]),
+			},
 		],
 	});
+
+	console.log(currentFormationIndex);
 
 	const performanceProject = performance({ formations, entities });
 
@@ -130,7 +140,7 @@ function App() {
 					width: "100vw",
 					height: "100vh",
 				}}
-				currentFormationIndex={0}
+				currentFormationIndex={currentFormationIndex}
 				selections={selections}
 				onPositionsChange={(changes, formationIndex) => {
 					setProject(
