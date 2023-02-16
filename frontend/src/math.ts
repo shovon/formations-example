@@ -23,8 +23,8 @@ export const cubicBezierDeriv2d = (
 	p3: Vector2
 ) => {
 	let result = [0, 0] satisfies [number, number];
-	result = add(result, scalarMul(sub(p1, p2), 3 * (1 - t) ** 2));
-	result = add(result, scalarMul(sub(p1, p2), 6 * (1 - t) * t));
+	result = add(result, scalarMul(sub(p1, p0), 3 * (1 - t) ** 2));
+	result = add(result, scalarMul(sub(p2, p1), 6 * (1 - t) * t));
 	result = add(result, scalarMul(sub(p3, p2), 3 * (1 - t) * t ** 2));
 	return result;
 };

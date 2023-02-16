@@ -1,6 +1,4 @@
-import { useReducer } from "react";
 import { getKV, hasKV, map, setKV, unionKV } from "./iterable-helpers";
-import { ReadOnlyMap } from "./readonly-map-set";
 import produce from "immer";
 import { Vector2 } from "./vector2";
 
@@ -43,9 +41,25 @@ export const performance = ({ entities, formations }: PerformanceProject) => ({
 			while (ids.has(idNumber.toString())) {
 				idNumber++;
 			}
-			formations.push({ id: idNumber.toString(), name, positions: [] });
+			draft.formations.push({ id: idNumber.toString(), name, positions: [] });
 		});
 	},
+
+	get formationsCount(): number {
+		return formations.length;
+	},
+
+	// TODO: refactor `getFormation` to `formations.at()`
+	//
+	// Perhaps something like this:
+	//
+	// get formations() {
+	//   return {
+	//     get count(): number {
+	//       return formations.length;
+	//     }
+	//   }
+	// }
 
 	getFormation: (index: number) => {
 		const entityPlacement = (entityId: string): EntityPlacement => {
@@ -88,9 +102,11 @@ export const performance = ({ entities, formations }: PerformanceProject) => ({
 			return { position: [0, 0] };
 		};
 
-		// TODO: this nesting is really confusing. Unnest it all, please
-
 		return {
+			get exists(): boolean {
+				return 0 < index && index < formations.length;
+			},
+
 			entity: (id: string) => ({
 				get placement(): EntityPlacement {
 					return entityPlacement(id);
@@ -151,3 +167,29 @@ export const performance = ({ entities, formations }: PerformanceProject) => ({
 });
 
 export type Performance = ReturnType<typeof performance>;
+export type FormationHelpers = ReturnType<Performance["getFormation"]>;
+
+export const joinPlacements = (
+	source: Iterable<[string, EntityPlacement]>,
+	destination: Iterable<[string, EntityPlacement]>
+) => {
+	const result = new Map<
+		string,
+		{ from: EntityPlacement; to: EntityPlacement }
+	>();
+
+	const destinationMap = new Map(destination);
+
+	for (const [id, placement] of source) {
+		const to = destinationMap.get(id);
+		if (!to) {
+			continue;
+		}
+		result.set(id, {
+			from: placement,
+			to,
+		});
+	}
+
+	return result;
+};
