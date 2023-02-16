@@ -480,10 +480,10 @@ export const Editor = ({
 									return (
 										<>
 											<path
-												d={`M ${x1} ${-y1} L ${x2} ${-y2}`}
+												d={`M ${x1} ${-y1} L ${(x1 + x2) /2} ${-(y1 + y2) / 2} L ${x2} ${-y2}`}
 												stroke="black"
 												fill="transparent"
-												markerEnd="url(#arrowhead)"
+												markerMid="url(#arrowhead)"
 											/>
 										</>
 									);
@@ -599,10 +599,10 @@ export const Editor = ({
 									return (
 										<>
 											<path
-												d={`M ${x1} ${-y1} L ${x2} ${-y2}`}
+												d={`M ${x1} ${-y1} L ${(x1 + x2) /2} ${-(y1 + y2) / 2} L ${x2} ${-y2}`}
 												stroke="black"
 												fill="transparent"
-												markerEnd="url(#arrowhead)"
+												markerMid="url(#arrowhead)"
 											/>
 										</>
 									);
