@@ -104,7 +104,7 @@ export const performance = ({ entities, formations }: PerformanceProject) => ({
 
 		return {
 			get exists(): boolean {
-				return 0 < index && index < formations.length;
+				return 0 <= index && index < formations.length;
 			},
 
 			entity: (id: string) => ({
@@ -121,7 +121,6 @@ export const performance = ({ entities, formations }: PerformanceProject) => ({
 						draft.formations[index].positions = [
 							...setKV(positions, id, placement),
 						];
-						console.log(id, draft.formations[index].positions);
 					});
 				},
 
