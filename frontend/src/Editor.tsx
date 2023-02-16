@@ -42,6 +42,7 @@ type EditorProps = {
 		formationIndex: number
 	) => void;
 	onSelectionsChange?: (changes: Iterable<string>) => void;
+	onFormationIndexChange?: (newIndex: number) => void;
 	style?: React.CSSProperties | undefined;
 	currentFormationIndex: number;
 };
@@ -121,6 +122,7 @@ export const Editor = ({
 	selections,
 	onPositionsChange,
 	onSelectionsChange,
+	onFormationIndexChange,
 	style,
 	currentFormationIndex,
 }: EditorProps) => {
@@ -264,14 +266,35 @@ export const Editor = ({
 		return { width, height, left, top, right, bottom };
 	};
 
-	const getEntityUnderCursor = (): [string, EntityPlacement] | null => {
+	const getEntityUnderCursor = (): [string, EntityPlacement, number] | null => {
 		const cursorPosition = getCursorPosition();
 
-		for (const [, [index, placement]] of localPlacements.entries()) {
-			const radius = CIRCLE_RADIUS;
+		const radius = CIRCLE_RADIUS;
 
+		for (const [, [id, placement]] of localPlacements.entries()) {
 			if (distance2(cursorPosition, placement.position) < radius) {
-				return [index, placement];
+				return [id, placement, currentFormationIndex];
+			}
+		}
+
+		const previousFormationIndex = currentFormationIndex - 1;
+		const previousFormation = performance.getFormation(previousFormationIndex);
+		if (previousFormation.exists) {
+			for (const [id, placement] of previousFormation.placements) {
+				if (distance2(cursorPosition, placement.position) < radius) {
+					return [id, placement, previousFormationIndex];
+				}
+			}
+		}
+
+		const nextFormationIndex = currentFormationIndex + 1;
+		const nextFormation = performance.getFormation(nextFormationIndex);
+
+		if (nextFormation.exists) {
+			for (const [id, placement] of nextFormation.placements) {
+				if (distance2(cursorPosition, placement.position) < radius) {
+					return [id, placement, nextFormationIndex];
+				}
 			}
 		}
 
@@ -362,19 +385,25 @@ export const Editor = ({
 				setMouseState({ type: "NOTHING" });
 			}}
 			onMouseDown={() => {
-				const indexAndEntity = getEntityUnderCursor();
-				if (indexAndEntity) {
-					const [index] = indexAndEntity;
+				const idAndEntity = getEntityUnderCursor();
+				if (idAndEntity) {
+					const [id, , formationIndex] = idAndEntity;
 					setMouseState({
 						type: "MOUSE_DOWN",
 						event: {
 							type: "ITEM",
-							id: index,
-							wasPreviouslySelected: selectionsSet.has(index),
+							id,
+							wasPreviouslySelected: selectionsSet.has(id),
 						},
 						hasMoved: false,
 					});
-					onSelectionsChange?.([...selectionsSet, index]);
+					onSelectionsChange?.([...selectionsSet, id]);
+					if (formationIndex !== currentFormationIndex) {
+						onFormationIndexChange?.(formationIndex);
+						setLocalPlacements([
+							...performance.getFormation(formationIndex).placements,
+						]);
+					}
 					return;
 				} else {
 					deactivateAllEntities();
@@ -526,7 +555,7 @@ export const Editor = ({
 						<g transform={mat} opacity={0.25}>
 							{[...directions].map(
 								([
-									,
+									id,
 									{
 										from: {
 											position: [x1, y1],
@@ -536,7 +565,9 @@ export const Editor = ({
 										},
 									},
 								]) => {
-									return <StraightPath from={[x1, y1]} to={[x2, y2]} />;
+									return (
+										<StraightPath key={id} from={[x1, y1]} to={[x2, y2]} />
+									);
 								}
 							)}
 							{[
@@ -593,7 +624,7 @@ export const Editor = ({
 						<g transform={mat} opacity={0.25}>
 							{[...directions].map(
 								([
-									,
+									id,
 									{
 										from: {
 											position: [x1, y1],
@@ -603,7 +634,9 @@ export const Editor = ({
 										},
 									},
 								]) => {
-									return <StraightPath from={[x1, y1]} to={[x2, y2]} />;
+									return (
+										<StraightPath key={id} from={[x1, y1]} to={[x2, y2]} />
+									);
 								}
 							)}
 							{[
@@ -614,21 +647,18 @@ export const Editor = ({
 								.slice()
 								.reverse()
 								.map(
-									(
-										[
-											id,
-											{
-												entity: { color, name },
-												placement: {
-													position: [x, y],
-												},
+									([
+										id,
+										{
+											entity: { color, name },
+											placement: {
+												position: [x, y],
 											},
-										],
-										i
-									) => {
+										},
+									]) => {
 										return (
 											<EntityObject
-												key={i}
+												key={id}
 												x={x}
 												y={y}
 												isSelected={selectionsSet.has(id)}
@@ -649,21 +679,18 @@ export const Editor = ({
 								.slice()
 								.reverse()
 								.map(
-									(
-										[
-											id,
-											{
-												entity: { color, name },
-												placement: {
-													position: [x, y],
-												},
+									([
+										id,
+										{
+											entity: { color, name },
+											placement: {
+												position: [x, y],
 											},
-										],
-										i
-									) => {
+										},
+									]) => {
 										return (
 											<EntityObject
-												key={i}
+												key={id}
 												isSelected={selectionsSet.has(id)}
 												x={x}
 												y={y}

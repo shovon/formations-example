@@ -113,8 +113,6 @@ function App() {
 			.entity(id)
 			.setPlacement(placement);
 
-		console.log(draft);
-
 		setProject(draft);
 	}, [performanceProject]);
 
@@ -144,6 +142,9 @@ function App() {
 				onSelectionsChange={(newSelections) => {
 					selections.clear();
 					selections.add(...newSelections);
+				}}
+				onFormationIndexChange={(i) => {
+					setCurrentFormationIndex(i);
 				}}
 			/>
 			<div
