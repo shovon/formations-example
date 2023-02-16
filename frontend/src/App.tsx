@@ -8,7 +8,6 @@ import {
 } from "./performance-project";
 import { useSet } from "./use-set";
 import { add, Vector2 } from "./vector2";
-import produce from "immer";
 
 function arbitraryHSL(): [number, number, number] {
 	return [Math.random() * 360, 0.5, 0.5];
@@ -26,19 +25,6 @@ function randomString(length: number = 10): string {
 		.map(() => chars[Math.floor(Math.random() * chars.length)])
 		.join("");
 }
-
-type Formation = {
-	name: string;
-	entities: Iterable<
-		[
-			string,
-			{
-				position: Vector2;
-				path: [Vector2, Vector2];
-			}
-		]
-	>;
-};
 
 function App() {
 	const [currentFormationIndex, setCurrentFormationIndex] = useState(2);
