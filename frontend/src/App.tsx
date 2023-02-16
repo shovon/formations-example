@@ -40,8 +40,6 @@ type Formation = {
 	>;
 };
 
-// TODO: switch to immer. This is getting waaaay out of hand
-
 function App() {
 	const [currentFormationIndex, setCurrentFormationIndex] = useState(2);
 	const [{ formations, entities }, setProject] = useState<PerformanceProject>({
