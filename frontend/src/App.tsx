@@ -27,7 +27,7 @@ function randomString(length: number = 10): string {
 }
 
 function App() {
-	const [currentFormationIndex, setCurrentFormationIndex] = useState(2);
+	const [currentFormationIndex, setCurrentFormationIndex] = useState(0);
 	const [{ formations, entities }, setProject] = useState<PerformanceProject>({
 		entities: [
 			["1", { color: "red", name: "A" }],
