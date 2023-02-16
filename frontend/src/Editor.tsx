@@ -42,6 +42,7 @@ type EditorProps = {
 		formationIndex: number
 	) => void;
 	onSelectionsChange?: (changes: Iterable<string>) => void;
+	onFormationIndexChange?: (newIndex: number) => void;
 	style?: React.CSSProperties | undefined;
 	currentFormationIndex: number;
 };
@@ -121,6 +122,7 @@ export const Editor = ({
 	selections,
 	onPositionsChange,
 	onSelectionsChange,
+	onFormationIndexChange,
 	style,
 	currentFormationIndex,
 }: EditorProps) => {
@@ -285,8 +287,9 @@ export const Editor = ({
 			}
 		}
 
-		const nextFormationIndex = currentFormationIndex - 1;
+		const nextFormationIndex = currentFormationIndex + 1;
 		const nextFormation = performance.getFormation(nextFormationIndex);
+
 		if (nextFormation.exists) {
 			for (const [id, placement] of nextFormation.placements) {
 				if (distance2(cursorPosition, placement.position) < radius) {
@@ -384,7 +387,7 @@ export const Editor = ({
 			onMouseDown={() => {
 				const idAndEntity = getEntityUnderCursor();
 				if (idAndEntity) {
-					const [index] = idAndEntity;
+					const [index, , formationIndex] = idAndEntity;
 					setMouseState({
 						type: "MOUSE_DOWN",
 						event: {
@@ -395,6 +398,9 @@ export const Editor = ({
 						hasMoved: false,
 					});
 					onSelectionsChange?.([...selectionsSet, index]);
+					if (formationIndex !== currentFormationIndex) {
+						onFormationIndexChange?.(formationIndex);
+					}
 					return;
 				} else {
 					deactivateAllEntities();
@@ -546,7 +552,7 @@ export const Editor = ({
 						<g transform={mat} opacity={0.25}>
 							{[...directions].map(
 								([
-									,
+									id,
 									{
 										from: {
 											position: [x1, y1],
@@ -556,7 +562,9 @@ export const Editor = ({
 										},
 									},
 								]) => {
-									return <StraightPath from={[x1, y1]} to={[x2, y2]} />;
+									return (
+										<StraightPath key={id} from={[x1, y1]} to={[x2, y2]} />
+									);
 								}
 							)}
 							{[
@@ -613,7 +621,7 @@ export const Editor = ({
 						<g transform={mat} opacity={0.25}>
 							{[...directions].map(
 								([
-									,
+									id,
 									{
 										from: {
 											position: [x1, y1],
@@ -623,7 +631,9 @@ export const Editor = ({
 										},
 									},
 								]) => {
-									return <StraightPath from={[x1, y1]} to={[x2, y2]} />;
+									return (
+										<StraightPath key={id} from={[x1, y1]} to={[x2, y2]} />
+									);
 								}
 							)}
 							{[
@@ -634,21 +644,18 @@ export const Editor = ({
 								.slice()
 								.reverse()
 								.map(
-									(
-										[
-											id,
-											{
-												entity: { color, name },
-												placement: {
-													position: [x, y],
-												},
+									([
+										id,
+										{
+											entity: { color, name },
+											placement: {
+												position: [x, y],
 											},
-										],
-										i
-									) => {
+										},
+									]) => {
 										return (
 											<EntityObject
-												key={i}
+												key={id}
 												x={x}
 												y={y}
 												isSelected={selectionsSet.has(id)}
@@ -669,21 +676,18 @@ export const Editor = ({
 								.slice()
 								.reverse()
 								.map(
-									(
-										[
-											id,
-											{
-												entity: { color, name },
-												placement: {
-													position: [x, y],
-												},
+									([
+										id,
+										{
+											entity: { color, name },
+											placement: {
+												position: [x, y],
 											},
-										],
-										i
-									) => {
+										},
+									]) => {
 										return (
 											<EntityObject
-												key={i}
+												key={id}
 												isSelected={selectionsSet.has(id)}
 												x={x}
 												y={y}

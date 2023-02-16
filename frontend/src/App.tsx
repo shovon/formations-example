@@ -145,6 +145,9 @@ function App() {
 					selections.clear();
 					selections.add(...newSelections);
 				}}
+				onFormationIndexChange={(i) => {
+					setCurrentFormationIndex(i);
+				}}
 			/>
 			<div
 				style={{
