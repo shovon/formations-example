@@ -93,6 +93,23 @@ const EntityObject = ({
 	);
 };
 
+const StraightPath = ({
+	from: [x1, y1],
+	to: [x2, y2],
+}: {
+	from: Vector2;
+	to: Vector2;
+}) => {
+	return (
+		<path
+			d={`M ${x1} ${-y1} L ${(x1 + x2) / 2} ${-(y1 + y2) / 2} L ${x2} ${-y2}`}
+			stroke="black"
+			fill="transparent"
+			markerMid="url(#arrowhead)"
+		/>
+	);
+};
+
 // TODO: memoize the value of entities and selections.
 // TODO: handle the edge case where there are no formations
 // TODO: this code is beginning to look really ugly. Time to refactor things
@@ -325,6 +342,12 @@ export const Editor = ({
 		}
 	};
 
+	const [width, height] = getDrawingAreaDimensions();
+
+	const mat = `translate(${-camera.position[0]}, ${
+		camera.position[1]
+	}) translate(${width / 2}, ${height / 2}) scale(${camera.zoom.linear})`;
+
 	return (
 		<SvgWrapper
 			style={style}
@@ -427,6 +450,18 @@ export const Editor = ({
 				}
 			`}
 		>
+			<defs>
+				<marker
+					id="arrowhead"
+					markerWidth="10"
+					markerHeight="7"
+					refX="0"
+					refY="3.5"
+					orient="auto"
+				>
+					<polygon points="0 0, 10 3.5, 0 7" />
+				</marker>
+			</defs>
 			<>
 				{(() => {
 					const { top, bottom } = getViewportBounds();
@@ -482,14 +517,6 @@ export const Editor = ({
 						previousFormationIndex
 					);
 
-					const [width, height] = getDrawingAreaDimensions();
-
-					const mat = `translate(${-camera.position[0]}, ${
-						camera.position[1]
-					}) translate(${width / 2}, ${height / 2}) scale(${
-						camera.zoom.linear
-					})`;
-
 					const directions = joinPlacements(
 						previousFormation.placements,
 						currentFormation.placements
@@ -497,18 +524,6 @@ export const Editor = ({
 
 					return (
 						<g transform={mat} opacity={0.25}>
-							<defs>
-								<marker
-									id="arrowhead"
-									markerWidth="10"
-									markerHeight="7"
-									refX="0"
-									refY="3.5"
-									orient="auto"
-								>
-									<polygon points="0 0, 10 3.5, 0 7" />
-								</marker>
-							</defs>
 							{[...directions].map(
 								([
 									,
@@ -521,18 +536,7 @@ export const Editor = ({
 										},
 									},
 								]) => {
-									return (
-										<>
-											<path
-												d={`M ${x1} ${-y1} L ${(x1 + x2) / 2} ${
-													-(y1 + y2) / 2
-												} L ${x2} ${-y2}`}
-												stroke="black"
-												fill="transparent"
-												markerMid="url(#arrowhead)"
-											/>
-										</>
-									);
+									return <StraightPath from={[x1, y1]} to={[x2, y2]} />;
 								}
 							)}
 							{[
@@ -580,14 +584,6 @@ export const Editor = ({
 
 					const nextFormation = performance.getFormation(nextFormationIndex);
 
-					const [width, height] = getDrawingAreaDimensions();
-
-					const mat = `translate(${-camera.position[0]}, ${
-						camera.position[1]
-					}) translate(${width / 2}, ${height / 2}) scale(${
-						camera.zoom.linear
-					})`;
-
 					const directions = joinPlacements(
 						currentFormation.placements,
 						nextFormation.placements
@@ -595,18 +591,6 @@ export const Editor = ({
 
 					return (
 						<g transform={mat} opacity={0.25}>
-							<defs>
-								<marker
-									id="arrowhead"
-									markerWidth="10"
-									markerHeight="7"
-									refX="0"
-									refY="3.5"
-									orient="auto"
-								>
-									<polygon points="0 0, 10 3.5, 0 7" />
-								</marker>
-							</defs>
 							{[...directions].map(
 								([
 									,
@@ -619,18 +603,7 @@ export const Editor = ({
 										},
 									},
 								]) => {
-									return (
-										<>
-											<path
-												d={`M ${x1} ${-y1} L ${(x1 + x2) / 2} ${
-													-(y1 + y2) / 2
-												} L ${x2} ${-y2}`}
-												stroke="black"
-												fill="transparent"
-												markerMid="url(#arrowhead)"
-											/>
-										</>
-									);
+									return <StraightPath from={[x1, y1]} to={[x2, y2]} />;
 								}
 							)}
 							{[
@@ -670,14 +643,6 @@ export const Editor = ({
 				})()}
 
 				{(() => {
-					const [width, height] = getDrawingAreaDimensions();
-
-					const mat = `translate(${-camera.position[0]}, ${
-						camera.position[1]
-					}) translate(${width / 2}, ${height / 2}) scale(${
-						camera.zoom.linear
-					})`;
-
 					return (
 						<g transform={mat}>
 							{[...combineEntityPlacements(currentFormation)]
