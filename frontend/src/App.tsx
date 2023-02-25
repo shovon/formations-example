@@ -26,6 +26,9 @@ function randomString(length: number = 10): string {
 		.join("");
 }
 
+// TODO: soft code this
+const pixelsToMillisecondsRatio = 0.04;
+
 function App() {
 	const [currentFormationIndex, setCurrentFormationIndex] = useState(0);
 	const [{ formations, entities }, setProject] = useState<PerformanceProject>({
@@ -55,17 +58,18 @@ function App() {
 				name: "Formation 2",
 				positions: new Map([["1", { position: [-100, 50] }]]),
 				duration: 6000,
-				transitionDuration: 1000,
+				transitionDuration: 1500,
 			},
 			{
 				id: "formation3",
 				name: "Formation 3",
 				positions: new Map([["5", { position: [100, 0] }]]),
-				duration: 1000,
-				transitionDuration: 1000,
+				duration: 2000,
+				transitionDuration: 2000,
 			},
 		],
 	});
+	const [playbackProgress] = useState(12500);
 
 	const performanceProject = performance({ formations, entities });
 
@@ -178,6 +182,16 @@ function App() {
 			>
 				<div
 					style={{
+						position: "absolute",
+						top: 0,
+						left: playbackProgress * pixelsToMillisecondsRatio,
+						width: 50,
+						height: 50,
+						background: "black",
+					}}
+				></div>
+				<div
+					style={{
 						display: "flex",
 						borderTop: "1px solid #aaa",
 						height: 100,
@@ -207,28 +221,34 @@ function App() {
 										boxSizing: "border-box",
 										borderRadius: 8,
 										padding: "5px 10px",
-										width: formation.duration * 0.04,
+										width: formation.duration * pixelsToMillisecondsRatio,
 										height: "100%",
-										marginRight: i < formations.length - 1 ? 5 : 0,
+										textOverflow: "ellipsis",
+										whiteSpace: "nowrap",
+										overflow: "hidden",
 									}}
 								>
 									{formation.name}
 								</div>
-								<div
-									style={{
-										background: "white",
-										borderWidth: 4,
-										borderStyle: "solid",
-										borderColor: i === currentFormationIndex ? "red" : "black",
-										boxSizing: "border-box",
-										borderRadius: 8,
-										padding: "5px 10px",
-										width: formation.transitionDuration * 0.04,
-										height: "100%",
-										opacity: 0.5,
-										marginRight: i < formations.length - 1 ? 5 : 0,
-									}}
-								></div>
+								{i === formations.length - 1 ? null : (
+									<div
+										style={{
+											background: "white",
+											borderWidth: 4,
+											borderStyle: "solid",
+											borderColor:
+												i === currentFormationIndex ? "red" : "black",
+											boxSizing: "border-box",
+											borderRadius: 8,
+											padding: "5px 10px",
+											width:
+												formation.transitionDuration *
+												pixelsToMillisecondsRatio,
+											height: "100%",
+											opacity: 0.5,
+										}}
+									></div>
+								)}
 							</div>
 						);
 					})}

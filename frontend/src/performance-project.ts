@@ -51,8 +51,14 @@ export const performance = ({ entities, formations }: PerformanceProject) => ({
 				id: idNumber.toString(),
 				name,
 				positions: [],
-				duration,
-				transitionDuration,
+
+				// TODO: there needs to be a way to ensure that duration is set to these
+				//   these minimum defaults
+				duration: duration < 0 ? 0 : duration,
+
+				// Certain velocities are physically impossible, but at the same time,
+				// the customer is always right 🤷‍♂️
+				transitionDuration: transitionDuration < 10 ? 10 : transitionDuration,
 			});
 		});
 	},
@@ -72,6 +78,33 @@ export const performance = ({ entities, formations }: PerformanceProject) => ({
 	//     }
 	//   }
 	// }
+
+	get formations(): readonly Formation[] {
+		return formations;
+	},
+
+	getFormationAtTime: (time: number) => {
+		let elapsedTime = 0;
+		for (const formation of formations) {
+			const totalDuration = formation.duration + formation.transitionDuration;
+			if (elapsedTime < time && elapsedTime + totalDuration > time) {
+				return formation;
+			}
+			elapsedTime += totalDuration;
+		}
+
+		return null;
+	},
+
+	getTimeAtFormationIndex: (index: number) => {
+		let elapsedTime = 0;
+		for (const [i] of formations.entries()) {
+			if (i === index) {
+				return elapsedTime;
+			}
+			elapsedTime += formations[i].duration + formations[i].transitionDuration;
+		}
+	},
 
 	getFormation: (index: number) => {
 		const entityPlacement = (entityId: string): EntityPlacement => {
@@ -168,10 +201,6 @@ export const performance = ({ entities, formations }: PerformanceProject) => ({
 						map(positions, ([id, position]) => [id, { position }])
 					);
 				});
-			},
-
-			get formations(): readonly Formation[] {
-				return formations;
 			},
 		};
 	},
