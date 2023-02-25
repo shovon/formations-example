@@ -47,16 +47,22 @@ function App() {
 					["4", { position: [100, -100] }],
 					["5", { position: [300, 0] }],
 				]),
+				duration: 2000,
+				transitionDuration: 1000,
 			},
 			{
 				id: "formation2",
 				name: "Formation 2",
 				positions: new Map([["1", { position: [-100, 50] }]]),
+				duration: 6000,
+				transitionDuration: 1000,
 			},
 			{
 				id: "formation3",
 				name: "Formation 3",
 				positions: new Map([["5", { position: [100, 0] }]]),
+				duration: 1000,
+				transitionDuration: 1000,
 			},
 		],
 	});
@@ -73,7 +79,7 @@ function App() {
 			.map((n) => parseInt(n.split(" ")[1]))
 			.sort((a, b) => b - a)[0];
 
-		return `Formation ${latest}`;
+		return `Formation ${latest + 1}`;
 	};
 
 	const addEntity = useCallback(() => {
@@ -82,7 +88,7 @@ function App() {
 		// The basis case where the formations list is empty:
 
 		if ([...formations].length === 0) {
-			draft = performance(draft).pushFormation(newFormationName());
+			draft = performance(draft).pushFormation(newFormationName(), 5000, 1000);
 		}
 
 		const allPlacements = [
@@ -167,38 +173,81 @@ function App() {
 
 			<div
 				style={{
-					display: "flex",
-					borderTop: "1px solid #aaa",
-					height: 100,
-					overflowX: "scroll",
-					overflowY: "hidden",
-					padding: 5,
+					position: "relative",
 				}}
 			>
-				{formations.map((formation, i) => {
-					return (
-						<div
-							onClick={() => {
-								setCurrentFormationIndex(i);
-							}}
-							style={{
-								background: "white",
-								borderWidth: 4,
-								borderStyle: "solid",
-								borderColor: i === currentFormationIndex ? "red" : "black",
-								boxSizing: "border-box",
-								borderRadius: 8,
-								padding: "5px 10px",
-								width: 200,
-								height: "100%",
-								marginRight: i < formations.length - 1 ? 5 : 0,
-							}}
-							key={formation.id}
-						>
-							{formation.name}
-						</div>
-					);
-				})}
+				<div
+					style={{
+						display: "flex",
+						borderTop: "1px solid #aaa",
+						height: 100,
+						overflowX: "scroll",
+						overflowY: "hidden",
+						padding: 5,
+					}}
+				>
+					{formations.map((formation, i) => {
+						return (
+							<div
+								style={{
+									display: "flex",
+									flexDirection: "row",
+								}}
+								key={formation.id}
+							>
+								<div
+									onClick={() => {
+										setCurrentFormationIndex(i);
+									}}
+									style={{
+										background: "white",
+										borderWidth: 4,
+										borderStyle: "solid",
+										borderColor: i === currentFormationIndex ? "red" : "black",
+										boxSizing: "border-box",
+										borderRadius: 8,
+										padding: "5px 10px",
+										width: formation.duration * 0.04,
+										height: "100%",
+										marginRight: i < formations.length - 1 ? 5 : 0,
+									}}
+								>
+									{formation.name}
+								</div>
+								<div
+									style={{
+										background: "white",
+										borderWidth: 4,
+										borderStyle: "solid",
+										borderColor: i === currentFormationIndex ? "red" : "black",
+										boxSizing: "border-box",
+										borderRadius: 8,
+										padding: "5px 10px",
+										width: formation.transitionDuration * 0.04,
+										height: "100%",
+										opacity: 0.5,
+										marginRight: i < formations.length - 1 ? 5 : 0,
+									}}
+								></div>
+							</div>
+						);
+					})}
+				</div>
+
+				<button
+					style={{
+						position: "absolute",
+						right: 10,
+						top: 13,
+					}}
+					onClick={() => {
+						setProject(
+							performanceProject.pushFormation(newFormationName(), 5000, 1000)
+						);
+					}}
+				>
+					Create Formation
+				</button>
 			</div>
 		</div>
 	);
