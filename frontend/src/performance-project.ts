@@ -15,6 +15,8 @@ export type Formation = {
 	id: string;
 	name: string;
 	positions: Iterable<[string, EntityPlacement]>;
+	duration: number;
+	transitionDuration: number;
 };
 
 export type PerformanceProject = {
@@ -34,14 +36,24 @@ export const performance = ({ entities, formations }: PerformanceProject) => ({
 		});
 	},
 
-	pushFormation: (name: string) => {
+	pushFormation: (
+		name: string,
+		duration: number,
+		transitionDuration: number
+	) => {
 		return produce({ entities, formations }, (draft) => {
 			const ids = new Set(formations.map(({ id }) => id));
 			let idNumber = formations.length;
 			while (ids.has(idNumber.toString())) {
 				idNumber++;
 			}
-			draft.formations.push({ id: idNumber.toString(), name, positions: [] });
+			draft.formations.push({
+				id: idNumber.toString(),
+				name,
+				positions: [],
+				duration,
+				transitionDuration,
+			});
 		});
 	},
 
