@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { Formation, Performance } from "./performance-project";
 import { time, TimelineState } from "./timeline-state";
 
@@ -22,11 +23,15 @@ export function Timeline({
 	timelineState,
 }: TimelineProps) {
 	const playbackProgress = time(performance, timelineState);
+	const isSeekerDownRef = useRef(false);
 
 	return (
 		<div
 			style={{
 				position: "relative",
+			}}
+			onMouseMove={(e) => {
+				console.log("Mouse moving");
 			}}
 		>
 			<div
@@ -99,6 +104,12 @@ export function Timeline({
 					width: 50,
 					height: 50,
 					background: "black",
+				}}
+				onMouseDown={(e) => {
+					isSeekerDownRef.current = true;
+				}}
+				onMouseUp={(e) => {
+					isSeekerDownRef.current = false;
 				}}
 			></div>
 
