@@ -22,6 +22,7 @@ import {
 	Performance,
 } from "./performance-project";
 import { getKV } from "./iterable-helpers";
+import { Timeline } from "./App";
 
 const CIRCLE_RADIUS = ENTITY_DIAMETER_IN_PIXELS / 2;
 
@@ -33,19 +34,6 @@ type Camera = {
 // export type Entity = { position: Vector2; color: string; name: string };
 
 export type Entity = { color: string; name: string };
-
-type EditorProps = {
-	performance: Performance;
-	selections: Iterable<string>;
-	onPositionsChange?: (
-		changes: Iterable<[string, Vector2]>,
-		formationIndex: number
-	) => void;
-	onSelectionsChange?: (changes: Iterable<string>) => void;
-	onFormationIndexChange?: (newIndex: number) => void;
-	style?: React.CSSProperties | undefined;
-	currentFormationIndex: number;
-};
 
 const EntityObject = ({
 	isSelected,
@@ -135,6 +123,23 @@ const StraightPath = ({
 	);
 };
 
+type EditorProps = {
+	performance: Performance;
+	selections: Iterable<string>;
+	onPositionsChange?: (
+		changes: Iterable<[string, Vector2]>,
+		formationIndex: number
+	) => void;
+	onSelectionsChange?: (changes: Iterable<string>) => void;
+	onFormationIndexChange?: (newIndex: number) => void;
+	style?: React.CSSProperties | undefined;
+
+	// TODO: remove this
+	currentFormationIndex: number;
+
+	timeline: Timeline;
+};
+
 // TODO: memoize the value of entities and selections.
 // TODO: handle the edge case where there are no formations
 // TODO: this code is beginning to look really ugly. Time to refactor things
@@ -157,7 +162,7 @@ export const Editor = ({
 		position: [0, 0],
 	});
 	const selectionsSet = new Set(selections);
-	const currentFormation = performance.getFormation(currentFormationIndex);
+	const currentFormation = performance.getFormationIndex(currentFormationIndex);
 
 	function updateCurrentPlacements() {
 		setLocalPlacements([...currentFormation.placements]);
@@ -302,7 +307,9 @@ export const Editor = ({
 		}
 
 		const previousFormationIndex = currentFormationIndex - 1;
-		const previousFormation = performance.getFormation(previousFormationIndex);
+		const previousFormation = performance.getFormationIndex(
+			previousFormationIndex
+		);
 		if (previousFormation.exists) {
 			for (const [id, placement] of previousFormation.placements) {
 				if (distance2(cursorPosition, placement.position) < radius) {
@@ -312,7 +319,7 @@ export const Editor = ({
 		}
 
 		const nextFormationIndex = currentFormationIndex + 1;
-		const nextFormation = performance.getFormation(nextFormationIndex);
+		const nextFormation = performance.getFormationIndex(nextFormationIndex);
 
 		if (nextFormation.exists) {
 			for (const [id, placement] of nextFormation.placements) {
@@ -425,7 +432,7 @@ export const Editor = ({
 					if (formationIndex !== currentFormationIndex) {
 						onFormationIndexChange?.(formationIndex);
 						setLocalPlacements([
-							...performance.getFormation(formationIndex).placements,
+							...performance.getFormationIndex(formationIndex).placements,
 						]);
 					}
 					return;
@@ -554,7 +561,7 @@ export const Editor = ({
 						return null;
 					}
 
-					const previousFormation = performance.getFormation(
+					const previousFormation = performance.getFormationIndex(
 						previousFormationIndex
 					);
 
@@ -590,7 +597,7 @@ export const Editor = ({
 							)}
 							{[
 								...combineEntityPlacements(
-									performance.getFormation(previousFormationIndex)
+									performance.getFormationIndex(previousFormationIndex)
 								),
 							]
 								.slice()
@@ -631,7 +638,8 @@ export const Editor = ({
 						return null;
 					}
 
-					const nextFormation = performance.getFormation(nextFormationIndex);
+					const nextFormation =
+						performance.getFormationIndex(nextFormationIndex);
 
 					const directions = joinPlacements(
 						currentFormation.placements,
@@ -665,7 +673,7 @@ export const Editor = ({
 							)}
 							{[
 								...combineEntityPlacements(
-									performance.getFormation(nextFormationIndex)
+									performance.getFormationIndex(nextFormationIndex)
 								),
 							]
 								.slice()

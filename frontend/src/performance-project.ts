@@ -25,6 +25,126 @@ export type PerformanceProject = {
 };
 
 // TODO: unit test this
+const entityPlacement =
+	({ formations }: PerformanceProject) =>
+	(index: number) =>
+	(entityId: string): EntityPlacement => {
+		if (index < 0 || index > formations.length) {
+			return { position: [0, 0] };
+		}
+
+		const formation = formations[index];
+		const placement = getKV(formation.positions, entityId);
+
+		if (placement) {
+			return placement;
+		}
+
+		if (!placement) {
+			const formation = formations
+				.slice(0, index)
+				.reverse()
+				.find((f) => hasKV(f.positions, entityId));
+			if (formation) {
+				const entity = getKV(formation.positions, entityId);
+				if (entity) {
+					return entity;
+				}
+			}
+		}
+
+		if (!placement) {
+			const formation = formations
+				.slice(index + 1)
+				.find((f) => hasKV(f.positions, entityId));
+			if (formation) {
+				const entity = getKV(formation.positions, entityId);
+				if (entity) {
+					return entity;
+				}
+			}
+		}
+
+		return { position: [0, 0] };
+	};
+
+const getFormation = (
+	{ formations, entities }: PerformanceProject,
+	index: number
+) => {
+	const getEntityPlacement = entityPlacement({ formations, entities })(index);
+	return {
+		get exists(): boolean {
+			return 0 <= index && index < formations.length;
+		},
+
+		entity: (id: string) => ({
+			get placement(): EntityPlacement {
+				return getEntityPlacement(id);
+			},
+
+			setPlacement: (placement: EntityPlacement): PerformanceProject => {
+				return produce({ entities, formations }, (draft) => {
+					if (index < 0 || index > formations.length) {
+						return;
+					}
+					const { positions } = formations[index];
+					draft.formations[index].positions = [
+						...setKV(positions, id, placement),
+					];
+				});
+			},
+
+			setAttributes: (attributes: Partial<Entity>): PerformanceProject => {
+				return produce({ entities, formations }, (draft) => {
+					draft.entities = setKV(entities, id, {
+						...(getKV(entities, id) || { color: "black", name: "" }),
+						...attributes,
+					});
+				});
+			},
+		}),
+
+		get placements(): Iterable<[string, EntityPlacement]> {
+			return map(entities, ([id]) => [id, getEntityPlacement(id)]);
+		},
+
+		setPlacements(
+			placements: Iterable<[string, EntityPlacement]>
+		): PerformanceProject {
+			return produce({ entities, formations }, (draft) => {
+				if (index < 0 || index >= formations.length) return;
+				draft.formations[index].positions = unionKV(
+					formations[index].positions,
+					placements
+				);
+			});
+		},
+
+		setPositions(positions: Iterable<[string, Vector2]>): PerformanceProject {
+			return produce({ entities, formations }, (draft) => {
+				if (index < 0 || index >= formations.length) return;
+				draft.formations[index].positions = unionKV(
+					map(entities, ([id]) => [id, getEntityPlacement(id)]),
+					map(positions, ([id, position]) => [id, { position }])
+				);
+			});
+		},
+	};
+};
+
+const getFormationIndexById = (
+	{ formations }: PerformanceProject,
+	id: string
+): number | null => {
+	const result = formations.findIndex((f) => f.id === id);
+	if (result < 0) {
+		return null;
+	}
+	return result;
+};
+
+// TODO: unit test this
 export const performance = ({ entities, formations }: PerformanceProject) => ({
 	get entities() {
 		return entities;
@@ -67,27 +187,16 @@ export const performance = ({ entities, formations }: PerformanceProject) => ({
 		return formations.length;
 	},
 
-	// TODO: refactor `getFormation` to `formations.at()`
-	//
-	// Perhaps something like this:
-	//
-	// get formations() {
-	//   return {
-	//     get count(): number {
-	//       return formations.length;
-	//     }
-	//   }
-	// }
-
 	get formations(): readonly Formation[] {
 		return formations;
 	},
 
 	getFormationAtTime: (time: number) => {
 		let elapsedTime = 0;
+
 		for (const formation of formations) {
 			const totalDuration = formation.duration + formation.transitionDuration;
-			if (elapsedTime < time && elapsedTime + totalDuration > time) {
+			if (elapsedTime < time && time < elapsedTime + totalDuration) {
 				return formation;
 			}
 			elapsedTime += totalDuration;
@@ -96,7 +205,7 @@ export const performance = ({ entities, formations }: PerformanceProject) => ({
 		return null;
 	},
 
-	getTimeAtFormationIndex: (index: number) => {
+	getStartTimeAtFormationIndex: (index: number) => {
 		let elapsedTime = 0;
 		for (const [i] of formations.entries()) {
 			if (i === index) {
@@ -106,108 +215,21 @@ export const performance = ({ entities, formations }: PerformanceProject) => ({
 		}
 	},
 
-	getFormation: (index: number) => {
-		const entityPlacement = (entityId: string): EntityPlacement => {
-			if (index < 0 || index > formations.length) {
-				return { position: [0, 0] };
-			}
+	getFormationIndexById: (id: string) =>
+		getFormationIndexById({ entities, formations }, id),
 
-			const formation = formations[index];
-			const placement = getKV(formation.positions, entityId);
+	getFormationById: (id: string): ReturnType<typeof getFormation> =>
+		getFormation(
+			{ entities, formations },
+			getFormationIndexById({ entities, formations }, id) || -1
+		),
 
-			if (placement) {
-				return placement;
-			}
-
-			if (!placement) {
-				const formation = formations
-					.slice(0, index)
-					.reverse()
-					.find((f) => hasKV(f.positions, entityId));
-				if (formation) {
-					const entity = getKV(formation.positions, entityId);
-					if (entity) {
-						return entity;
-					}
-				}
-			}
-
-			if (!placement) {
-				const formation = formations
-					.slice(index + 1)
-					.find((f) => hasKV(f.positions, entityId));
-				if (formation) {
-					const entity = getKV(formation.positions, entityId);
-					if (entity) {
-						return entity;
-					}
-				}
-			}
-
-			return { position: [0, 0] };
-		};
-
-		return {
-			get exists(): boolean {
-				return 0 <= index && index < formations.length;
-			},
-
-			entity: (id: string) => ({
-				get placement(): EntityPlacement {
-					return entityPlacement(id);
-				},
-
-				setPlacement: (placement: EntityPlacement): PerformanceProject => {
-					return produce({ entities, formations }, (draft) => {
-						if (index < 0 || index > formations.length) {
-							return;
-						}
-						const { positions } = formations[index];
-						draft.formations[index].positions = [
-							...setKV(positions, id, placement),
-						];
-					});
-				},
-
-				setAttributes: (attributes: Partial<Entity>): PerformanceProject => {
-					return produce({ entities, formations }, (draft) => {
-						draft.entities = setKV(entities, id, {
-							...(getKV(entities, id) || { color: "black", name: "" }),
-							...attributes,
-						});
-					});
-				},
-			}),
-
-			get placements(): Iterable<[string, EntityPlacement]> {
-				return map(entities, ([id]) => [id, entityPlacement(id)]);
-			},
-
-			setPlacements(
-				placements: Iterable<[string, EntityPlacement]>
-			): PerformanceProject {
-				return produce({ entities, formations }, (draft) => {
-					draft.formations[index].positions = unionKV(
-						formations[index].positions,
-						placements
-					);
-				});
-			},
-
-			setPositions(positions: Iterable<[string, Vector2]>): PerformanceProject {
-				return produce({ entities, formations }, (draft) => {
-					draft.formations[index].positions = unionKV(
-						map(entities, ([id]) => [id, entityPlacement(id)]),
-						map(positions, ([id, position]) => [id, { position }])
-					);
-				});
-			},
-		};
-	},
+	getFormationIndex: (index: number) =>
+		getFormation({ entities, formations }, index),
 });
 
 export type Performance = ReturnType<typeof performance>;
-export type FormationHelpers = ReturnType<Performance["getFormation"]>;
+export type FormationHelpers = ReturnType<Performance["getFormationIndex"]>;
 
 export const joinPlacements = (
 	source: Iterable<[string, EntityPlacement]>,

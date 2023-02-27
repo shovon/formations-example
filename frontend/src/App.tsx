@@ -26,8 +26,30 @@ function randomString(length: number = 10): string {
 		.join("");
 }
 
+type PreviewMode = "CURRENT_FORMATION" | "SEEKER";
+
 // TODO: soft code this
 const pixelsToMillisecondsRatio = 0.04;
+
+// TODO; perhaps move this to another file
+export type Timeline =
+	| {
+			mode: "CURRENT_FORMATION";
+			index: number;
+
+			/**
+			 * A value between 0 and 1
+			 */
+			position: number;
+	  }
+	| {
+			mode: "SEEKER";
+
+			/**
+			 * The time in milliseconds
+			 */
+			time: number;
+	  };
 
 function App() {
 	const [currentFormationIndex, setCurrentFormationIndex] = useState(0);
@@ -70,6 +92,11 @@ function App() {
 		],
 	});
 	const [playbackProgress] = useState(12500);
+	const [timeline, setTimeline] = useState<Timeline>({
+		mode: "CURRENT_FORMATION",
+		index: 0,
+		position: 0,
+	});
 
 	const performanceProject = performance({ formations, entities });
 
@@ -96,7 +123,7 @@ function App() {
 		}
 
 		const allPlacements = [
-			...performance(draft).getFormation(currentFormationIndex).placements,
+			...performance(draft).getFormationIndex(currentFormationIndex).placements,
 		];
 
 		const lastEntity = allPlacements[allPlacements.length - 1];
@@ -119,7 +146,7 @@ function App() {
 		});
 
 		draft = performance(draft)
-			.getFormation(0)
+			.getFormationIndex(0)
 			.entity(id)
 			.setPlacement(placement);
 
@@ -135,6 +162,7 @@ function App() {
 			}}
 		>
 			<Editor
+				timeline={timeline}
 				performance={performanceProject}
 				style={{
 					flex: "1",
@@ -145,7 +173,7 @@ function App() {
 				onPositionsChange={(changes, formationIndex) => {
 					setProject(
 						performanceProject
-							.getFormation(formationIndex)
+							.getFormationIndex(formationIndex)
 							.setPositions(changes)
 					);
 				}}
