@@ -26,8 +26,7 @@ export type PerformanceProject = {
 
 // TODO: unit test this
 const entityPlacement =
-	({ formations }: PerformanceProject) =>
-	(index: number) =>
+	({ formations }: PerformanceProject, index: number) =>
 	(entityId: string): EntityPlacement => {
 		if (index < 0 || index > formations.length) {
 			return { position: [0, 0] };
@@ -72,7 +71,8 @@ const getFormation = (
 	{ formations, entities }: PerformanceProject,
 	index: number
 ) => {
-	const getEntityPlacement = entityPlacement({ formations, entities })(index);
+	const getEntityPlacement = entityPlacement({ formations, entities }, index);
+
 	return {
 		get exists(): boolean {
 			return 0 <= index && index < formations.length;
@@ -191,13 +191,13 @@ export const performance = ({ entities, formations }: PerformanceProject) => ({
 		return formations;
 	},
 
-	getFormationAtTime: (time: number) => {
+	getFormationAtTime: (time: number): [number, Formation] | null => {
 		let elapsedTime = 0;
 
-		for (const formation of formations) {
+		for (const [index, formation] of formations.entries()) {
 			const totalDuration = formation.duration + formation.transitionDuration;
 			if (elapsedTime < time && time < elapsedTime + totalDuration) {
-				return formation;
+				return [index, formation];
 			}
 			elapsedTime += totalDuration;
 		}
@@ -210,6 +210,16 @@ export const performance = ({ entities, formations }: PerformanceProject) => ({
 		for (const [i] of formations.entries()) {
 			if (i === index) {
 				return elapsedTime;
+			}
+			elapsedTime += formations[i].duration + formations[i].transitionDuration;
+		}
+	},
+
+	getEndTimeAtFormationIndex: (index: number) => {
+		let elapsedTime = 0;
+		for (const [i] of formations.entries()) {
+			if (i === index) {
+				return elapsedTime + formations[i].duration;
 			}
 			elapsedTime += formations[i].duration + formations[i].transitionDuration;
 		}

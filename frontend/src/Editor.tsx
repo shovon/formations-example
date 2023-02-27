@@ -17,12 +17,13 @@ import { SvgWrapper, SvgWrapperObject } from "./SvgWrapper";
 import { ENTITY_DIAMETER_IN_PIXELS } from "./constants";
 import {
 	EntityPlacement,
+	Formation,
 	FormationHelpers,
 	joinPlacements,
 	Performance,
 } from "./performance-project";
 import { getKV } from "./iterable-helpers";
-import { Timeline } from "./App";
+import { getCurrentFormationIndex, TimelineState } from "./timeline-state";
 
 const CIRCLE_RADIUS = ENTITY_DIAMETER_IN_PIXELS / 2;
 
@@ -137,7 +138,7 @@ type EditorProps = {
 	// TODO: remove this
 	currentFormationIndex: number;
 
-	timeline: Timeline;
+	timelineState: TimelineState;
 };
 
 // TODO: memoize the value of entities and selections.
@@ -153,7 +154,9 @@ export const Editor = ({
 	onSelectionsChange,
 	onFormationIndexChange,
 	style,
-	currentFormationIndex,
+	// currentFormationIndex,
+
+	timelineState,
 }: EditorProps) => {
 	const [camera, updateCamera] = useReducer<
 		(state: Camera, partialState: Partial<Camera>) => Camera
@@ -162,6 +165,12 @@ export const Editor = ({
 		position: [0, 0],
 	});
 	const selectionsSet = new Set(selections);
+
+	const currentFormationIndex = getCurrentFormationIndex(
+		performance,
+		timelineState
+	);
+
 	const currentFormation = performance.getFormationIndex(currentFormationIndex);
 
 	function updateCurrentPlacements() {

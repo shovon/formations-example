@@ -6,8 +6,14 @@ import {
 	performance,
 	PerformanceProject,
 } from "./performance-project";
+import { Timeline } from "./Timeline";
+import {
+	getCurrentFormationIndex,
+	getTimelineByFormationIndex,
+	TimelineState,
+} from "./timeline-state";
 import { useSet } from "./use-set";
-import { add, Vector2 } from "./vector2";
+import { add } from "./vector2";
 
 function arbitraryHSL(): [number, number, number] {
 	return [Math.random() * 360, 0.5, 0.5];
@@ -26,53 +32,30 @@ function randomString(length: number = 10): string {
 		.join("");
 }
 
-type PreviewMode = "CURRENT_FORMATION" | "SEEKER";
-
-// TODO: soft code this
-const pixelsToMillisecondsRatio = 0.04;
-
 // We will have two modes:
-
+//
 // Current time mode and current formation mode
-
+//
 // Current time mode is when the user is seeking through the timeline.
-
+//
 // Current formation mode is when a formation was selected.
-
+//
 // Pressing down on the seeker handle will result in current time mode
-
+//
 // Letting go of the seeker handle will result in current formation mode
-
-// 1. when user seeks in timeline, performers are likely not to move at all, until a transition point is hit
-// 2. when user seeks at transition point, move performers proportional to the transition point
+//
+// 1. when user seeks in timeline, performers are likely not to move at all,
+//   until a transition point is hit
+// 2. when user seeks at transition point, move performers proportional to the
+//   transition point
 // 3. when user lets go of the seeker (mouse up)
-// 	a. seeker was in transition point:
-// 		1. seeker should move to the nearest end of the nearest formation
-// 	b. seeker was in formation point:
-// 		2. seeker should stay where it is (e.g. don't bother moving it to either edge of the formation)
-
-// TODO; perhaps move this to another file
-export type Timeline =
-	| {
-			mode: "CURRENT_FORMATION";
-			index: number;
-
-			/**
-			 * A value between 0 and 1
-			 */
-			position: number;
-	  }
-	| {
-			mode: "SEEKER";
-
-			/**
-			 * The time in milliseconds
-			 */
-			time: number;
-	  };
+//   a. seeker was in transition point:
+//     1. seeker should move to the nearest end of the nearest formation
+//   b. seeker was in formation point:
+//     2. seeker should stay where it is (e.g. don't bother moving it to either
+//       edge of the formation)
 
 function App() {
-	const [currentFormationIndex, setCurrentFormationIndex] = useState(0);
 	const [{ formations, entities }, setProject] = useState<PerformanceProject>({
 		entities: [
 			["1", { color: "red", name: "A" }],
@@ -111,14 +94,22 @@ function App() {
 			},
 		],
 	});
+
+	// TODO: this has got to go
 	const [playbackProgress] = useState(12500);
-	const [timeline, setTimeline] = useState<Timeline>({
+
+	const [timeline, setTimeline] = useState<TimelineState>({
 		mode: "CURRENT_FORMATION",
 		index: 0,
 		position: 0,
 	});
 
 	const performanceProject = performance({ formations, entities });
+
+	const currentFormationIndex = getCurrentFormationIndex(
+		performanceProject,
+		timeline
+	);
 
 	const selections = useSet<string>();
 
@@ -182,7 +173,7 @@ function App() {
 			}}
 		>
 			<Editor
-				timeline={timeline}
+				timelineState={timeline}
 				performance={performanceProject}
 				style={{
 					flex: "1",
@@ -202,7 +193,7 @@ function App() {
 					selections.add(...newSelections);
 				}}
 				onFormationIndexChange={(i) => {
-					setCurrentFormationIndex(i);
+					setTimeline(getTimelineByFormationIndex(performanceProject, i));
 				}}
 			/>
 			<div
@@ -223,100 +214,20 @@ function App() {
 				</button>
 			</div>
 
-			<div
-				style={{
-					position: "relative",
+			<Timeline
+				formationSelected={(i) => {
+					setTimeline(getTimelineByFormationIndex(performanceProject, i));
 				}}
-			>
-				<div
-					style={{
-						position: "absolute",
-						top: 0,
-						left: playbackProgress * pixelsToMillisecondsRatio,
-						width: 50,
-						height: 50,
-						background: "black",
-					}}
-				></div>
-				<div
-					style={{
-						display: "flex",
-						borderTop: "1px solid #aaa",
-						height: 100,
-						overflowX: "scroll",
-						overflowY: "hidden",
-						padding: 5,
-					}}
-				>
-					{formations.map((formation, i) => {
-						return (
-							<div
-								style={{
-									display: "flex",
-									flexDirection: "row",
-								}}
-								key={formation.id}
-							>
-								<div
-									onClick={() => {
-										setCurrentFormationIndex(i);
-									}}
-									style={{
-										background: "white",
-										borderWidth: 4,
-										borderStyle: "solid",
-										borderColor: i === currentFormationIndex ? "red" : "black",
-										boxSizing: "border-box",
-										borderRadius: 8,
-										padding: "5px 10px",
-										width: formation.duration * pixelsToMillisecondsRatio,
-										height: "100%",
-										textOverflow: "ellipsis",
-										whiteSpace: "nowrap",
-										overflow: "hidden",
-									}}
-								>
-									{formation.name}
-								</div>
-								{i === formations.length - 1 ? null : (
-									<div
-										style={{
-											background: "white",
-											borderWidth: 4,
-											borderStyle: "solid",
-											borderColor:
-												i === currentFormationIndex ? "red" : "black",
-											boxSizing: "border-box",
-											borderRadius: 8,
-											padding: "5px 10px",
-											width:
-												formation.transitionDuration *
-												pixelsToMillisecondsRatio,
-											height: "100%",
-											opacity: 0.5,
-										}}
-									></div>
-								)}
-							</div>
-						);
-					})}
-				</div>
-
-				<button
-					style={{
-						position: "absolute",
-						right: 10,
-						top: 13,
-					}}
-					onClick={() => {
-						setProject(
-							performanceProject.pushFormation(newFormationName(), 5000, 1000)
-						);
-					}}
-				>
-					Create Formation
-				</button>
-			</div>
+				performance={performanceProject}
+				timelineState={timeline}
+				currentFormationIndex={currentFormationIndex}
+				newFormationCreated={() => {
+					setProject(
+						performanceProject.pushFormation(newFormationName(), 5000, 1000)
+					);
+				}}
+				timelineSeeked={(time) => {}}
+			/>
 		</div>
 	);
 }
