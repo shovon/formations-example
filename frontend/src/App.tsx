@@ -31,6 +31,26 @@ type PreviewMode = "CURRENT_FORMATION" | "SEEKER";
 // TODO: soft code this
 const pixelsToMillisecondsRatio = 0.04;
 
+// We will have two modes:
+
+// Current time mode and current formation mode
+
+// Current time mode is when the user is seeking through the timeline.
+
+// Current formation mode is when a formation was selected.
+
+// Pressing down on the seeker handle will result in current time mode
+
+// Letting go of the seeker handle will result in current formation mode
+
+// 1. when user seeks in timeline, performers are likely not to move at all, until a transition point is hit
+// 2. when user seeks at transition point, move performers proportional to the transition point
+// 3. when user lets go of the seeker (mouse up)
+// 	a. seeker was in transition point:
+// 		1. seeker should move to the nearest end of the nearest formation
+// 	b. seeker was in formation point:
+// 		2. seeker should stay where it is (e.g. don't bother moving it to either edge of the formation)
+
 // TODO; perhaps move this to another file
 export type Timeline =
 	| {
