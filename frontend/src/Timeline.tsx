@@ -1,12 +1,13 @@
-import { Formation } from "./performance-project";
+import { Formation, Performance } from "./performance-project";
+import { time, TimelineState } from "./timeline-state";
 
 // TODO: soft code this
 const pixelsToMillisecondsRatio = 0.04;
 
 type TimelineProps = {
 	// TODO: this has got to go
-	playbackProgress: number;
-	formations: Formation[];
+	performance: Performance;
+	timelineState: TimelineState;
 	formationSelected: (index: number) => void;
 	currentFormationIndex: number;
 	newFormationCreated: () => void;
@@ -14,28 +15,20 @@ type TimelineProps = {
 };
 
 export function Timeline({
-	playbackProgress,
-	formations,
+	performance,
 	formationSelected,
 	currentFormationIndex,
 	newFormationCreated,
+	timelineState,
 }: TimelineProps) {
+	const playbackProgress = time(performance, timelineState);
+
 	return (
 		<div
 			style={{
 				position: "relative",
 			}}
 		>
-			<div
-				style={{
-					position: "absolute",
-					top: 0,
-					left: playbackProgress * pixelsToMillisecondsRatio,
-					width: 50,
-					height: 50,
-					background: "black",
-				}}
-			></div>
 			<div
 				style={{
 					display: "flex",
@@ -46,7 +39,7 @@ export function Timeline({
 					padding: 5,
 				}}
 			>
-				{formations.map((formation, i) => {
+				{performance.formations.map((formation, i) => {
 					return (
 						<div
 							style={{
@@ -76,7 +69,7 @@ export function Timeline({
 							>
 								{formation.name}
 							</div>
-							{i === formations.length - 1 ? null : (
+							{i === performance.formations.length - 1 ? null : (
 								<div
 									style={{
 										background: "white",
@@ -97,6 +90,17 @@ export function Timeline({
 					);
 				})}
 			</div>
+
+			<div
+				style={{
+					position: "absolute",
+					top: 0,
+					left: playbackProgress * pixelsToMillisecondsRatio,
+					width: 50,
+					height: 50,
+					background: "black",
+				}}
+			></div>
 
 			<button
 				style={{

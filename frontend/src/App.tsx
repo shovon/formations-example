@@ -218,8 +218,8 @@ function App() {
 				formationSelected={(i) => {
 					setTimeline(getTimelineByFormationIndex(performanceProject, i));
 				}}
-				formations={formations}
-				playbackProgress={playbackProgress}
+				performance={performanceProject}
+				timelineState={timeline}
 				currentFormationIndex={currentFormationIndex}
 				newFormationCreated={() => {
 					setProject(

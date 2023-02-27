@@ -50,3 +50,15 @@ export const getTimelineByFormationIndex = (
 		position: 0,
 	};
 };
+
+export const time = (
+	performance: Performance,
+	state: TimelineState
+): number => {
+	switch (state.mode) {
+		case "CURRENT_FORMATION":
+			return performance.getStartTimeAtFormationIndex(state.index) ?? 0;
+		case "SEEKER":
+			return state.time;
+	}
+};
