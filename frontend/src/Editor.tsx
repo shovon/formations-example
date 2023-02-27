@@ -22,7 +22,7 @@ import {
 	Performance,
 } from "./performance-project";
 import { getKV } from "./iterable-helpers";
-import { TimelineState } from "./App";
+import { TimelineState } from "./timeline-state";
 
 const CIRCLE_RADIUS = ENTITY_DIAMETER_IN_PIXELS / 2;
 

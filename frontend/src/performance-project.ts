@@ -215,6 +215,16 @@ export const performance = ({ entities, formations }: PerformanceProject) => ({
 		}
 	},
 
+	getEndTimeAtFormationIndex: (index: number) => {
+		let elapsedTime = 0;
+		for (const [i] of formations.entries()) {
+			if (i === index) {
+				return elapsedTime + formations[i].duration;
+			}
+			elapsedTime += formations[i].duration + formations[i].transitionDuration;
+		}
+	},
+
 	getFormationIndexById: (id: string) =>
 		getFormationIndexById({ entities, formations }, id),
 
