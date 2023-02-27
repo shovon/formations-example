@@ -12,7 +12,7 @@ type TimelineProps = {
 	formationSelected: (index: number) => void;
 	currentFormationIndex: number;
 	newFormationCreated: () => void;
-	timelineSeeked: (position: number) => void;
+	timelineSeeked: (time: number) => void;
 };
 
 export function Timeline({
@@ -21,6 +21,7 @@ export function Timeline({
 	currentFormationIndex,
 	newFormationCreated,
 	timelineState,
+	timelineSeeked,
 }: TimelineProps) {
 	const playbackProgress = time(performance, timelineState);
 	const isSeekerDownRef = useRef(false);
@@ -31,7 +32,9 @@ export function Timeline({
 				position: "relative",
 			}}
 			onMouseMove={(e) => {
-				console.log("Mouse moving");
+				if (isSeekerDownRef.current) {
+					timelineSeeked(e.clientX * pixelsToMillisecondsRatio);
+				}
 			}}
 		>
 			<div
