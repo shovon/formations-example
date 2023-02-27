@@ -191,13 +191,13 @@ export const performance = ({ entities, formations }: PerformanceProject) => ({
 		return formations;
 	},
 
-	getFormationAtTime: (time: number) => {
+	getFormationAtTime: (time: number): [number, Formation] | null => {
 		let elapsedTime = 0;
 
-		for (const formation of formations) {
+		for (const [index, formation] of formations.entries()) {
 			const totalDuration = formation.duration + formation.transitionDuration;
 			if (elapsedTime < time && time < elapsedTime + totalDuration) {
-				return formation;
+				return [index, formation];
 			}
 			elapsedTime += totalDuration;
 		}

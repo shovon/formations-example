@@ -7,7 +7,11 @@ import {
 	PerformanceProject,
 } from "./performance-project";
 import { Timeline } from "./Timeline";
-import { TimelineState } from "./timeline-state";
+import {
+	getCurrentFormationIndex,
+	getTimelineByFormationIndex,
+	TimelineState,
+} from "./timeline-state";
 import { useSet } from "./use-set";
 import { add } from "./vector2";
 
@@ -52,9 +56,6 @@ function randomString(length: number = 10): string {
 //       edge of the formation)
 
 function App() {
-	// TODO: this has got to go
-	const [currentFormationIndex, setCurrentFormationIndex] = useState(0);
-
 	const [{ formations, entities }, setProject] = useState<PerformanceProject>({
 		entities: [
 			["1", { color: "red", name: "A" }],
@@ -104,6 +105,11 @@ function App() {
 	});
 
 	const performanceProject = performance({ formations, entities });
+
+	const currentFormationIndex = getCurrentFormationIndex(
+		performanceProject,
+		timeline
+	);
 
 	const selections = useSet<string>();
 
@@ -167,7 +173,7 @@ function App() {
 			}}
 		>
 			<Editor
-				timeline={timeline}
+				timelineState={timeline}
 				performance={performanceProject}
 				style={{
 					flex: "1",
@@ -187,7 +193,7 @@ function App() {
 					selections.add(...newSelections);
 				}}
 				onFormationIndexChange={(i) => {
-					setCurrentFormationIndex(i);
+					setTimeline(getTimelineByFormationIndex(performanceProject, i));
 				}}
 			/>
 			<div
@@ -209,7 +215,9 @@ function App() {
 			</div>
 
 			<Timeline
-				formationSelected={setCurrentFormationIndex}
+				formationSelected={(i) => {
+					setTimeline(getTimelineByFormationIndex(performanceProject, i));
+				}}
 				formations={formations}
 				playbackProgress={playbackProgress}
 				currentFormationIndex={currentFormationIndex}
