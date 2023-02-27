@@ -22,7 +22,7 @@ import {
 	Performance,
 } from "./performance-project";
 import { getKV } from "./iterable-helpers";
-import { Timeline } from "./App";
+import { TimelineState } from "./App";
 
 const CIRCLE_RADIUS = ENTITY_DIAMETER_IN_PIXELS / 2;
 
@@ -137,7 +137,7 @@ type EditorProps = {
 	// TODO: remove this
 	currentFormationIndex: number;
 
-	timeline: Timeline;
+	timeline: TimelineState;
 };
 
 // TODO: memoize the value of entities and selections.
