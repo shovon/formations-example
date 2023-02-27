@@ -10,6 +10,7 @@ type TimelineProps = {
 	formationSelected: (index: number) => void;
 	currentFormationIndex: number;
 	newFormationCreated: () => void;
+	timelineSeeked: (position: number) => void;
 };
 
 export function Timeline({
@@ -104,9 +105,6 @@ export function Timeline({
 					top: 13,
 				}}
 				onClick={() => {
-					// newFormationCreated(
-					// 	performanceProject.pushFormation(newFormationName(), 5000, 1000)
-					// );
 					newFormationCreated();
 				}}
 			>

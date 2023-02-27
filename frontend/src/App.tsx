@@ -7,6 +7,7 @@ import {
 	PerformanceProject,
 } from "./performance-project";
 import { Timeline } from "./Timeline";
+import { TimelineState } from "./timeline-state";
 import { useSet } from "./use-set";
 import { add } from "./vector2";
 
@@ -46,29 +47,9 @@ function randomString(length: number = 10): string {
 // 3. when user lets go of the seeker (mouse up)
 //   a. seeker was in transition point:
 //     1. seeker should move to the nearest end of the nearest formation
-// b. seeker was in formation point:
-//   2. seeker should stay where it is (e.g. don't bother moving it to either
-//     edge of the formation)
-
-// TODO; perhaps move this to another file
-export type TimelineState =
-	| {
-			mode: "CURRENT_FORMATION";
-			index: number;
-
-			/**
-			 * A value between 0 and 1
-			 */
-			position: number;
-	  }
-	| {
-			mode: "SEEKER";
-
-			/**
-			 * The time in milliseconds
-			 */
-			time: number;
-	  };
+//   b. seeker was in formation point:
+//     2. seeker should stay where it is (e.g. don't bother moving it to either
+//       edge of the formation)
 
 function App() {
 	// TODO: this has got to go
@@ -237,6 +218,7 @@ function App() {
 						performanceProject.pushFormation(newFormationName(), 5000, 1000)
 					);
 				}}
+				timelineSeeked={(time) => {}}
 			/>
 		</div>
 	);
