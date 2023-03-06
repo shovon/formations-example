@@ -226,9 +226,7 @@ function App() {
 						performanceProject.pushFormation(newFormationName(), 5000, 1000)
 					);
 				}}
-				timelineSeeked={(time) => {
-					console.log(time, performanceProject.totalTime);
-				}}
+				timelineSeeked={(time) => {}}
 			/>
 		</div>
 	);

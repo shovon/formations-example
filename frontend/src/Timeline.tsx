@@ -1,3 +1,4 @@
+import { css } from "@emotion/css";
 import { useEffect, useRef } from "react";
 import { Formation, Performance } from "./performance-project";
 import { time, TimelineState } from "./timeline-state";
@@ -40,12 +41,16 @@ export function Timeline({
 
 	return (
 		<div
-			style={{
-				position: "relative",
-			}}
+			className={css`
+				position: relative;
+				-webkit-user-select: none;
+				-moz-user-select: none;
+				-ms-user-select: none;
+				user-select: none;
+			`}
 			onMouseMove={(e) => {
 				if (isSeekerDownRef.current) {
-					console.log(e.clientX); // TODO: this is no good
+					// TODO: using e.clientX is just not a good idea
 					timelineSeeked(e.clientX / pixelsToMillisecondsRatio);
 				}
 			}}
