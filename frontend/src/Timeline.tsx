@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { Formation, Performance } from "./performance-project";
 import { time, TimelineState } from "./timeline-state";
 
@@ -26,6 +26,18 @@ export function Timeline({
 	const playbackProgress = time(performance, timelineState);
 	const isSeekerDownRef = useRef(false);
 
+	useEffect(() => {
+		const onMouseUp = () => {
+			isSeekerDownRef.current = false;
+		};
+
+		document.addEventListener("mouseup", onMouseUp);
+
+		return () => {
+			document.removeEventListener("mouseup", onMouseUp);
+		};
+	}, []);
+
 	return (
 		<div
 			style={{
@@ -33,7 +45,8 @@ export function Timeline({
 			}}
 			onMouseMove={(e) => {
 				if (isSeekerDownRef.current) {
-					timelineSeeked(e.clientX * pixelsToMillisecondsRatio);
+					console.log(e.clientX); // TODO: this is no good
+					timelineSeeked(e.clientX / pixelsToMillisecondsRatio);
 				}
 			}}
 		>
@@ -108,11 +121,8 @@ export function Timeline({
 					height: 50,
 					background: "black",
 				}}
-				onMouseDown={(e) => {
+				onMouseDown={() => {
 					isSeekerDownRef.current = true;
-				}}
-				onMouseUp={(e) => {
-					isSeekerDownRef.current = false;
 				}}
 			></div>
 

@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { Editor } from "./Editor";
 import { hasKV, map } from "./iterable-helpers";
 import {
@@ -95,16 +95,16 @@ function App() {
 		],
 	});
 
-	// TODO: this has got to go
-	const [playbackProgress] = useState(12500);
-
 	const [timeline, setTimeline] = useState<TimelineState>({
 		mode: "CURRENT_FORMATION",
 		index: 0,
 		position: 0,
 	});
 
-	const performanceProject = performance({ formations, entities });
+	const performanceProject = useMemo(
+		() => performance({ formations, entities }),
+		[formations, entities]
+	);
 
 	const currentFormationIndex = getCurrentFormationIndex(
 		performanceProject,
@@ -226,7 +226,9 @@ function App() {
 						performanceProject.pushFormation(newFormationName(), 5000, 1000)
 					);
 				}}
-				timelineSeeked={(time) => {}}
+				timelineSeeked={(time) => {
+					console.log(time, performanceProject.totalTime);
+				}}
 			/>
 		</div>
 	);

@@ -191,6 +191,14 @@ export const performance = ({ entities, formations }: PerformanceProject) => ({
 		return formations;
 	},
 
+	get totalTime(): number {
+		return formations.reduce(
+			(acc, { duration, transitionDuration }, i) =>
+				acc + duration + (i < formations.length - 1 ? transitionDuration : 0),
+			0
+		);
+	},
+
 	getFormationAtTime: (time: number): [number, Formation] | null => {
 		let elapsedTime = 0;
 
