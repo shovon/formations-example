@@ -226,7 +226,12 @@ function App() {
 						performanceProject.pushFormation(newFormationName(), 5000, 1000)
 					);
 				}}
-				timelineSeeked={(time) => {}}
+				timelineSeeked={(time) => {
+					const form = performanceProject.getFormationAtTime(time);
+					if (!form) return;
+					const [index] = form;
+					console.log(index);
+				}}
 			/>
 		</div>
 	);
