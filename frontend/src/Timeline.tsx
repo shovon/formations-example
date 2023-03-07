@@ -2,6 +2,7 @@ import { css } from "@emotion/css";
 import { useEffect, useRef } from "react";
 import { Formation, Performance } from "./performance-project";
 import { time, TimelineState } from "./timeline-state";
+import { mouseUpEvents } from "./document";
 
 // TODO: soft code this
 const pixelsToMillisecondsRatio = 0.04;
@@ -36,10 +37,10 @@ export function Timeline({
 			timlineStoppedSeeking(cursorXRef.current / pixelsToMillisecondsRatio);
 		};
 
-		document.addEventListener("mouseup", onMouseUp);
+		mouseUpEvents.addListener(onMouseUp);
 
 		return () => {
-			document.removeEventListener("mouseup", onMouseUp);
+			mouseUpEvents.removeListener(onMouseUp);
 		};
 	}, []);
 

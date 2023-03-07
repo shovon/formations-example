@@ -179,7 +179,6 @@ function App() {
 					flex: "1",
 					width: "100vw",
 				}}
-				currentFormationIndex={currentFormationIndex}
 				selections={selections}
 				onPositionsChange={(changes, formationIndex) => {
 					setProject(

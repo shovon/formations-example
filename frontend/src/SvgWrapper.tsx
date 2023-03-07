@@ -1,6 +1,7 @@
 import { forwardRef, useEffect, useRef } from "react";
 import { sub as sub2, Vector2 } from "./vector2";
 import { WithBoundingClientRect } from "./with-bounding-client-rect";
+import { mouseUpEvents } from "./document";
 
 export type SvgWrapperProps = Omit<
 	React.SVGProps<SVGSVGElement>,
@@ -24,10 +25,10 @@ export const SvgWrapper = forwardRef<SvgWrapperObject, SvgWrapperProps>(
 		const svgRef = useRef<SVGSVGElement | null>(null);
 
 		useEffect(() => {
-			document.addEventListener("mouseup", onMouseUp);
+			mouseUpEvents.addListener(onMouseUp);
 
 			return () => {
-				document.removeEventListener("mouseup", onMouseUp);
+				mouseUpEvents.removeListener(onMouseUp);
 			};
 		}, [onMouseUp]);
 

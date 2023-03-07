@@ -1,5 +1,5 @@
 import { css } from "@emotion/css";
-import { useReducer, useRef, useState, useEffect } from "react";
+import { useReducer, useRef, useState, useEffect, useCallback } from "react";
 import { LogarithmicValue } from "./logarithmic-value";
 import {
 	hadamard as hadamard2,
@@ -134,9 +134,6 @@ type EditorProps = {
 	onSelectionsChange?: (changes: Iterable<string>) => void;
 	onFormationIndexChange?: (newIndex: number) => void;
 	style?: React.CSSProperties | undefined;
-
-	// TODO: remove this
-	currentFormationIndex: number;
 
 	timelineState: TimelineState;
 };
@@ -304,7 +301,9 @@ export const Editor = ({
 		return { width, height, left, top, right, bottom };
 	};
 
-	const getEntityUnderCursor = (): [string, EntityPlacement, number] | null => {
+	const getEntityUnderCursor = useCallback(():
+		| [string, EntityPlacement, number]
+		| null => {
 		const cursorPosition = getCursorPosition();
 
 		const radius = CIRCLE_RADIUS;
@@ -339,7 +338,18 @@ export const Editor = ({
 		}
 
 		return null;
-	};
+	}, [currentFormationIndex, localPlacements, getCursorPosition]);
+
+	const onMouseUp = useCallback(() => {
+		const indexAndEntity = getEntityUnderCursor();
+
+		if (indexAndEntity) {
+			const [index] = indexAndEntity;
+			entityMouseUp(index);
+		}
+
+		setMouseState({ type: "NOTHING" });
+	}, [getEntityUnderCursor]);
 
 	const blankSpaceSelection = (startPosition: Vector2) => {
 		const topLeft = screenToSpace([
@@ -414,16 +424,7 @@ export const Editor = ({
 	return (
 		<SvgWrapper
 			style={style}
-			onMouseUp={() => {
-				const indexAndEntity = getEntityUnderCursor();
-
-				if (indexAndEntity) {
-					const [index] = indexAndEntity;
-					entityMouseUp(index);
-				}
-
-				setMouseState({ type: "NOTHING" });
-			}}
+			onMouseUp={onMouseUp}
 			onMouseDown={() => {
 				const idAndEntity = getEntityUnderCursor();
 				if (idAndEntity) {
