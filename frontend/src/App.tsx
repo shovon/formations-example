@@ -226,11 +226,25 @@ function App() {
 						performanceProject.pushFormation(newFormationName(), 5000, 1000)
 					);
 				}}
+				timlineStoppedSeeking={(time) => {
+					console.log(time);
+
+					const form = performanceProject.getFormationAtTime(time);
+					if (!form) return;
+
+					setTimeline({
+						mode: "CURRENT_FORMATION",
+						index: form[0],
+						position: 0,
+					});
+				}}
 				timelineSeeked={(time) => {
 					const form = performanceProject.getFormationAtTime(time);
 					if (!form) return;
-					const [index] = form;
-					console.log(index);
+					setTimeline({
+						mode: "SEEKER",
+						time,
+					});
 				}}
 			/>
 		</div>
