@@ -178,7 +178,7 @@ export const Editor = ({
 
 	useEffect(() => {
 		updateCurrentPlacements();
-	}, [performance]);
+	}, [performance, timelineState]);
 
 	const drawingAreaRef = useRef<SvgWrapperObject | null>(null);
 	const mousePositionRef = useRef<Vector2>([0, 0]);

@@ -24,8 +24,6 @@ export const getCurrentFormationIndex = (
 	performance: Performance,
 	timelineState: TimelineState
 ): number => {
-	console.log(timelineState.mode);
-
 	switch (timelineState.mode) {
 		case "CURRENT_FORMATION":
 			return timelineState.index;
