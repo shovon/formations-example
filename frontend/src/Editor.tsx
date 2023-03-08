@@ -178,7 +178,7 @@ export const Editor = ({
 
 	useEffect(() => {
 		updateCurrentPlacements();
-	}, [performance]);
+	}, [performance, timelineState]);
 
 	const drawingAreaRef = useRef<SvgWrapperObject | null>(null);
 	const mousePositionRef = useRef<Vector2>([0, 0]);
@@ -452,7 +452,6 @@ export const Editor = ({
 					return;
 				} else {
 					deactivateAllEntities();
-					console.log("blank space");
 					setMouseState({
 						type: "MOUSE_DOWN",
 						event: {
