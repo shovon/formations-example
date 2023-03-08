@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 import { Formation, Performance } from "./performance-project";
 import { time, TimelineState } from "./timeline-state";
 import { mouseUpEvents } from "./document";
+import { useMouseUp } from "./use-mouse-up";
 
 // TODO: soft code this
 const pixelsToMillisecondsRatio = 0.04;
@@ -30,12 +31,13 @@ export function Timeline({
 	const playbackProgress = time(performance, timelineState);
 	const isSeekerDownRef = useRef(false);
 	const cursorXRef = useRef(NaN);
+	const { onMouseDown, onMouseUp: mouseUp } = useMouseUp();
 
 	useEffect(() => {
-		const onMouseUp = () => {
+		const onMouseUp = mouseUp(() => {
 			isSeekerDownRef.current = false;
 			timlineStoppedSeeking(cursorXRef.current / pixelsToMillisecondsRatio);
-		};
+		});
 
 		mouseUpEvents.addListener(onMouseUp);
 
@@ -132,9 +134,9 @@ export function Timeline({
 					height: 50,
 					background: "black",
 				}}
-				onMouseDown={() => {
+				onMouseDown={onMouseDown(() => {
 					isSeekerDownRef.current = true;
-				}}
+				})}
 			></div>
 
 			<button

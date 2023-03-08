@@ -24,6 +24,7 @@ import {
 } from "./performance-project";
 import { getKV } from "./iterable-helpers";
 import { getCurrentFormationIndex, TimelineState } from "./timeline-state";
+import { useMouseUp } from "./use-mouse-up";
 
 const CIRCLE_RADIUS = ENTITY_DIAMETER_IN_PIXELS / 2;
 
@@ -162,6 +163,7 @@ export const Editor = ({
 		position: [0, 0],
 	});
 	const selectionsSet = new Set(selections);
+	const { onMouseDown, onMouseUp: mouseUp } = useMouseUp();
 
 	const currentFormationIndex = getCurrentFormationIndex(
 		performance,
@@ -340,16 +342,19 @@ export const Editor = ({
 		return null;
 	}, [currentFormationIndex, localPlacements, getCursorPosition]);
 
-	const onMouseUp = useCallback(() => {
-		const indexAndEntity = getEntityUnderCursor();
+	const onMouseUp = useCallback(
+		mouseUp(() => {
+			const indexAndEntity = getEntityUnderCursor();
 
-		if (indexAndEntity) {
-			const [index] = indexAndEntity;
-			entityMouseUp(index);
-		}
+			if (indexAndEntity) {
+				const [index] = indexAndEntity;
+				entityMouseUp(index);
+			}
 
-		setMouseState({ type: "NOTHING" });
-	}, [getEntityUnderCursor]);
+			setMouseState({ type: "NOTHING" });
+		}),
+		[getEntityUnderCursor]
+	);
 
 	const blankSpaceSelection = (startPosition: Vector2) => {
 		const topLeft = screenToSpace([
@@ -425,7 +430,7 @@ export const Editor = ({
 		<SvgWrapper
 			style={style}
 			onMouseUp={onMouseUp}
-			onMouseDown={() => {
+			onMouseDown={onMouseDown(() => {
 				const idAndEntity = getEntityUnderCursor();
 				if (idAndEntity) {
 					const [id, , formationIndex] = idAndEntity;
@@ -457,7 +462,7 @@ export const Editor = ({
 						hasMoved: false,
 					});
 				}
-			}}
+			})}
 			onWheel={(e) => {
 				const [x, y] = getDrawingAreaDimensions();
 				const dimensions = [x, y] satisfies Vector2;
