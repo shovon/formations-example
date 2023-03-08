@@ -568,6 +568,10 @@ export const Editor = ({
 				})()}
 
 				{(() => {
+					if (timelineState.mode === "SEEKER") {
+						return null;
+					}
+
 					// The next formation
 					const previousFormationIndex = currentFormationIndex - 1;
 					if (previousFormationIndex < 0) {
@@ -645,6 +649,10 @@ export const Editor = ({
 				})()}
 
 				{(() => {
+					if (timelineState.mode === "SEEKER") {
+						return null;
+					}
+
 					// The next formation
 					const nextFormationIndex = currentFormationIndex + 1;
 					if (nextFormationIndex >= performance.formationsCount) {
