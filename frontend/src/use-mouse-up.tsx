@@ -13,7 +13,6 @@ export function useMouseUp() {
 	const onMouseUp = useCallback((listener: () => void) => {
 		return () => {
 			if (isMouseDownRef.current) {
-				console.log("Mouse up");
 				isMouseDownRef.current = false;
 				listener();
 			}

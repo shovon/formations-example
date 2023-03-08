@@ -1,6 +1,5 @@
 import { Performance } from "./performance-project";
 
-// TODO; perhaps move this to another file
 export type TimelineState =
 	| {
 			mode: "CURRENT_FORMATION";
@@ -25,6 +24,8 @@ export const getCurrentFormationIndex = (
 	performance: Performance,
 	timelineState: TimelineState
 ): number => {
+	console.log(timelineState.mode);
+
 	switch (timelineState.mode) {
 		case "CURRENT_FORMATION":
 			return timelineState.index;

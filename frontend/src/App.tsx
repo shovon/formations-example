@@ -226,8 +226,6 @@ function App() {
 					);
 				}}
 				timlineStoppedSeeking={(time) => {
-					console.log("Timeline stopped seeking");
-
 					const form = performanceProject.getFormationAtTime(time);
 					if (!form) return;
 

@@ -9,7 +9,6 @@ import { useMouseUp } from "./use-mouse-up";
 const pixelsToMillisecondsRatio = 0.04;
 
 type TimelineProps = {
-	// TODO: this has got to go
 	performance: Performance;
 	timelineState: TimelineState;
 	formationSelected: (index: number) => void;

@@ -230,7 +230,6 @@ export const Editor = ({
 		);
 	}
 
-	// TODO: be able to also click entity from next and previous formations
 	const entityMouseUp = (i: string) => {
 		if (selectionsSet.has(i)) {
 			if (mouseState.type === "MOUSE_DOWN") {
@@ -507,7 +506,6 @@ export const Editor = ({
 
 				if (!equals2(newMousePosition, mousePositionRef.current)) {
 					mousePositionRef.current = newMousePosition;
-					update();
 
 					moveEvent([e.movementX, e.movementY]);
 				}
