@@ -24,10 +24,9 @@ export const getCurrentFormationIndex = (
 	performance: Performance,
 	timelineState: TimelineState
 ): number => {
-	console.log(timelineState.mode);
-
 	switch (timelineState.mode) {
 		case "CURRENT_FORMATION":
+			console.log(timelineState.mode, timelineState.index);
 			return timelineState.index;
 		case "SEEKER":
 			const formation = performance.getFormationAtTime(timelineState.time);

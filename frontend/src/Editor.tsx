@@ -452,6 +452,7 @@ export const Editor = ({
 					return;
 				} else {
 					deactivateAllEntities();
+					console.log("blank space");
 					setMouseState({
 						type: "MOUSE_DOWN",
 						event: {
