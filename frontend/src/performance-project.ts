@@ -68,8 +68,9 @@ const entityPlacement =
 	};
 
 const entityPlacementAtTime =
-	({ formations }: PerformanceProject, time: number) =>
+	(project: PerformanceProject, time: number) =>
 	(entityId: string): EntityPlacement => {
+		const { formations } = project;
 		let timeAndFormation = {
 			elapsedTime: 0,
 			transition: 0,
@@ -90,41 +91,35 @@ const entityPlacementAtTime =
 
 		// No formations exist
 		if (timeAndFormation.index < 0) {
+			console.log("No formation found");
 			return { position: [0, 0] };
 		}
 
-		const formation = formations[timeAndFormation.index];
-
-		// Formation not found
-		if (!formation) {
-			return { position: [0, 0] };
-		}
-
-		const placement = getKV(formation.positions, entityId);
-		if (!placement) {
-			return { position: [0, 0] };
-		}
+		const placement = entityPlacement(
+			project,
+			timeAndFormation.index
+		)(entityId);
 
 		if (time > timeAndFormation.elapsedTime) {
-			const nextFormation = formations[timeAndFormation.index + 1];
-			if (nextFormation) {
-				const nextPlacement = getKV(nextFormation.positions, entityId);
-				if (nextPlacement) {
-					const transition = time - timeAndFormation.elapsedTime;
-					const transitionProgress = transition / timeAndFormation.transition;
+			const nextPlacement = entityPlacement(
+				project,
+				timeAndFormation.index + 1
+			)(entityId);
+			const transition = time - timeAndFormation.elapsedTime;
+			const transitionProgress = transition / timeAndFormation.transition;
 
-					return {
-						position: [
-							placement.position[0] +
-								(nextPlacement.position[0] - placement.position[0]) *
-									transitionProgress,
-							placement.position[1] +
-								(nextPlacement.position[1] - placement.position[1]) *
-									transitionProgress,
-						],
-					};
-				}
-			}
+			console.log(nextPlacement);
+
+			return {
+				position: [
+					placement.position[0] +
+						(nextPlacement.position[0] - placement.position[0]) *
+							transitionProgress,
+					placement.position[1] +
+						(nextPlacement.position[1] - placement.position[1]) *
+							transitionProgress,
+				],
+			};
 		}
 
 		return placement;
