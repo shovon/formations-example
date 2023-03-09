@@ -67,6 +67,31 @@ const entityPlacement =
 		return { position: [0, 0] };
 	};
 
+const entityPlacementAtTime =
+	({ formations }: PerformanceProject, time: number) =>
+	(entityId: string): EntityPlacement => {
+		let elapsedTime = 0;
+		for (const formation of formations) {
+			if (elapsedTime + formation.duration > time) {
+				break;
+			}
+			elapsedTime += formation.duration + formation.transitionDuration;
+		}
+
+		const formation = formations.find((f) => {
+			return elapsedTime > time;
+		});
+
+		if (!formation) {
+			return { position: [0, 0] };
+		}
+		const placement = getKV(formation.positions, entityId);
+		if (placement) {
+			return placement;
+		}
+		return { position: [0, 0] };
+	};
+
 const getFormation = (
 	{ formations, entities }: PerformanceProject,
 	index: number
@@ -108,6 +133,10 @@ const getFormation = (
 		get placements(): Iterable<[string, EntityPlacement]> {
 			return map(entities, ([id]) => [id, getEntityPlacement(id)]);
 		},
+
+		// getPlacementAtTime(time: number): Iterable<[string, EntityPlacement]> {
+
+		// },
 
 		setPlacements(
 			placements: Iterable<[string, EntityPlacement]>
