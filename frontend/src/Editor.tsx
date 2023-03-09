@@ -23,7 +23,11 @@ import {
 	Performance,
 } from "./performance-project";
 import { getKV } from "./iterable-helpers";
-import { getCurrentFormationIndex, TimelineState } from "./timeline-state";
+import {
+	getCurrentFormationIndex,
+	time,
+	TimelineState,
+} from "./timeline-state";
 import { useMouseUp } from "./use-mouse-up";
 
 const CIRCLE_RADIUS = ENTITY_DIAMETER_IN_PIXELS / 2;
@@ -219,6 +223,23 @@ export const Editor = ({
 	): Iterable<[string, { entity: Entity; placement: EntityPlacement }]> {
 		const getEntity = (id: string): EntityPlacement =>
 			getKV(formation.placements, id) ?? {
+				position: [0, 0] satisfies Vector2,
+			};
+
+		return new Map(
+			[...performance.entities].map(([id, entity]) => [
+				id,
+				{ entity, placement: getEntity(id) },
+			])
+		);
+	}
+
+	function combineEntityPlacementAtTime(
+		formation: FormationHelpers,
+		time: number
+	): Iterable<[string, { entity: Entity; placement: EntityPlacement }]> {
+		const getEntity = (id: string): EntityPlacement =>
+			getKV(formation.getPlacementAtTime(time), id) ?? {
 				position: [0, 0] satisfies Vector2,
 			};
 
@@ -728,7 +749,14 @@ export const Editor = ({
 				{(() => {
 					return (
 						<g transform={mat}>
-							{[...combineEntityPlacements(currentFormation)]
+							{[
+								...(timelineState.mode === "SEEKER"
+									? combineEntityPlacementAtTime(
+											currentFormation,
+											timelineState.time
+									  )
+									: combineEntityPlacements(currentFormation)),
+							]
 								.slice()
 								.reverse()
 								.map(
