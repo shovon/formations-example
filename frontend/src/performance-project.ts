@@ -70,26 +70,64 @@ const entityPlacement =
 const entityPlacementAtTime =
 	({ formations }: PerformanceProject, time: number) =>
 	(entityId: string): EntityPlacement => {
-		let elapsedTime = 0;
-		for (const formation of formations) {
-			if (elapsedTime + formation.duration > time) {
+		let timeAndFormation = {
+			elapsedTime: 0,
+			transition: 0,
+			index: formations.length - 1,
+		};
+
+		for (const [index, formation] of formations.entries()) {
+			timeAndFormation.elapsedTime += formation.duration;
+			timeAndFormation.transition = formation.transitionDuration;
+			timeAndFormation.index = index;
+
+			if (timeAndFormation.elapsedTime > time) {
 				break;
 			}
-			elapsedTime += formation.duration + formation.transitionDuration;
+
+			timeAndFormation.elapsedTime += formation.transitionDuration;
 		}
 
-		const formation = formations.find((f) => {
-			return elapsedTime > time;
-		});
+		// No formations exist
+		if (timeAndFormation.index < 0) {
+			return { position: [0, 0] };
+		}
 
+		const formation = formations[timeAndFormation.index];
+
+		// Formation not found
 		if (!formation) {
 			return { position: [0, 0] };
 		}
+
 		const placement = getKV(formation.positions, entityId);
-		if (placement) {
-			return placement;
+		if (!placement) {
+			return { position: [0, 0] };
 		}
-		return { position: [0, 0] };
+
+		if (time > timeAndFormation.elapsedTime) {
+			const nextFormation = formations[timeAndFormation.index + 1];
+			if (nextFormation) {
+				const nextPlacement = getKV(nextFormation.positions, entityId);
+				if (nextPlacement) {
+					const transition = time - timeAndFormation.elapsedTime;
+					const transitionProgress = transition / timeAndFormation.transition;
+
+					return {
+						position: [
+							placement.position[0] +
+								(nextPlacement.position[0] - placement.position[0]) *
+									transitionProgress,
+							placement.position[1] +
+								(nextPlacement.position[1] - placement.position[1]) *
+									transitionProgress,
+						],
+					};
+				}
+			}
+		}
+
+		return placement;
 	};
 
 const getFormation = (
@@ -134,9 +172,13 @@ const getFormation = (
 			return map(entities, ([id]) => [id, getEntityPlacement(id)]);
 		},
 
-		// getPlacementAtTime(time: number): Iterable<[string, EntityPlacement]> {
-
-		// },
+		getPlacementAtTime(time: number): Iterable<[string, EntityPlacement]> {
+			const getEntityPlacementAtTime = entityPlacementAtTime(
+				{ formations, entities },
+				time
+			);
+			return map(entities, ([id]) => [id, getEntityPlacementAtTime(id)]);
+		},
 
 		setPlacements(
 			placements: Iterable<[string, EntityPlacement]>
@@ -232,11 +274,12 @@ export const performance = ({ entities, formations }: PerformanceProject) => ({
 		let elapsedTime = 0;
 
 		for (const [index, formation] of formations.entries()) {
-			const totalDuration = formation.duration + formation.transitionDuration;
-			if (elapsedTime < time && time < elapsedTime + totalDuration) {
+			const totalFormationDuration =
+				formation.duration + formation.transitionDuration;
+			if (elapsedTime < time && time < elapsedTime + totalFormationDuration) {
 				return [index, formation];
 			}
-			elapsedTime += totalDuration;
+			elapsedTime += totalFormationDuration;
 		}
 
 		return null;
