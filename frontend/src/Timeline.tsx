@@ -25,7 +25,7 @@ export function Timeline({
 	newFormationCreated,
 	timelineState,
 	timelineSeeked,
-	timlineStoppedSeeking,
+	timlineStoppedSeeking: timelineStoppedSeeking,
 }: TimelineProps) {
 	const playbackProgress = time(performance, timelineState);
 	const isSeekerDownRef = useRef(false);
@@ -34,8 +34,10 @@ export function Timeline({
 
 	useEffect(() => {
 		const onMouseUp = mouseUp(() => {
-			isSeekerDownRef.current = false;
-			timlineStoppedSeeking(cursorXRef.current / pixelsToMillisecondsRatio);
+			if (isSeekerDownRef.current) {
+				isSeekerDownRef.current = false;
+				timelineStoppedSeeking(cursorXRef.current / pixelsToMillisecondsRatio);
+			}
 		});
 
 		mouseUpEvents.addListener(onMouseUp);
@@ -43,7 +45,7 @@ export function Timeline({
 		return () => {
 			mouseUpEvents.removeListener(onMouseUp);
 		};
-	}, []);
+	}, [timelineStoppedSeeking]);
 
 	return (
 		<div
