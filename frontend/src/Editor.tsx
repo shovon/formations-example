@@ -17,17 +17,12 @@ import { SvgWrapper, SvgWrapperObject } from "./SvgWrapper";
 import { ENTITY_DIAMETER_IN_PIXELS } from "./constants";
 import {
 	EntityPlacement,
-	Formation,
 	FormationHelpers,
 	joinPlacements,
 	Performance,
 } from "./performance-project";
 import { getKV } from "./iterable-helpers";
-import {
-	getCurrentFormationIndex,
-	time,
-	TimelineState,
-} from "./timeline-state";
+import { getCurrentFormationIndex, TimelineState } from "./timeline-state";
 import { useMouseUp } from "./use-mouse-up";
 
 const CIRCLE_RADIUS = ENTITY_DIAMETER_IN_PIXELS / 2;
@@ -36,8 +31,6 @@ type Camera = {
 	position: [number, number];
 	zoom: LogarithmicValue;
 };
-
-// export type Entity = { position: Vector2; color: string; name: string };
 
 export type Entity = { color: string; name: string };
 

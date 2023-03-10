@@ -6,14 +6,15 @@ import { mouseUpEvents } from "./document";
 export type SvgWrapperProps = Omit<
 	React.SVGProps<SVGSVGElement>,
 	"onMouseUp" | "onWheel" | "onMouseMove"
-> & {
-	onMouseUp: () => void;
-	onWheel: (e: WheelEvent) => void;
-	onMouseMove: (
-		e: React.MouseEvent<SVGSVGElement, MouseEvent> & { x: number; y: number }
-	) => void;
-	style?: React.CSSProperties | undefined;
-};
+> &
+	Partial<{
+		onMouseUp: () => void;
+		onWheel: (e: WheelEvent) => void;
+		onMouseMove: (
+			e: React.MouseEvent<SVGSVGElement, MouseEvent> & { x: number; y: number }
+		) => void;
+		style: React.CSSProperties | undefined;
+	}>;
 
 export type SvgWrapperObject = WithBoundingClientRect;
 
@@ -25,10 +26,11 @@ export const SvgWrapper = forwardRef<SvgWrapperObject, SvgWrapperProps>(
 		const svgRef = useRef<SVGSVGElement | null>(null);
 
 		useEffect(() => {
-			mouseUpEvents.addListener(onMouseUp);
+			const listener = onMouseUp ?? (() => {});
+			mouseUpEvents.addListener(listener);
 
 			return () => {
-				mouseUpEvents.removeListener(onMouseUp);
+				mouseUpEvents.removeListener(listener);
 			};
 		}, [onMouseUp]);
 

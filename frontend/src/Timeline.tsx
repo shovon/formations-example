@@ -1,9 +1,11 @@
 import { css } from "@emotion/css";
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { Formation, Performance } from "./performance-project";
 import { time, TimelineState } from "./timeline-state";
 import { mouseUpEvents } from "./document";
 import { useMouseUp } from "./use-mouse-up";
+import { equals, sub, Vector2 } from "./vector2";
+import { SvgWrapper, SvgWrapperObject } from "./SvgWrapper";
 
 // TODO: soft code this
 const pixelsToMillisecondsRatio = 0.04;
@@ -18,6 +20,8 @@ type TimelineProps = {
 	timlineStoppedSeeking: (time: number) => void;
 };
 
+type SeekerState = { type: "INACTIVE" } | { type: "SEEKING"; start: number };
+
 export function Timeline({
 	performance,
 	formationSelected,
@@ -28,15 +32,18 @@ export function Timeline({
 	timlineStoppedSeeking: timelineStoppedSeeking,
 }: TimelineProps) {
 	const playbackProgress = time(performance, timelineState);
-	const isSeekerDownRef = useRef(false);
-	const cursorXRef = useRef(NaN);
+	const cursorPositionRef = useRef<Vector2>([NaN, NaN]);
 	const { onMouseDown, onMouseUp: mouseUp } = useMouseUp();
+	const drawingAreaRef = useRef<SvgWrapperObject | null>(null);
+	const seekerStateRef = useRef<SeekerState>({ type: "INACTIVE" });
 
 	useEffect(() => {
 		const onMouseUp = mouseUp(() => {
-			if (isSeekerDownRef.current) {
-				isSeekerDownRef.current = false;
-				timelineStoppedSeeking(cursorXRef.current / pixelsToMillisecondsRatio);
+			if (seekerStateRef.current.type === "SEEKING") {
+				seekerStateRef.current = { type: "INACTIVE" };
+				timelineStoppedSeeking(
+					cursorPositionRef.current[0] / pixelsToMillisecondsRatio
+				);
 			}
 		});
 
@@ -45,7 +52,51 @@ export function Timeline({
 		return () => {
 			mouseUpEvents.removeListener(onMouseUp);
 		};
-	}, [timelineStoppedSeeking]);
+	}, [timelineStoppedSeeking, playbackProgress, mouseUpEvents]);
+
+	let totalTime = 0;
+
+	const mouseDown = onMouseDown(() => {
+		const svg = drawingAreaRef.current;
+
+		if (
+			cursorPositionRef.current[0] >
+				playbackProgress * pixelsToMillisecondsRatio &&
+			cursorPositionRef.current[0] <
+				playbackProgress * pixelsToMillisecondsRatio + 20 &&
+			cursorPositionRef.current[1] < 20
+		) {
+			seekerStateRef.current = {
+				type: "SEEKING",
+				start: cursorPositionRef.current[0],
+			};
+		}
+	});
+
+	const onMouseMove = useCallback(
+		({
+			x,
+			y,
+		}: React.MouseEvent<SVGSVGElement, MouseEvent> & {
+			x: number;
+			y: number;
+		}) => {
+			const newMousePosition = [x, y] satisfies [number, number];
+			if (!equals(newMousePosition, cursorPositionRef.current)) {
+				cursorPositionRef.current = newMousePosition;
+				if (seekerStateRef.current.type === "SEEKING") {
+					timelineSeeked(
+						(cursorPositionRef.current[0] - seekerStateRef.current.start) /
+							pixelsToMillisecondsRatio +
+							playbackProgress
+					);
+
+					seekerStateRef.current.start = cursorPositionRef.current[0];
+				}
+			}
+		},
+		[playbackProgress]
+	);
 
 	return (
 		<div
@@ -56,13 +107,6 @@ export function Timeline({
 				-ms-user-select: none;
 				user-select: none;
 			`}
-			onMouseMove={(e) => {
-				cursorXRef.current = e.clientX;
-				if (isSeekerDownRef.current) {
-					// TODO: using e.clientX is just not a good idea
-					timelineSeeked(cursorXRef.current / pixelsToMillisecondsRatio);
-				}
-			}}
 		>
 			<div
 				style={{
@@ -74,59 +118,63 @@ export function Timeline({
 					padding: 5,
 				}}
 			>
-				{performance.formations.map((formation, i) => {
-					return (
-						<div
-							style={{
-								display: "flex",
-								flexDirection: "row",
-							}}
-							key={formation.id}
-						>
-							<div
-								onClick={() => {
-									formationSelected(i);
-								}}
-								style={{
-									background: "white",
-									borderWidth: 4,
-									borderStyle: "solid",
-									borderColor: i === currentFormationIndex ? "red" : "black",
-									boxSizing: "border-box",
-									borderRadius: 8,
-									padding: "5px 10px",
-									width: formation.duration * pixelsToMillisecondsRatio,
-									height: "100%",
-									textOverflow: "ellipsis",
-									whiteSpace: "nowrap",
-									overflow: "hidden",
-								}}
+				<SvgWrapper
+					style={{
+						width: "100%",
+					}}
+					onMouseDown={mouseDown}
+					onMouseMove={onMouseMove}
+				>
+					{performance.formations.map((formation, i) => {
+						const oldTotalTime = totalTime;
+						totalTime += formation.duration + formation.transitionDuration;
+						return (
+							<g
+								key={formation.id}
+								transform={`translate(${
+									oldTotalTime * pixelsToMillisecondsRatio
+								}, 0)`}
 							>
-								{formation.name}
-							</div>
-							{i === performance.formations.length - 1 ? null : (
-								<div
+								<rect
+									height="100"
+									width={`${formation.duration * pixelsToMillisecondsRatio}`}
 									style={{
-										background: "white",
-										borderWidth: 4,
-										borderStyle: "solid",
-										borderColor: i === currentFormationIndex ? "red" : "black",
-										boxSizing: "border-box",
-										borderRadius: 8,
-										padding: "5px 10px",
-										width:
-											formation.transitionDuration * pixelsToMillisecondsRatio,
-										height: "100%",
-										opacity: 0.5,
+										strokeWidth: 4,
+										stroke: i === currentFormationIndex ? "red" : "black",
+										fill: "white",
 									}}
-								></div>
-							)}
-						</div>
-					);
-				})}
+								/>
+
+								{i === performance.formations.length - 1 ? null : (
+									<rect
+										x={`${formation.duration * pixelsToMillisecondsRatio}`}
+										height="100"
+										width={`${
+											formation.transitionDuration * pixelsToMillisecondsRatio
+										}`}
+										style={{
+											strokeWidth: 4,
+											stroke: i === currentFormationIndex ? "red" : "black",
+											fill: "white",
+										}}
+									></rect>
+								)}
+							</g>
+						);
+					})}
+
+					<rect
+						width="20"
+						height="20"
+						x={playbackProgress * pixelsToMillisecondsRatio}
+						style={{
+							fill: "black",
+						}}
+					/>
+				</SvgWrapper>
 			</div>
 
-			<div
+			{/* <div
 				style={{
 					position: "absolute",
 					top: 0,
@@ -134,11 +182,12 @@ export function Timeline({
 					width: 50,
 					height: 50,
 					background: "black",
+					opacity: 0.25,
 				}}
 				onMouseDown={onMouseDown(() => {
 					isSeekerDownRef.current = true;
 				})}
-			></div>
+			></div> */}
 
 			<button
 				style={{
