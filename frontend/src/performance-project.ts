@@ -80,6 +80,7 @@ const entityPlacementAtTime =
 		for (const [index, formation] of formations.entries()) {
 			timeAndFormation.elapsedTime += formation.duration;
 			timeAndFormation.transition = formation.transitionDuration;
+
 			timeAndFormation.index = index;
 
 			if (timeAndFormation.elapsedTime > time) {
@@ -88,6 +89,8 @@ const entityPlacementAtTime =
 
 			timeAndFormation.elapsedTime += formation.transitionDuration;
 		}
+
+		console.log(timeAndFormation);
 
 		// No formations exist
 		if (timeAndFormation.index < 0) {
