@@ -533,7 +533,6 @@ export const Editor = ({
 			}}
 			className={css`
 				display: block;
-				/* border: 1px solid black; */
 				box-sizing: border-box;
 				width: 100%;
 				text {
