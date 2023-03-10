@@ -47,6 +47,8 @@ export function Timeline({
 		};
 	}, [timelineStoppedSeeking]);
 
+	let totalTime = 0;
+
 	return (
 		<div
 			className={css`
@@ -74,38 +76,20 @@ export function Timeline({
 					padding: 5,
 				}}
 			>
-				{performance.formations.map((formation, i) => {
-					return (
-						<div
-							style={{
-								display: "flex",
-								flexDirection: "row",
-							}}
-							key={formation.id}
-						>
-							<div
-								onClick={() => {
-									formationSelected(i);
-								}}
-								style={{
-									background: "white",
-									borderWidth: 4,
-									borderStyle: "solid",
-									borderColor: i === currentFormationIndex ? "red" : "black",
-									boxSizing: "border-box",
-									borderRadius: 8,
-									padding: "5px 10px",
-									width: formation.duration * pixelsToMillisecondsRatio,
-									height: "100%",
-									textOverflow: "ellipsis",
-									whiteSpace: "nowrap",
-									overflow: "hidden",
-								}}
+				<svg width={"100%"}>
+					{performance.formations.map((formation, i) => {
+						const oldTotalTime = totalTime;
+						totalTime += formation.duration + formation.transitionDuration;
+						return (
+							<g
+								transform={`translate(${
+									oldTotalTime * pixelsToMillisecondsRatio
+								}, 0)`}
 							>
-								{formation.name}
-							</div>
-							{i === performance.formations.length - 1 ? null : (
-								<div
+								{/* <div
+									onClick={() => {
+										formationSelected(i);
+									}}
 									style={{
 										background: "white",
 										borderWidth: 4,
@@ -114,16 +98,55 @@ export function Timeline({
 										boxSizing: "border-box",
 										borderRadius: 8,
 										padding: "5px 10px",
-										width:
-											formation.transitionDuration * pixelsToMillisecondsRatio,
+										width: formation.duration * pixelsToMillisecondsRatio,
 										height: "100%",
-										opacity: 0.5,
+										textOverflow: "ellipsis",
+										whiteSpace: "nowrap",
+										overflow: "hidden",
 									}}
-								></div>
-							)}
-						</div>
-					);
-				})}
+								> */}
+								{/* {formation.name} */}
+								{/* </div> */}
+
+								<rect
+									height="100"
+									width={`${formation.duration * pixelsToMillisecondsRatio}`}
+									style={{
+										strokeWidth: 4,
+										stroke: i === currentFormationIndex ? "red" : "black",
+										fill: "white",
+									}}
+								></rect>
+
+								{i === performance.formations.length - 1 ? null : (
+									<rect
+										x={`${
+											formation.transitionDuration * pixelsToMillisecondsRatio
+										}`}
+										style={{
+											// background: "white",
+											// borderWidth: 4,
+											// borderStyle: "solid",
+											// borderColor:
+											// 	i === currentFormationIndex ? "red" : "black",
+											// boxSizing: "border-box",
+											// borderRadius: 8,
+											// padding: "5px 10px",
+											// width:
+											// 	formation.transitionDuration *
+											// 	pixelsToMillisecondsRatio,
+											// height: "100%",
+											// opacity: 0.5,
+											strokeWidth: 4,
+											stroke: i === currentFormationIndex ? "red" : "black",
+											fill: "white",
+										}}
+									></rect>
+								)}
+							</g>
+						);
+					})}
+				</svg>
 			</div>
 
 			<div
