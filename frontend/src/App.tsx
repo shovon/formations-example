@@ -101,6 +101,8 @@ function App() {
 		position: 0,
 	});
 
+	const [isEditorHidden, setIsEditorHidden] = useState(false);
+
 	const performanceProject = useMemo(
 		() => performance({ formations, entities }),
 		[formations, entities]
@@ -164,6 +166,10 @@ function App() {
 		setProject(draft);
 	}, [performanceProject]);
 
+	const toggleEditor = () => {
+		setIsEditorHidden(!isEditorHidden);
+	};
+
 	return (
 		<div
 			style={{
@@ -172,29 +178,35 @@ function App() {
 				flexDirection: "column",
 			}}
 		>
-			<Editor
-				timelineState={timeline}
-				performance={performanceProject}
-				style={{
-					flex: "1",
-					width: "100vw",
-				}}
-				selections={selections}
-				onPositionsChange={(changes, formationIndex) => {
-					setProject(
-						performanceProject
-							.getFormationIndex(formationIndex)
-							.setPositions(changes)
-					);
-				}}
-				onSelectionsChange={(newSelections) => {
-					selections.clear();
-					selections.add(...newSelections);
-				}}
-				onFormationIndexChange={(i) => {
-					setTimeline(getTimelineByFormationIndex(performanceProject, i));
-				}}
-			/>
+			<div style={{ flex: 1 }}>
+				{!isEditorHidden ? (
+					<Editor
+						timelineState={timeline}
+						performance={performanceProject}
+						style={{
+							flex: "1",
+							width: "100vw",
+							height: "100%",
+						}}
+						selections={selections}
+						onPositionsChange={(changes, formationIndex) => {
+							setProject(
+								performanceProject
+									.getFormationIndex(formationIndex)
+									.setPositions(changes)
+							);
+						}}
+						onSelectionsChange={(newSelections) => {
+							selections.clear();
+							selections.add(...newSelections);
+						}}
+						onFormationIndexChange={(i) => {
+							setTimeline(getTimelineByFormationIndex(performanceProject, i));
+						}}
+					/>
+				) : null}
+			</div>
+
 			<div
 				style={{
 					top: 4,
@@ -210,6 +222,15 @@ function App() {
 					onClick={addEntity}
 				>
 					Add Entity
+				</button>
+
+				<button
+					style={{
+						cursor: "pointer",
+					}}
+					onClick={toggleEditor}
+				>
+					{isEditorHidden ? "Unhide" : "Hide"} Editor
 				</button>
 			</div>
 

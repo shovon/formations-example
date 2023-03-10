@@ -1,0 +1,5 @@
+- bunch of refactoring needed
+- Editor.tsx is a mess
+- performance-project.ts is a mess
+- Timeline.tsx is a mess
+- App.tsx needs to be able to soft-code the project
