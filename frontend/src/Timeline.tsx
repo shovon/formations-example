@@ -82,6 +82,7 @@ export function Timeline({
 						totalTime += formation.duration + formation.transitionDuration;
 						return (
 							<g
+								key={formation.id}
 								transform={`translate(${
 									oldTotalTime * pixelsToMillisecondsRatio
 								}, 0)`}
@@ -120,7 +121,9 @@ export function Timeline({
 
 								{i === performance.formations.length - 1 ? null : (
 									<rect
-										x={`${
+										x={`${formation.duration * pixelsToMillisecondsRatio}`}
+										height="100"
+										width={`${
 											formation.transitionDuration * pixelsToMillisecondsRatio
 										}`}
 										style={{
