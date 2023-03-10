@@ -172,6 +172,7 @@ export function Timeline({
 					width: 50,
 					height: 50,
 					background: "black",
+					opacity: 0.25,
 				}}
 				onMouseDown={onMouseDown(() => {
 					isSeekerDownRef.current = true;
