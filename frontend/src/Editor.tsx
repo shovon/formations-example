@@ -210,6 +210,18 @@ export const Editor = ({
 	const [localPlacements, setLocalPlacements] = useState<
 		[string, EntityPlacement][]
 	>([...currentFormation.placements]);
+	const [isEditorHidden, setIsEditorHidden] = useState(false);
+
+	useEffect(() => {
+		setIsEditorHidden(true);
+		const timeout = setTimeout(() => {
+			setIsEditorHidden(false);
+		}, 0);
+
+		return () => {
+			clearTimeout(timeout);
+		};
+	}, [currentFormationIndex]);
 
 	function combineEntityPlacements(
 		formation: FormationHelpers
@@ -439,7 +451,9 @@ export const Editor = ({
 		camera.position[1]
 	}) translate(${width / 2}, ${height / 2}) scale(${camera.zoom.linear})`;
 
-	return (
+	return isEditorHidden ? (
+		<div style={style}></div>
+	) : (
 		<SvgWrapper
 			style={style}
 			onMouseUp={onMouseUp}
