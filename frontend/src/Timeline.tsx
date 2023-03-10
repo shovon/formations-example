@@ -4,6 +4,7 @@ import { Formation, Performance } from "./performance-project";
 import { time, TimelineState } from "./timeline-state";
 import { mouseUpEvents } from "./document";
 import { useMouseUp } from "./use-mouse-up";
+import { sub, Vector2 } from "./vector2";
 
 // TODO: soft code this
 const pixelsToMillisecondsRatio = 0.04;
@@ -76,7 +77,18 @@ export function Timeline({
 					padding: 5,
 				}}
 			>
-				<svg width={"100%"}>
+				<svg
+					width={"100%"}
+					onMouseMove={(e) => {
+						const rect = e.currentTarget.getBoundingClientRect();
+						const rectPos = [rect.left, rect.top] satisfies Vector2;
+						const clientXY = [e.clientX, e.clientY] satisfies Vector2;
+
+						const [x] = sub(clientXY, rectPos);
+
+						console.log(`Mouse move time ${x / pixelsToMillisecondsRatio}`);
+					}}
+				>
 					{performance.formations.map((formation, i) => {
 						const oldTotalTime = totalTime;
 						totalTime += formation.duration + formation.transitionDuration;

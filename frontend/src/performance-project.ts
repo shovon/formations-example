@@ -19,8 +19,10 @@ export type Formation = {
 	transitionDuration: number;
 };
 
+type UnorderedIterable<T> = Iterable<T>;
+
 export type PerformanceProject = {
-	entities: Iterable<[string, Entity]>;
+	entities: UnorderedIterable<[string, Entity]>;
 	formations: Formation[];
 };
 
