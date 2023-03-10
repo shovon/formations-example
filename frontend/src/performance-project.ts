@@ -78,23 +78,21 @@ const entityPlacementAtTime =
 		};
 
 		for (const [index, formation] of formations.entries()) {
-			timeAndFormation.elapsedTime += formation.duration;
-			timeAndFormation.transition = formation.transitionDuration;
+			timeAndFormation = {
+				index,
+				elapsedTime: timeAndFormation.elapsedTime + formation.duration,
+				transition: formation.transitionDuration,
+			};
 
-			timeAndFormation.index = index;
-
-			if (timeAndFormation.elapsedTime > time) {
+			if (timeAndFormation.elapsedTime + formation.transitionDuration < time) {
+				timeAndFormation.elapsedTime += formation.transitionDuration;
+			} else {
 				break;
 			}
-
-			timeAndFormation.elapsedTime += formation.transitionDuration;
 		}
-
-		console.log(timeAndFormation);
 
 		// No formations exist
 		if (timeAndFormation.index < 0) {
-			console.log("No formation found");
 			return { position: [0, 0] };
 		}
 
@@ -110,8 +108,6 @@ const entityPlacementAtTime =
 			)(entityId);
 			const transition = time - timeAndFormation.elapsedTime;
 			const transitionProgress = transition / timeAndFormation.transition;
-
-			console.log(nextPlacement);
 
 			return {
 				position: [
