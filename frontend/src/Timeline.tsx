@@ -99,28 +99,6 @@ export function Timeline({
 									oldTotalTime * pixelsToMillisecondsRatio
 								}, 0)`}
 							>
-								{/* <div
-									onClick={() => {
-										formationSelected(i);
-									}}
-									style={{
-										background: "white",
-										borderWidth: 4,
-										borderStyle: "solid",
-										borderColor: i === currentFormationIndex ? "red" : "black",
-										boxSizing: "border-box",
-										borderRadius: 8,
-										padding: "5px 10px",
-										width: formation.duration * pixelsToMillisecondsRatio,
-										height: "100%",
-										textOverflow: "ellipsis",
-										whiteSpace: "nowrap",
-										overflow: "hidden",
-									}}
-								> */}
-								{/* {formation.name} */}
-								{/* </div> */}
-
 								<rect
 									height="100"
 									width={`${formation.duration * pixelsToMillisecondsRatio}`}
@@ -129,7 +107,7 @@ export function Timeline({
 										stroke: i === currentFormationIndex ? "red" : "black",
 										fill: "white",
 									}}
-								></rect>
+								/>
 
 								{i === performance.formations.length - 1 ? null : (
 									<rect
@@ -139,19 +117,6 @@ export function Timeline({
 											formation.transitionDuration * pixelsToMillisecondsRatio
 										}`}
 										style={{
-											// background: "white",
-											// borderWidth: 4,
-											// borderStyle: "solid",
-											// borderColor:
-											// 	i === currentFormationIndex ? "red" : "black",
-											// boxSizing: "border-box",
-											// borderRadius: 8,
-											// padding: "5px 10px",
-											// width:
-											// 	formation.transitionDuration *
-											// 	pixelsToMillisecondsRatio,
-											// height: "100%",
-											// opacity: 0.5,
 											strokeWidth: 4,
 											stroke: i === currentFormationIndex ? "red" : "black",
 											fill: "white",
@@ -161,10 +126,19 @@ export function Timeline({
 							</g>
 						);
 					})}
+
+					<rect
+						width="20"
+						height="20"
+						x={playbackProgress * pixelsToMillisecondsRatio}
+						style={{
+							fill: "black",
+						}}
+					/>
 				</svg>
 			</div>
 
-			<div
+			{/* <div
 				style={{
 					position: "absolute",
 					top: 0,
@@ -177,7 +151,7 @@ export function Timeline({
 				onMouseDown={onMouseDown(() => {
 					isSeekerDownRef.current = true;
 				})}
-			></div>
+			></div> */}
 
 			<button
 				style={{
