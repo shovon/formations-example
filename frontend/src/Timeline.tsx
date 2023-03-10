@@ -1,11 +1,12 @@
 import { css } from "@emotion/css";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Formation, Performance } from "./performance-project";
 import { time, TimelineState } from "./timeline-state";
 import { mouseUpEvents } from "./document";
 import { useMouseUp } from "./use-mouse-up";
 import { equals, sub, Vector2 } from "./vector2";
 import { SvgWrapper, SvgWrapperObject } from "./SvgWrapper";
+import { LogarithmicValue } from "./logarithmic-value";
 
 // TODO: soft code this
 const pixelsToMillisecondsRatio = 0.04;
@@ -36,14 +37,15 @@ export function Timeline({
 	const { onMouseDown, onMouseUp: mouseUp } = useMouseUp();
 	const drawingAreaRef = useRef<SvgWrapperObject | null>(null);
 	const seekerStateRef = useRef<SeekerState>({ type: "INACTIVE" });
+	const [zoom, setZoom] = useState(
+		LogarithmicValue.linear(pixelsToMillisecondsRatio)
+	);
 
 	useEffect(() => {
 		const onMouseUp = mouseUp(() => {
 			if (seekerStateRef.current.type === "SEEKING") {
 				seekerStateRef.current = { type: "INACTIVE" };
-				timelineStoppedSeeking(
-					cursorPositionRef.current[0] / pixelsToMillisecondsRatio
-				);
+				timelineStoppedSeeking(cursorPositionRef.current[0] / zoom.linear);
 			}
 		});
 
@@ -60,10 +62,8 @@ export function Timeline({
 		const svg = drawingAreaRef.current;
 
 		if (
-			cursorPositionRef.current[0] >
-				playbackProgress * pixelsToMillisecondsRatio &&
-			cursorPositionRef.current[0] <
-				playbackProgress * pixelsToMillisecondsRatio + 20 &&
+			cursorPositionRef.current[0] > playbackProgress * zoom.linear &&
+			cursorPositionRef.current[0] < playbackProgress * zoom.linear + 20 &&
 			cursorPositionRef.current[1] < 20
 		) {
 			seekerStateRef.current = {
@@ -87,7 +87,7 @@ export function Timeline({
 				if (seekerStateRef.current.type === "SEEKING") {
 					timelineSeeked(
 						(cursorPositionRef.current[0] - seekerStateRef.current.start) /
-							pixelsToMillisecondsRatio +
+							zoom.linear +
 							playbackProgress
 					);
 
@@ -124,6 +124,11 @@ export function Timeline({
 					}}
 					onMouseDown={mouseDown}
 					onMouseMove={onMouseMove}
+					onWheel={(e) => {
+						if (e.ctrlKey) {
+							setZoom(zoom.addLogarithmic(-e.deltaY * 0.01));
+						}
+					}}
 				>
 					{performance.formations.map((formation, i) => {
 						const oldTotalTime = totalTime;
@@ -131,13 +136,11 @@ export function Timeline({
 						return (
 							<g
 								key={formation.id}
-								transform={`translate(${
-									oldTotalTime * pixelsToMillisecondsRatio
-								}, 0)`}
+								transform={`translate(${oldTotalTime * zoom.linear}, 0)`}
 							>
 								<rect
 									height="100"
-									width={`${formation.duration * pixelsToMillisecondsRatio}`}
+									width={`${formation.duration * zoom.linear}`}
 									style={{
 										strokeWidth: 4,
 										stroke: i === currentFormationIndex ? "red" : "black",
@@ -147,11 +150,9 @@ export function Timeline({
 
 								{i === performance.formations.length - 1 ? null : (
 									<rect
-										x={`${formation.duration * pixelsToMillisecondsRatio}`}
+										x={`${formation.duration * zoom.linear}`}
 										height="100"
-										width={`${
-											formation.transitionDuration * pixelsToMillisecondsRatio
-										}`}
+										width={`${formation.transitionDuration * zoom.linear}`}
 										style={{
 											strokeWidth: 4,
 											stroke: i === currentFormationIndex ? "red" : "black",
@@ -166,7 +167,7 @@ export function Timeline({
 					<rect
 						width="20"
 						height="20"
-						x={playbackProgress * pixelsToMillisecondsRatio}
+						x={playbackProgress * zoom.linear}
 						style={{
 							fill: "black",
 						}}

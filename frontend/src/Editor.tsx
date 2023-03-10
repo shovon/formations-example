@@ -210,8 +210,16 @@ export const Editor = ({
 	const [localPlacements, setLocalPlacements] = useState<
 		[string, EntityPlacement][]
 	>([...currentFormation.placements]);
+
+	// This thing exists in order to destroy React's virtual DOM structure
+	// associated with the SVG and all the SVG elements. This is to help with
+	// performance. Not sure of React's implementation details, but I suspect
+	// that they are just adding stuff to the underlying VDOM structure, causing
+	// massive amounts of iteration to occur in order to reconcile the VDOM with
+	// the DOM
 	const [isEditorHidden, setIsEditorHidden] = useState(false);
 
+	// To keep things snappy
 	useEffect(() => {
 		setIsEditorHidden(true);
 		const timeout = setTimeout(() => {
@@ -221,7 +229,7 @@ export const Editor = ({
 		return () => {
 			clearTimeout(timeout);
 		};
-	}, [currentFormationIndex]);
+	}, [timelineState.mode]);
 
 	function combineEntityPlacements(
 		formation: FormationHelpers
@@ -318,8 +326,8 @@ export const Editor = ({
 			scalarMul2(d, 1 / camera.zoom.linear)
 		).value;
 
-		// In the real space, pixels move at a rate proportional to the zoom.
-		// So it's best to divide the pixel position by the zoom
+		// In the real space, pixels move at a rate proportional to the zoom. So
+		// it's best to divide the pixel position by the zoom
 		const left = camera.position[0] / camera.zoom.linear - width / 2;
 		const top = camera.position[1] / camera.zoom.linear + height / 2;
 		const right = camera.position[0] / camera.zoom.linear + width / 2;
@@ -791,7 +799,6 @@ export const Editor = ({
 					);
 				})()}
 
-				{/* This stays */}
 				{(() => {
 					if (mouseState.type !== "MOUSE_DOWN") return null;
 
