@@ -1,5 +1,5 @@
 import { css } from "@emotion/css";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { Formation, Performance } from "./performance-project";
 import { time, TimelineState } from "./timeline-state";
 import { mouseUpEvents } from "./document";
@@ -8,7 +8,7 @@ import { equals, sub, Vector2 } from "./vector2";
 import { SvgWrapper, SvgWrapperObject } from "./SvgWrapper";
 import { LogarithmicValue } from "./logarithmic-value";
 
-// TODO: soft code this
+// TODO: maybe this should go to the constants file?
 const pixelsToMillisecondsRatio = 0.04;
 
 type TimelineProps = {
@@ -22,6 +22,11 @@ type TimelineProps = {
 };
 
 type SeekerState = { type: "INACTIVE" } | { type: "SEEKING"; start: number };
+
+type Camera = {
+	position: number;
+	zoom: LogarithmicValue;
+};
 
 export function Timeline({
 	performance,
@@ -37,15 +42,27 @@ export function Timeline({
 	const { onMouseDown, onMouseUp: mouseUp } = useMouseUp();
 	const drawingAreaRef = useRef<SvgWrapperObject | null>(null);
 	const seekerStateRef = useRef<SeekerState>({ type: "INACTIVE" });
-	const [zoom, setZoom] = useState(
-		LogarithmicValue.linear(pixelsToMillisecondsRatio)
+	const [camera, updateCamera] = useReducer<
+		(state: Camera, partialState: Partial<Camera>) => Camera
+	>(
+		(state, partialState) => {
+			const newState = { ...state, ...partialState };
+			if (newState.position < 0) {
+				newState.position = 0;
+			}
+			return newState;
+		},
+		{
+			zoom: LogarithmicValue.linear(pixelsToMillisecondsRatio),
+			position: 0,
+		}
 	);
 
 	useEffect(() => {
 		const onMouseUp = mouseUp(() => {
 			if (seekerStateRef.current.type === "SEEKING") {
 				seekerStateRef.current = { type: "INACTIVE" };
-				timelineStoppedSeeking(cursorPositionRef.current[0] / zoom.linear);
+				timelineStoppedSeeking(getCursorPosition() / camera.zoom.linear);
 			}
 		});
 
@@ -56,47 +73,56 @@ export function Timeline({
 		};
 	}, [timelineStoppedSeeking, playbackProgress, mouseUpEvents]);
 
+	// NOTE: this is not necessarily the global mouse position!
+	const getCursorPosition = (): number => {
+		return cursorPositionRef.current[0] + camera.position;
+	};
+
 	let totalTime = 0;
 
 	const mouseDown = onMouseDown(() => {
 		const svg = drawingAreaRef.current;
 
+		const cursorPosition = getCursorPosition();
+
 		if (
-			cursorPositionRef.current[0] > playbackProgress * zoom.linear &&
-			cursorPositionRef.current[0] < playbackProgress * zoom.linear + 20 &&
+			cursorPosition > playbackProgress * camera.zoom.linear &&
+			cursorPosition < playbackProgress * camera.zoom.linear + 20 &&
 			cursorPositionRef.current[1] < 20
 		) {
 			seekerStateRef.current = {
 				type: "SEEKING",
-				start: cursorPositionRef.current[0],
+				start: cursorPosition,
 			};
 		}
 	});
 
-	const onMouseMove = useCallback(
-		({
-			x,
-			y,
-		}: React.MouseEvent<SVGSVGElement, MouseEvent> & {
-			x: number;
-			y: number;
-		}) => {
-			const newMousePosition = [x, y] satisfies [number, number];
-			if (!equals(newMousePosition, cursorPositionRef.current)) {
-				cursorPositionRef.current = newMousePosition;
-				if (seekerStateRef.current.type === "SEEKING") {
-					timelineSeeked(
-						(cursorPositionRef.current[0] - seekerStateRef.current.start) /
-							zoom.linear +
-							playbackProgress
-					);
+	const onMouseMove = ({
+		x,
+		y,
+	}: React.MouseEvent<SVGSVGElement, MouseEvent> & {
+		x: number;
+		y: number;
+	}) => {
+		const newMousePosition = [x, y] satisfies [number, number];
 
-					seekerStateRef.current.start = cursorPositionRef.current[0];
-				}
+		console.log((newMousePosition[0] + camera.position) / camera.zoom.linear);
+
+		if (!equals(newMousePosition, cursorPositionRef.current)) {
+			cursorPositionRef.current = newMousePosition;
+
+			const cursorPosition = getCursorPosition();
+
+			if (seekerStateRef.current.type === "SEEKING") {
+				timelineSeeked(
+					(cursorPosition - seekerStateRef.current.start) / camera.zoom.linear +
+						playbackProgress
+				);
+
+				seekerStateRef.current.start = cursorPosition;
 			}
-		},
-		[playbackProgress]
-	);
+		}
+	};
 
 	return (
 		<div
@@ -115,7 +141,6 @@ export function Timeline({
 					height: 100,
 					overflowX: "scroll",
 					overflowY: "hidden",
-					padding: 5,
 				}}
 			>
 				<SvgWrapper
@@ -126,7 +151,23 @@ export function Timeline({
 					onMouseMove={onMouseMove}
 					onWheel={(e) => {
 						if (e.ctrlKey) {
-							setZoom(zoom.addLogarithmic(-e.deltaY * 0.01));
+							const c1 = camera.position;
+
+							const newZoom = camera.zoom.addLogarithmic(-e.deltaY * 0.01);
+
+							const z1 = camera.zoom.linear;
+							const z2 = newZoom.linear;
+
+							const m = cursorPositionRef.current[0];
+
+							updateCamera({
+								zoom: newZoom,
+								position: ((m + c1) / z1) * z2 - m,
+							});
+						} else {
+							updateCamera({
+								position: camera.position + (e.deltaY + e.deltaX) / 2,
+							});
 						}
 					}}
 				>
@@ -136,11 +177,13 @@ export function Timeline({
 						return (
 							<g
 								key={formation.id}
-								transform={`translate(${oldTotalTime * zoom.linear}, 0)`}
+								transform={`translate(${
+									oldTotalTime * camera.zoom.linear - camera.position
+								}, 0)`}
 							>
 								<rect
 									height="100"
-									width={`${formation.duration * zoom.linear}`}
+									width={`${formation.duration * camera.zoom.linear}`}
 									style={{
 										strokeWidth: 4,
 										stroke: i === currentFormationIndex ? "red" : "black",
@@ -150,9 +193,11 @@ export function Timeline({
 
 								{i === performance.formations.length - 1 ? null : (
 									<rect
-										x={`${formation.duration * zoom.linear}`}
+										x={`${formation.duration * camera.zoom.linear}`}
 										height="100"
-										width={`${formation.transitionDuration * zoom.linear}`}
+										width={`${
+											formation.transitionDuration * camera.zoom.linear
+										}`}
 										style={{
 											strokeWidth: 4,
 											stroke: i === currentFormationIndex ? "red" : "black",
@@ -167,7 +212,7 @@ export function Timeline({
 					<rect
 						width="20"
 						height="20"
-						x={playbackProgress * zoom.linear}
+						x={playbackProgress * camera.zoom.linear - camera.position}
 						style={{
 							fill: "black",
 						}}

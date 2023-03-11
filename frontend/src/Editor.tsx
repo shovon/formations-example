@@ -310,11 +310,14 @@ export const Editor = ({
 	const screenToSpace = (position: Vector2): Vector2 => {
 		const svgDimensions = getDrawingAreaDimensions();
 
-		const cursorCenter = start(position)
+		const screenCenter = start(position)
+			// Grab the center of the screen
 			._((pos) => sub2(pos, scalarMul2(svgDimensions, 0.5)))
+
+			// Flip the y axis
 			._((pos) => hadamard2(pos, [1, -1])).value;
 
-		return start(cursorCenter)
+		return start(screenCenter)
 			._((pos) => add2(pos, camera.position))
 			._((pos) => scalarMul2(pos, 1 / camera.zoom.linear)).value;
 	};
