@@ -28,7 +28,7 @@ type TimelineProps = {
 	formationTimesChanged: (formationTimes: Iterable<FormationTime>) => void;
 };
 
-type ResizeSide = "START" | "END" | "TRANSITION";
+type ResizeSide = "END" | "TRANSITION";
 
 type SeekerState =
 	| { type: "INACTIVE" }
@@ -248,6 +248,27 @@ export function Timeline({
 				switch (seekerStateRef.current.side.type) {
 					case "END":
 						{
+							const formationIndex = seekerStateRef.current.side.formationIndex;
+							const start = seekerStateRef.current.start;
+							setLocalFormations(
+								localFormations.map((formation, index) => {
+									const delta = cursorPosition - start;
+
+									if (index === formationIndex) {
+										return {
+											...formation,
+											duration: formation.duration + delta / camera.zoom.linear,
+											transitionDuration:
+												index === localFormations.length - 1
+													? formation.transitionDuration
+													: formation.transitionDuration -
+													  delta / camera.zoom.linear,
+										};
+									}
+
+									return formation;
+								})
+							);
 						}
 						break;
 					case "TRANSITION":
@@ -257,12 +278,12 @@ export function Timeline({
 							console.log(formationIndex);
 							setLocalFormations(
 								localFormations.map((formation, index) => {
-									if (index === formationIndex) {
+									const delta = cursorPosition - start;
+
+									if (index === formationIndex + 1) {
 										return {
 											...formation,
-											duration:
-												formation.duration -
-												(cursorPosition - start) / camera.zoom.linear / 2,
+											duration: formation.duration - delta / camera.zoom.linear,
 										};
 									}
 
@@ -271,7 +292,7 @@ export function Timeline({
 											...formation,
 											transitionDuration:
 												formation.transitionDuration +
-												(cursorPosition - start) / camera.zoom.linear / 2,
+												delta / camera.zoom.linear,
 										};
 									}
 
@@ -281,6 +302,7 @@ export function Timeline({
 						}
 						break;
 				}
+				seekerStateRef.current.start = cursorPosition;
 			}
 		}
 	};
