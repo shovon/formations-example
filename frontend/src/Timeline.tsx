@@ -9,7 +9,15 @@ import { SvgWrapper, SvgWrapperObject } from "./SvgWrapper";
 import { LogarithmicValue } from "./logarithmic-value";
 
 // TODO: maybe this should go to the constants file?
-const pixelsToMillisecondsRatio = 0.04;
+const pixelsToMillisecondsRatio = 0.017;
+const timelineHeight = 145;
+const rulerHeight = 20;
+const defaultTickSpacing = pixelsToMillisecondsRatio * 1000;
+
+// The number of spokes is w / n, where n is the interval between spokes, at
+// a zoom of 1.
+//
+//
 
 type FormationTime = {
 	id: string;
@@ -79,7 +87,9 @@ export function Timeline({
 	const [localFormations, setLocalFormations] = useState(
 		performance.formations
 	);
-	const [mousePosition, setMousePosition] = useState<Vector2>([NaN, NaN]);
+	const [, setMousePosition] = useState<Vector2>([NaN, NaN]);
+	const drawingAreaRef = useRef<SvgWrapperObject | null>(null);
+	const [, update] = useReducer(() => ({}), {});
 
 	useEffect(() => {
 		setLocalFormations(performance.formations);
@@ -281,7 +291,6 @@ export function Timeline({
 						{
 							const formationIndex = seekerStateRef.current.side.formationIndex;
 							const start = seekerStateRef.current.start;
-							console.log(formationIndex);
 							setLocalFormations(
 								localFormations.map((formation, index) => {
 									const delta = cursorPosition - start;
@@ -313,6 +322,19 @@ export function Timeline({
 		}
 	};
 
+	const getDrawingAreaDimensions = () => {
+		const svg = drawingAreaRef.current;
+		const clientRect = svg
+			? svg.getBoundingClientRect()
+			: { width: 1, height: 1 };
+		return [clientRect.width, clientRect.height] satisfies Vector2;
+	};
+
+	const tickSpacing =
+		(defaultTickSpacing * pixelsToMillisecondsRatio) / camera.zoom.linear;
+
+	console.log(Math.floor(getDrawingAreaDimensions()[0] / tickSpacing));
+
 	return (
 		<div
 			className={css`
@@ -327,12 +349,26 @@ export function Timeline({
 				style={{
 					display: "flex",
 					borderTop: "1px solid #aaa",
-					height: 100,
+					height: timelineHeight,
 					overflowX: "scroll",
 					overflowY: "hidden",
 				}}
 			>
 				<SvgWrapper
+					ref={(ref) => {
+						if (ref === null) {
+							return;
+						}
+
+						const currentRef = drawingAreaRef.current;
+						drawingAreaRef.current = ref;
+
+						if (currentRef === ref) {
+							return;
+						}
+
+						update();
+					}}
 					style={{
 						width: "100%",
 						cursor: isInBoundary(getTimeAtCursor()) ? "ew-resize" : "default",
@@ -361,6 +397,24 @@ export function Timeline({
 						}
 					}}
 				>
+					{Array.from({
+						length: Math.floor(
+							getDrawingAreaDimensions()[0] /
+								((defaultTickSpacing * pixelsToMillisecondsRatio) /
+									camera.zoom.linear)
+						),
+					}).map((_, i) => {
+						return (
+							<line
+								x1={i * tickSpacing}
+								x2={i * tickSpacing}
+								y1="0"
+								y2={`${rulerHeight}`}
+								stroke="black"
+							/>
+						);
+					})}
+
 					{localFormations.map((formation, i) => {
 						const oldTotalTime = totalTime;
 						totalTime += formation.duration + formation.transitionDuration;
@@ -372,7 +426,8 @@ export function Timeline({
 								}, 0)`}
 							>
 								<rect
-									height="100"
+									y={rulerHeight}
+									height={`${timelineHeight - rulerHeight}`}
 									width={`${formation.duration * camera.zoom.linear}`}
 									style={{
 										strokeWidth: 4,
@@ -383,8 +438,9 @@ export function Timeline({
 
 								{i === performance.formations.length - 1 ? null : (
 									<rect
+										y={rulerHeight}
 										x={`${formation.duration * camera.zoom.linear}`}
-										height="100"
+										height={`${timelineHeight - rulerHeight}`}
 										width={`${
 											formation.transitionDuration * camera.zoom.linear
 										}`}
