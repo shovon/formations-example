@@ -169,12 +169,8 @@ export const Editor = ({
 
 	const currentFormation = performance.getFormationIndex(currentFormationIndex);
 
-	function updateCurrentPlacements() {
-		setLocalPlacements([...currentFormation.placements]);
-	}
-
 	useEffect(() => {
-		updateCurrentPlacements();
+		setLocalPlacements([...currentFormation.placements]);
 	}, [performance, timelineState]);
 
 	const drawingAreaRef = useRef<SvgWrapperObject | null>(null);

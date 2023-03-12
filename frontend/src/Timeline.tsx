@@ -11,6 +11,12 @@ import { LogarithmicValue } from "./logarithmic-value";
 // TODO: maybe this should go to the constants file?
 const pixelsToMillisecondsRatio = 0.04;
 
+type FormationTime = {
+	id: string;
+	duration: number;
+	transitionDuration: number;
+};
+
 type TimelineProps = {
 	performance: Performance;
 	timelineState: TimelineState;
@@ -18,7 +24,8 @@ type TimelineProps = {
 	currentFormationIndex: number;
 	newFormationCreated: () => void;
 	timelineSeeked: (time: number) => void;
-	timlineStoppedSeeking: (time: number) => void;
+	timelineStoppedSeeking: (time: number) => void;
+	formationTimesChanged: (formationTimes: Iterable<FormationTime>) => void;
 };
 
 type SeekerState = { type: "INACTIVE" } | { type: "SEEKING"; start: number };
@@ -35,12 +42,11 @@ export function Timeline({
 	newFormationCreated,
 	timelineState,
 	timelineSeeked,
-	timlineStoppedSeeking: timelineStoppedSeeking,
+	timelineStoppedSeeking,
 }: TimelineProps) {
 	const playbackProgress = time(performance, timelineState);
 	const cursorPositionRef = useRef<Vector2>([NaN, NaN]);
 	const { onMouseDown, onMouseUp: mouseUp } = useMouseUp();
-	const drawingAreaRef = useRef<SvgWrapperObject | null>(null);
 	const seekerStateRef = useRef<SeekerState>({ type: "INACTIVE" });
 	const [camera, updateCamera] = useReducer<
 		(state: Camera, partialState: Partial<Camera>) => Camera
@@ -57,6 +63,14 @@ export function Timeline({
 			position: 0,
 		}
 	);
+	const [localFormations, setLocalFormations] = useState(
+		performance.formations
+	);
+	const [mousePosition, setMousePosition] = useState<Vector2>([NaN, NaN]);
+
+	useEffect(() => {
+		setLocalFormations(performance.formations);
+	}, [performance.formations]);
 
 	useEffect(() => {
 		const onMouseUp = mouseUp(() => {
@@ -80,6 +94,48 @@ export function Timeline({
 
 	const getTimeAtCursor = (): number => {
 		return getCursorPosition() / camera.zoom.linear;
+	};
+
+	const boundary = 200;
+
+	const isInBoundary = (time: number): boolean => {
+		let elapsedTime = 0;
+
+		const scaledBoundary =
+			boundary / (camera.zoom.linear / pixelsToMillisecondsRatio);
+
+		for (const [i, formation] of localFormations.entries()) {
+			if (
+				time > elapsedTime - scaledBoundary / 2 &&
+				time < elapsedTime + scaledBoundary / 2
+			) {
+				if (i === 0) {
+					return false;
+				}
+
+				return true;
+			}
+
+			elapsedTime += formation.duration;
+
+			if (
+				time > elapsedTime - scaledBoundary / 2 &&
+				time < elapsedTime + scaledBoundary / 2
+			) {
+				return true;
+			}
+
+			elapsedTime += formation.transitionDuration;
+
+			if (
+				time > elapsedTime - scaledBoundary / 2 &&
+				time < elapsedTime + scaledBoundary / 2
+			) {
+				return true;
+			}
+		}
+
+		return false;
 	};
 
 	let totalTime = 0;
@@ -116,6 +172,7 @@ export function Timeline({
 
 		if (!equals(newMousePosition, cursorPositionRef.current)) {
 			cursorPositionRef.current = newMousePosition;
+			setMousePosition(newMousePosition);
 
 			const cursorPosition = getCursorPosition();
 
@@ -152,6 +209,7 @@ export function Timeline({
 				<SvgWrapper
 					style={{
 						width: "100%",
+						cursor: isInBoundary(getTimeAtCursor()) ? "ew-resize" : "default",
 					}}
 					onMouseDown={mouseDown}
 					onMouseMove={onMouseMove}
@@ -177,7 +235,7 @@ export function Timeline({
 						}
 					}}
 				>
-					{performance.formations.map((formation, i) => {
+					{localFormations.map((formation, i) => {
 						const oldTotalTime = totalTime;
 						totalTime += formation.duration + formation.transitionDuration;
 						return (

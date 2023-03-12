@@ -226,7 +226,7 @@ function App() {
 						performanceProject.pushFormation(newFormationName(), 5000, 1000)
 					);
 				}}
-				timlineStoppedSeeking={(time) => {
+				timelineStoppedSeeking={(time) => {
 					const form = performanceProject.getFormationAtTime(time);
 					if (!form) return;
 
