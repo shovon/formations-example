@@ -78,10 +78,18 @@ export function Timeline({
 		return cursorPositionRef.current[0] + camera.position;
 	};
 
+	const getTimeAtCursor = (): number => {
+		return getCursorPosition() / camera.zoom.linear;
+	};
+
 	let totalTime = 0;
 
 	const mouseDown = onMouseDown(() => {
-		const svg = drawingAreaRef.current;
+		const f = performance.getFormationAtTime(getTimeAtCursor());
+
+		if (f) {
+			formationSelected(f[0]);
+		}
 
 		const cursorPosition = getCursorPosition();
 
@@ -105,8 +113,6 @@ export function Timeline({
 		y: number;
 	}) => {
 		const newMousePosition = [x, y] satisfies [number, number];
-
-		console.log((newMousePosition[0] + camera.position) / camera.zoom.linear);
 
 		if (!equals(newMousePosition, cursorPositionRef.current)) {
 			cursorPositionRef.current = newMousePosition;
@@ -219,21 +225,6 @@ export function Timeline({
 					/>
 				</SvgWrapper>
 			</div>
-
-			{/* <div
-				style={{
-					position: "absolute",
-					top: 0,
-					left: playbackProgress * pixelsToMillisecondsRatio,
-					width: 50,
-					height: 50,
-					background: "black",
-					opacity: 0.25,
-				}}
-				onMouseDown={onMouseDown(() => {
-					isSeekerDownRef.current = true;
-				})}
-			></div> */}
 
 			<button
 				style={{

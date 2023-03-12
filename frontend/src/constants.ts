@@ -5,8 +5,8 @@
 export const HUMAN_HEIGHT = 1.6525;
 
 /**
- * We're going to go with 20 pixels for the diameter of an entitty. Totally
- * arbitrary.
+ * We're going to go with 20 pixels for the diameter of an entitty. This
+ * quantity was totally arbitrary, when it was chosen.
  *
  * Will be useful for doing all sorts of calculations with converting pixels
  * to metric, imperial, etc.
