@@ -215,6 +215,7 @@ function App() {
 			</div>
 
 			<Timeline
+				formationTimesChanged={() => {}}
 				formationSelected={(i) => {
 					setTimeline(getTimelineByFormationIndex(performanceProject, i));
 				}}

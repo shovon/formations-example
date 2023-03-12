@@ -1,5 +1,5 @@
 import { css } from "@emotion/css";
-import { useCallback, useEffect, useReducer, useRef, useState } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
 import { Formation, Performance } from "./performance-project";
 import { time, TimelineState } from "./timeline-state";
 import { mouseUpEvents } from "./document";
@@ -28,7 +28,19 @@ type TimelineProps = {
 	formationTimesChanged: (formationTimes: Iterable<FormationTime>) => void;
 };
 
-type SeekerState = { type: "INACTIVE" } | { type: "SEEKING"; start: number };
+type ResizeSide = "START" | "END" | "TRANSITION";
+
+type SeekerState =
+	| { type: "INACTIVE" }
+	| { type: "SEEKING"; start: number }
+	| {
+			type: "RESIZING";
+			side: {
+				type: ResizeSide;
+				formationIndex: number;
+			};
+			start: number;
+	  };
 
 type Camera = {
 	position: number;
@@ -74,10 +86,12 @@ export function Timeline({
 
 	useEffect(() => {
 		const onMouseUp = mouseUp(() => {
-			if (seekerStateRef.current.type === "SEEKING") {
-				seekerStateRef.current = { type: "INACTIVE" };
-				timelineStoppedSeeking(getCursorPosition() / camera.zoom.linear);
-			}
+			// if (seekerStateRef.current.type === "SEEKING") {
+
+			// }
+
+			seekerStateRef.current = { type: "INACTIVE" };
+			timelineStoppedSeeking(getCursorPosition() / camera.zoom.linear);
 		});
 
 		mouseUpEvents.addListener(onMouseUp);
@@ -138,6 +152,37 @@ export function Timeline({
 		return false;
 	};
 
+	const getBoundarySelection = (
+		time: number
+	): { type: ResizeSide; formationIndex: number } | null => {
+		let elapsedTime = 0;
+
+		const scaledBoundary =
+			boundary / (camera.zoom.linear / pixelsToMillisecondsRatio);
+
+		for (const [i, formation] of localFormations.entries()) {
+			elapsedTime += formation.duration;
+
+			if (
+				time > elapsedTime - scaledBoundary / 2 &&
+				time < elapsedTime + scaledBoundary / 2
+			) {
+				return { type: "END", formationIndex: i };
+			}
+
+			elapsedTime += formation.transitionDuration;
+
+			if (
+				time > elapsedTime - scaledBoundary / 2 &&
+				time < elapsedTime + scaledBoundary / 2
+			) {
+				return { type: "TRANSITION", formationIndex: i };
+			}
+		}
+
+		return null;
+	};
+
 	let totalTime = 0;
 
 	const mouseDown = onMouseDown(() => {
@@ -158,6 +203,22 @@ export function Timeline({
 				type: "SEEKING",
 				start: cursorPosition,
 			};
+			return;
+		}
+
+		const cursorTime = getTimeAtCursor();
+
+		if (isInBoundary(cursorTime)) {
+			const resizeSide = getBoundarySelection(cursorTime);
+
+			if (resizeSide) {
+				seekerStateRef.current = {
+					type: "RESIZING",
+					side: resizeSide,
+					start: cursorPosition,
+				};
+				return;
+			}
 		}
 	});
 
@@ -183,6 +244,43 @@ export function Timeline({
 				);
 
 				seekerStateRef.current.start = cursorPosition;
+			} else if (seekerStateRef.current.type === "RESIZING") {
+				switch (seekerStateRef.current.side.type) {
+					case "END":
+						{
+						}
+						break;
+					case "TRANSITION":
+						{
+							const formationIndex = seekerStateRef.current.side.formationIndex;
+							const start = seekerStateRef.current.start;
+							console.log(formationIndex);
+							setLocalFormations(
+								localFormations.map((formation, index) => {
+									if (index === formationIndex) {
+										return {
+											...formation,
+											duration:
+												formation.duration -
+												(cursorPosition - start) / camera.zoom.linear / 2,
+										};
+									}
+
+									if (index === formationIndex) {
+										return {
+											...formation,
+											transitionDuration:
+												formation.transitionDuration +
+												(cursorPosition - start) / camera.zoom.linear / 2,
+										};
+									}
+
+									return formation;
+								})
+							);
+						}
+						break;
+				}
 			}
 		}
 	};
