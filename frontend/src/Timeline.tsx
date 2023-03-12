@@ -55,6 +55,7 @@ export function Timeline({
 	timelineState,
 	timelineSeeked,
 	timelineStoppedSeeking,
+	formationTimesChanged,
 }: TimelineProps) {
 	const playbackProgress = time(performance, timelineState);
 	const cursorPositionRef = useRef<Vector2>([NaN, NaN]);
@@ -86,9 +87,9 @@ export function Timeline({
 
 	useEffect(() => {
 		const onMouseUp = mouseUp(() => {
-			// if (seekerStateRef.current.type === "SEEKING") {
-
-			// }
+			if (seekerStateRef.current.type === "RESIZING") {
+				formationTimesChanged(localFormations);
+			}
 
 			seekerStateRef.current = { type: "INACTIVE" };
 			timelineStoppedSeeking(getCursorPosition() / camera.zoom.linear);
@@ -99,7 +100,12 @@ export function Timeline({
 		return () => {
 			mouseUpEvents.removeListener(onMouseUp);
 		};
-	}, [timelineStoppedSeeking, playbackProgress, mouseUpEvents]);
+	}, [
+		timelineStoppedSeeking,
+		playbackProgress,
+		mouseUpEvents,
+		localFormations,
+	]);
 
 	// NOTE: this is not necessarily the global mouse position!
 	const getCursorPosition = (): number => {

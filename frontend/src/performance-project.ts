@@ -2,14 +2,18 @@ import { getKV, hasKV, map, setKV, unionKV } from "./iterable-helpers";
 import produce from "immer";
 import { Vector2 } from "./vector2";
 
-// TODO: move to immer, and store edit history
-
 export type Entity = {
 	color: string;
 	name: string;
 };
 
 export type EntityPlacement = { position: Vector2 };
+
+type FormationTime = {
+	id: string;
+	duration: number;
+	transitionDuration: number;
+};
 
 export type Formation = {
 	id: string;
@@ -247,6 +251,23 @@ export const performance = ({ entities, formations }: PerformanceProject) => ({
 				// the customer is always right 🤷‍♂️
 				transitionDuration: transitionDuration < 10 ? 10 : transitionDuration,
 			});
+		});
+	},
+
+	updateFormationTimes: (formationTimes: Iterable<FormationTime>) => {
+		const formationsMap = new Map<string, FormationTime>(
+			[...formationTimes].map((f) => [f.id, f])
+		);
+		return produce({ entities, formations }, (draft) => {
+			for (const [
+				index,
+				{ id, duration, transitionDuration },
+			] of formations.entries()) {
+				draft.formations[index] = {
+					...draft.formations[index],
+					...(formationsMap.get(id) ?? { duration, transitionDuration }),
+				};
+			}
 		});
 	},
 
