@@ -331,9 +331,7 @@ export function Timeline({
 	};
 
 	const tickSpacing =
-		(defaultTickSpacing * pixelsToMillisecondsRatio) / camera.zoom.linear;
-
-	console.log(Math.floor(getDrawingAreaDimensions()[0] / tickSpacing));
+		(defaultTickSpacing * camera.zoom.linear) / pixelsToMillisecondsRatio;
 
 	return (
 		<div
@@ -398,11 +396,7 @@ export function Timeline({
 					}}
 				>
 					{Array.from({
-						length: Math.floor(
-							getDrawingAreaDimensions()[0] /
-								((defaultTickSpacing * pixelsToMillisecondsRatio) /
-									camera.zoom.linear)
-						),
+						length: Math.ceil(getDrawingAreaDimensions()[0] / tickSpacing) + 1,
 					}).map((_, i) => {
 						return (
 							<line
