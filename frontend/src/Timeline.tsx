@@ -339,6 +339,7 @@ export function Timeline({
 
 	const tickSpacing =
 		(defaultTickSpacing *
+			5 *
 			toLin(
 				wrap(
 					camera.zoom.logarithmic,
@@ -414,13 +415,23 @@ export function Timeline({
 						length: Math.ceil(getDrawingAreaDimensions()[0] / tickSpacing) + 1,
 					}).map((_, i) => {
 						return (
-							<line
-								x1={`${i * tickSpacing - (camera.position % tickSpacing)}`}
-								x2={`${i * tickSpacing - (camera.position % tickSpacing)}`}
-								y1={`${i % 5 === 0 ? 0 : 15}`}
-								y2={`${rulerHeight}`}
-								stroke="black"
-							/>
+							<g key={i}>
+								<text
+									x={i * tickSpacing - (camera.position % tickSpacing)}
+									y="15"
+								>
+									{(i + Math.floor(camera.position / tickSpacing)) *
+										tickSpacing *
+										camera.zoom.linear}
+								</text>
+								<line
+									x1={`${i * tickSpacing - (camera.position % tickSpacing)}`}
+									x2={`${i * tickSpacing - (camera.position % tickSpacing)}`}
+									y1={`${0}`}
+									y2={`${rulerHeight}`}
+									stroke="black"
+								/>
+							</g>
 						);
 					})}
 
