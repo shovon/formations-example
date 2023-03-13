@@ -415,9 +415,9 @@ export function Timeline({
 					}).map((_, i) => {
 						return (
 							<line
-								x1={i * tickSpacing - (camera.position % tickSpacing)}
-								x2={i * tickSpacing - (camera.position % tickSpacing)}
-								y1="0"
+								x1={`${i * tickSpacing - (camera.position % tickSpacing)}`}
+								x2={`${i * tickSpacing - (camera.position % tickSpacing)}`}
+								y1={`${i % 5 === 0 ? 0 : 15}`}
 								y2={`${rulerHeight}`}
 								stroke="black"
 							/>
