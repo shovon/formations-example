@@ -457,6 +457,19 @@ export function Timeline({
 					{localFormations.map((formation, i) => {
 						const oldTotalTime = totalTime;
 						totalTime += formation.duration + formation.transitionDuration;
+
+						const top = rulerHeight;
+						const left = formation.duration * camera.zoom.linear;
+						const bottom = timelineHeight;
+						const right =
+							(formation.duration + formation.transitionDuration) *
+							camera.zoom.linear;
+
+						const topLeft = `${left},${top}`;
+						const topRight = `${right},${top}`;
+						const bottomLeft = `${left},${bottom}`;
+						const bottomRight = `${right},${bottom}`;
+
 						return (
 							<g
 								key={formation.id}
@@ -476,19 +489,23 @@ export function Timeline({
 								/>
 
 								{i === performance.formations.length - 1 ? null : (
-									<rect
-										y={rulerHeight}
-										x={`${formation.duration * camera.zoom.linear}`}
-										height={`${timelineHeight - rulerHeight}`}
-										width={`${
-											formation.transitionDuration * camera.zoom.linear
-										}`}
-										style={{
-											strokeWidth: 4,
-											stroke: i === currentFormationIndex ? "red" : "black",
-											fill: "white",
-										}}
-									></rect>
+									// <rect
+									// 	y={rulerHeight}
+									// 	x={`${formation.duration * camera.zoom.linear}`}
+									// 	height={`${timelineHeight - rulerHeight}`}
+									// 	width={`${
+									// 		formation.transitionDuration * camera.zoom.linear
+									// 	}`}
+									// 	style={{
+									// 		strokeWidth: 4,
+									// 		stroke: i === currentFormationIndex ? "red" : "black",
+									// 		fill: "white",
+									// 	}}
+									// ></rect>
+									<polygon
+										fill="black"
+										points={`${topLeft} ${bottomRight} ${topRight} ${bottomLeft} ${topLeft}`}
+									></polygon>
 								)}
 							</g>
 						);
