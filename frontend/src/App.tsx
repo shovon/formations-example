@@ -75,22 +75,22 @@ function App() {
 					["4", { position: [100, -100] }],
 					["5", { position: [300, 0] }],
 				]),
-				duration: 2000,
-				transitionDuration: 1000,
+				duration: 5000,
+				transitionDuration: 3000,
 			},
 			{
 				id: "formation2",
 				name: "Formation 2",
 				positions: new Map([["1", { position: [-100, 50] }]]),
-				duration: 6000,
-				transitionDuration: 1500,
+				duration: 7000,
+				transitionDuration: 3000,
 			},
 			{
 				id: "formation3",
 				name: "Formation 3",
 				positions: new Map([["5", { position: [100, 0] }]]),
-				duration: 2000,
-				transitionDuration: 2000,
+				duration: 5000,
+				transitionDuration: 3000,
 			},
 		],
 	});
@@ -226,7 +226,7 @@ function App() {
 				currentFormationIndex={currentFormationIndex}
 				newFormationCreated={() => {
 					setProject(
-						performanceProject.pushFormation(newFormationName(), 5000, 1000)
+						performanceProject.pushFormation(newFormationName(), 5000, 3000)
 					);
 				}}
 				timelineStoppedSeeking={(time) => {
