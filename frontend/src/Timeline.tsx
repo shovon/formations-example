@@ -420,9 +420,11 @@ export function Timeline({
 									x={i * tickSpacing - (camera.position % tickSpacing)}
 									y="15"
 								>
-									{(i + Math.floor(camera.position / tickSpacing)) *
-										tickSpacing *
-										camera.zoom.linear}
+									{Math.round(
+										((i + Math.floor(camera.position / tickSpacing)) *
+											tickSpacing) /
+											camera.zoom.linear
+									)}
 								</text>
 								<line
 									x1={`${i * tickSpacing - (camera.position % tickSpacing)}`}
