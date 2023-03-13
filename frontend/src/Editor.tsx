@@ -458,11 +458,13 @@ export const Editor = ({
 		camera.position[1]
 	}) translate(${width / 2}, ${height / 2}) scale(${camera.zoom.linear})`;
 
+	const editorStyle = { ...style, background: "black" };
+
 	return isEditorHidden ? (
-		<div style={style}></div>
+		<div style={editorStyle}></div>
 	) : (
 		<SvgWrapper
-			style={style}
+			style={editorStyle}
 			onMouseUp={onMouseUp}
 			onMouseDown={onMouseDown(() => {
 				const idAndEntity = getEntityUnderCursor();

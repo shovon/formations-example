@@ -393,6 +393,7 @@ export function Timeline({
 					style={{
 						width: "100%",
 						cursor: isInBoundary(getTimeAtCursor()) ? "ew-resize" : "default",
+						backgroundColor: "#1b1b1b",
 					}}
 					onMouseDown={mouseDown}
 					onMouseMove={onMouseMove}
@@ -425,7 +426,11 @@ export function Timeline({
 							<g key={i}>
 								<text
 									x={i * tickSpacing - (camera.position % tickSpacing) + 3}
-									y="16"
+									y="12"
+									style={{
+										fill: "white",
+										fontSize: "0.75em",
+									}}
 								>
 									{msTom(
 										((i + Math.floor(camera.position / tickSpacing)) *
@@ -446,7 +451,7 @@ export function Timeline({
 											}`}
 											y1={`${j === 0 ? 0 : rulerHeight * 0.8}`}
 											y2={`${rulerHeight}`}
-											stroke="black"
+											stroke="white"
 										/>
 									);
 								})}
@@ -470,6 +475,9 @@ export function Timeline({
 						const bottomLeft = `${left},${bottom}`;
 						const bottomRight = `${right},${bottom}`;
 
+						const unselectedColor = "rgba(201, 201, 201, 0.3)";
+						const selectedColor = "rgba(64,177,171,0.3)";
+
 						return (
 							<g
 								key={formation.id}
@@ -483,8 +491,10 @@ export function Timeline({
 									width={`${formation.duration * camera.zoom.linear}`}
 									style={{
 										strokeWidth: 4,
-										stroke: i === currentFormationIndex ? "red" : "black",
-										fill: "white",
+										fill:
+											i === currentFormationIndex
+												? selectedColor
+												: unselectedColor,
 									}}
 								/>
 
@@ -502,8 +512,17 @@ export function Timeline({
 									// 		fill: "white",
 									// 	}}
 									// ></rect>
+									// <polygon
+									// 	fill="rgba(64,177,171,0.3)"
+									// 	points={`${topLeft} ${bottomRight} ${topRight} ${bottomLeft} ${topLeft}`}
+									// ></polygon>
+
 									<polygon
-										fill="black"
+										fill={
+											i === currentFormationIndex
+												? selectedColor
+												: unselectedColor
+										}
 										points={`${topLeft} ${bottomRight} ${topRight} ${bottomLeft} ${topLeft}`}
 									></polygon>
 								)}

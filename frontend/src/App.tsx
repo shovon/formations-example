@@ -170,6 +170,7 @@ function App() {
 				height: "100vh",
 				display: "flex",
 				flexDirection: "column",
+				background: "black",
 			}}
 		>
 			<Editor
