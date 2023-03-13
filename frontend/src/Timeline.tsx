@@ -11,7 +11,7 @@ import { LogarithmicValue } from "./logarithmic-value";
 // TODO: maybe this should go to the constants file?
 const pixelsToMillisecondsRatio = 0.017;
 const timelineHeight = 145;
-const rulerHeight = 20;
+const rulerHeight = 25;
 const defaultTickSpacing = pixelsToMillisecondsRatio * 1000;
 
 // Modulo in JavaScript has a weird quirk. This is a workaround.
@@ -25,6 +25,13 @@ const wrap = (x: number, a: number, b: number): number =>
 
 const toLog = (v: number) => LogarithmicValue.linear(v).logarithmic;
 const toLin = (v: number) => LogarithmicValue.logarithmic(v).linear;
+
+const msTom = (ms: number): string =>
+	`${Math.floor(ms / 1000 / 60)
+		.toString()
+		.padStart(2, "0")}:${(Math.round(ms / 1000) % 60)
+		.toString()
+		.padStart(2, "0")}`;
 
 type FormationTime = {
 	id: string;
@@ -417,10 +424,10 @@ export function Timeline({
 						return (
 							<g key={i}>
 								<text
-									x={i * tickSpacing - (camera.position % tickSpacing)}
-									y="15"
+									x={i * tickSpacing - (camera.position % tickSpacing) + 3}
+									y="16"
 								>
-									{Math.round(
+									{msTom(
 										((i + Math.floor(camera.position / tickSpacing)) *
 											tickSpacing) /
 											camera.zoom.linear
@@ -437,7 +444,7 @@ export function Timeline({
 												(i + j / 5) * tickSpacing -
 												(camera.position % tickSpacing)
 											}`}
-											y1={`${j === 0 ? 0 : rulerHeight * 0.75}`}
+											y1={`${j === 0 ? 0 : rulerHeight * 0.8}`}
 											y2={`${rulerHeight}`}
 											stroke="black"
 										/>
