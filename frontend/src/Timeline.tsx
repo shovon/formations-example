@@ -502,25 +502,33 @@ export function Timeline({
 									}}
 								/>
 
-								{i === performance.formations.length - 1 ? null : (
-									// <rect
-									// 	y={rulerHeight}
-									// 	x={`${formation.duration * camera.zoom.linear}`}
-									// 	height={`${timelineHeight - rulerHeight}`}
-									// 	width={`${
-									// 		formation.transitionDuration * camera.zoom.linear
-									// 	}`}
-									// 	style={{
-									// 		strokeWidth: 4,
-									// 		stroke: i === currentFormationIndex ? "red" : "black",
-									// 		fill: "white",
-									// 	}}
-									// ></rect>
-									// <polygon
-									// 	fill="rgba(64,177,171,0.3)"
-									// 	points={`${topLeft} ${bottomRight} ${topRight} ${bottomLeft} ${topLeft}`}
-									// ></polygon>
+								<line
+									x1={0}
+									x2={0}
+									y1={rulerHeight}
+									y2={timelineHeight}
+									stroke={
+										i === currentFormationIndex
+											? selectedColor
+											: unselectedColor
+									}
+									strokeWidth={2}
+								></line>
 
+								<line
+									x1={formation.duration * camera.zoom.linear}
+									x2={formation.duration * camera.zoom.linear}
+									y1={rulerHeight}
+									y2={timelineHeight}
+									stroke={
+										i === currentFormationIndex
+											? selectedColor
+											: unselectedColor
+									}
+									strokeWidth={2}
+								></line>
+
+								{i === performance.formations.length - 1 ? null : (
 									<>
 										<polygon
 											fill={
@@ -559,6 +567,15 @@ export function Timeline({
 								playbackPosition + 9
 							},18 ${playbackPosition - 9},${18}`}
 						></polygon>
+
+						<line
+							x1={playbackPosition}
+							x2={playbackPosition}
+							y1={0}
+							y2={timelineHeight}
+							stroke="#FFC042"
+							strokeWidth={2}
+						></line>
 					</g>
 				</SvgWrapper>
 			</div>
