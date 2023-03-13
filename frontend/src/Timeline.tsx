@@ -13,6 +13,7 @@ const pixelsToMillisecondsRatio = 0.017;
 const timelineHeight = 145;
 const rulerHeight = 25;
 const defaultTickSpacing = pixelsToMillisecondsRatio * 1000;
+const cursorSize = 18;
 
 // Modulo in JavaScript has a weird quirk. This is a workaround.
 export function modulo(a: number, m: number) {
@@ -216,17 +217,11 @@ export function Timeline({
 	let totalTime = 0;
 
 	const mouseDown = onMouseDown(() => {
-		const f = performance.getFormationAtTime(getTimeAtCursor());
-
-		if (f) {
-			formationSelected(f[0]);
-		}
-
 		const cursorPosition = getCursorPosition();
 
 		if (
-			cursorPosition > playbackProgress * camera.zoom.linear &&
-			cursorPosition < playbackProgress * camera.zoom.linear + 20 &&
+			cursorPosition > playbackProgress * camera.zoom.linear - cursorSize / 2 &&
+			cursorPosition < playbackProgress * camera.zoom.linear + cursorSize / 2 &&
 			cursorPositionRef.current[1] < 20
 		) {
 			seekerStateRef.current = {
@@ -234,6 +229,12 @@ export function Timeline({
 				start: cursorPosition,
 			};
 			return;
+		}
+
+		const f = performance.getFormationAtTime(getTimeAtCursor());
+
+		if (f) {
+			formationSelected(f[0]);
 		}
 
 		const cursorTime = getTimeAtCursor();
@@ -355,6 +356,9 @@ export function Timeline({
 				)
 			)) /
 		pixelsToMillisecondsRatio;
+
+	const playbackPosition =
+		playbackProgress * camera.zoom.linear - camera.position;
 
 	return (
 		<div
@@ -540,14 +544,22 @@ export function Timeline({
 						);
 					})}
 
-					<rect
-						width="20"
-						height="20"
-						x={playbackProgress * camera.zoom.linear - camera.position}
-						style={{
-							fill: "black",
-						}}
-					/>
+					<g>
+						<rect
+							width={cursorSize.toString()}
+							height={cursorSize.toString()}
+							x={playbackPosition - 9}
+							style={{
+								fill: "#FFC042",
+							}}
+						/>
+						<polygon
+							fill="#FFC042"
+							points={`${playbackPosition - 9},${18} ${playbackPosition},25 ${
+								playbackPosition + 9
+							},18 ${playbackPosition - 9},${18}`}
+						></polygon>
+					</g>
 				</SvgWrapper>
 			</div>
 
