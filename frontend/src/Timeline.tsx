@@ -14,10 +14,17 @@ const timelineHeight = 145;
 const rulerHeight = 20;
 const defaultTickSpacing = pixelsToMillisecondsRatio * 1000;
 
-// The number of spokes is w / n, where n is the interval between spokes, at
-// a zoom of 1.
-//
-//
+// Modulo in JavaScript has a weird quirk. This is a workaround.
+export function modulo(a: number, m: number) {
+	return ((a % m) + m) % m;
+}
+
+// Straight up stolen from here https://stackoverflow.com/a/14415822/538570
+const wrap = (x: number, a: number, b: number): number =>
+	a > b ? wrap(x, b, a) : modulo(x - a, b - a) + a;
+
+const toLog = (v: number) => LogarithmicValue.linear(v).logarithmic;
+const toLin = (v: number) => LogarithmicValue.logarithmic(v).linear;
 
 type FormationTime = {
 	id: string;
@@ -331,7 +338,15 @@ export function Timeline({
 	};
 
 	const tickSpacing =
-		(defaultTickSpacing * camera.zoom.linear) / pixelsToMillisecondsRatio;
+		(defaultTickSpacing *
+			toLin(
+				wrap(
+					camera.zoom.logarithmic,
+					toLog(pixelsToMillisecondsRatio),
+					toLog(pixelsToMillisecondsRatio * 3)
+				)
+			)) /
+		pixelsToMillisecondsRatio;
 
 	return (
 		<div
