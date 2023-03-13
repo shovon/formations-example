@@ -369,7 +369,6 @@ export function Timeline({
 			<div
 				style={{
 					display: "flex",
-					borderTop: "1px solid #aaa",
 					height: timelineHeight,
 					overflowX: "scroll",
 					overflowY: "hidden",
@@ -392,7 +391,7 @@ export function Timeline({
 					}}
 					style={{
 						width: "100%",
-						cursor: isInBoundary(getTimeAtCursor()) ? "ew-resize" : "default",
+						cursor: isInBoundary(getTimeAtCursor()) ? "col-resize" : "default",
 						backgroundColor: "#1b1b1b",
 					}}
 					onMouseDown={mouseDown}
@@ -474,6 +473,7 @@ export function Timeline({
 						const topRight = `${right},${top}`;
 						const bottomLeft = `${left},${bottom}`;
 						const bottomRight = `${right},${bottom}`;
+						const middle = `${(left + right) / 2},${(top + bottom) / 2}`;
 
 						const unselectedColor = "rgba(201, 201, 201, 0.3)";
 						const selectedColor = "rgba(64,177,171,0.3)";
@@ -517,14 +517,24 @@ export function Timeline({
 									// 	points={`${topLeft} ${bottomRight} ${topRight} ${bottomLeft} ${topLeft}`}
 									// ></polygon>
 
-									<polygon
-										fill={
-											i === currentFormationIndex
-												? selectedColor
-												: unselectedColor
-										}
-										points={`${topLeft} ${bottomRight} ${topRight} ${bottomLeft} ${topLeft}`}
-									></polygon>
+									<>
+										<polygon
+											fill={
+												i === currentFormationIndex
+													? selectedColor
+													: unselectedColor
+											}
+											points={`${topLeft} ${middle} ${bottomLeft} ${topLeft}`}
+										></polygon>
+										<polygon
+											fill={
+												i + 1 === currentFormationIndex
+													? selectedColor
+													: unselectedColor
+											}
+											points={`${topRight} ${middle} ${bottomRight} ${topRight}`}
+										></polygon>
+									</>
 								)}
 							</g>
 						);
