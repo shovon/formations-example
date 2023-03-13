@@ -426,13 +426,23 @@ export function Timeline({
 											camera.zoom.linear
 									)}
 								</text>
-								<line
-									x1={`${i * tickSpacing - (camera.position % tickSpacing)}`}
-									x2={`${i * tickSpacing - (camera.position % tickSpacing)}`}
-									y1={`${0}`}
-									y2={`${rulerHeight}`}
-									stroke="black"
-								/>
+								{Array.from({ length: 5 }).map((_, j) => {
+									return (
+										<line
+											x1={`${
+												(i + j / 5) * tickSpacing -
+												(camera.position % tickSpacing)
+											}`}
+											x2={`${
+												(i + j / 5) * tickSpacing -
+												(camera.position % tickSpacing)
+											}`}
+											y1={`${j === 0 ? 0 : rulerHeight * 0.75}`}
+											y2={`${rulerHeight}`}
+											stroke="black"
+										/>
+									);
+								})}
 							</g>
 						);
 					})}
