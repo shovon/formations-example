@@ -60,7 +60,7 @@ const EntityObject = ({
 				></circle>
 			) : null}
 			<circle
-				fill={"white"}
+				fill={color}
 				stroke={color}
 				strokeWidth={`3`}
 				cx={x}
@@ -70,7 +70,7 @@ const EntityObject = ({
 			<text
 				x={`${x}`}
 				y={`${-y + 1.5}`}
-				fill={color}
+				fill={"white"}
 				fontSize={`${1}em`}
 				dominantBaseline="middle"
 				textAnchor="middle"
@@ -624,7 +624,7 @@ export const Editor = ({
 					);
 
 					return (
-						<g transform={mat} opacity={0.25}>
+						<g transform={mat} opacity={0.5}>
 							{[...directions].map(
 								([
 									id,
@@ -704,7 +704,7 @@ export const Editor = ({
 					);
 
 					return (
-						<g transform={mat} opacity={0.25}>
+						<g transform={mat} opacity={0.5}>
 							{[...directions].map(
 								([
 									id,
