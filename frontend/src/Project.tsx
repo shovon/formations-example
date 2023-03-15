@@ -1,11 +1,19 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { Editor } from "./Editor";
+import {
+	PerformanceProject,
+	performance,
+	EntityPlacement,
+} from "./performance-project";
 import {
 	getCurrentFormationIndex,
 	getTimelineByFormationIndex,
 	TimelineState,
 } from "./timeline-state";
 import { useSet } from "./use-set";
+import { add } from "./vector2";
+import { hasKV } from "./iterable-helpers";
+import { Timeline } from "./Timeline";
 
 // We will have two modes:
 //
@@ -30,7 +38,32 @@ import { useSet } from "./use-set";
 //     2. seeker should stay where it is (e.g. don't bother moving it to either
 //       edge of the formation)
 
-export function Project() {
+function arbitraryHSL(): [number, number, number] {
+	return [Math.random() * 360, 0.5, 0.5];
+}
+
+function hslToStr([h, s, l]: [number, number, number]): string {
+	return `hsl(${h}, ${s * 100}%, ${l * 100}%)`;
+}
+
+function randomString(length: number = 10): string {
+	const chars =
+		"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+
+	return Array.from({ length })
+		.map(() => chars[Math.floor(Math.random() * chars.length)])
+		.join("");
+}
+
+type ProjectProps = {
+	performance: PerformanceProject;
+	projectUpdated: (project: PerformanceProject) => void;
+};
+
+export function Project({
+	performance: { formations, entities },
+	projectUpdated,
+}: ProjectProps) {
 	const performanceProject = useMemo(
 		() => performance({ formations, entities }),
 		[formations, entities]
@@ -48,6 +81,66 @@ export function Project() {
 	);
 
 	const selections = useSet<string>();
+
+	// TODO: unit test this
+	const newFormationName = () => {
+		const latest =
+			[...formations]
+				.map(({ name }) => name)
+				.filter((name) => /^Formation \d+$/.test(name))
+				.map((n) => parseInt(n.split(" ")[1]))
+				.sort((a, b) => b - a)[0] ?? 0;
+
+		return `Formation ${latest + 1}`;
+	};
+
+	const newPerformerName = () => {
+		const latest =
+			[...entities]
+				.map(([, { name }]) => name)
+				.filter((name) => /^Performer \d+$/.test(name))
+				.map((n) => parseInt(n.split(" ")[1]))
+				.sort((a, b) => b - a)[0] ?? 0;
+
+		return `Performer ${latest + 1}`;
+	};
+
+	const addEntity = useCallback(() => {
+		let draft = { formations, entities };
+
+		// The basis case where the formations list is empty:
+
+		if ([...formations].length === 0) {
+			draft = performance(draft).pushFormation(newFormationName(), 5000, 1000);
+		}
+
+		const allPlacements = [
+			...performance(draft).getFormationIndex(currentFormationIndex).placements,
+		];
+
+		const lastEntity = allPlacements[allPlacements.length - 1];
+		let position = [0, 0] satisfies [number, number];
+		if (lastEntity) {
+			position = add(lastEntity[1].position, [10, -10]);
+		}
+
+		const placement = { position } satisfies EntityPlacement;
+
+		// TODO: don't use a random string
+		let id = newPerformerName();
+
+		draft = performance(draft).addEntity(id, {
+			color: hslToStr(arbitraryHSL()),
+			name: randomString(),
+		});
+
+		draft = performance(draft)
+			.getFormationIndex(0)
+			.entity(id)
+			.setPlacement(placement);
+
+		projectUpdated(draft);
+	}, [performanceProject]);
 
 	return (
 		<div
@@ -67,7 +160,7 @@ export function Project() {
 				}}
 				selections={selections}
 				onPositionsChange={(changes, formationIndex) => {
-					setProject(
+					projectUpdated(
 						performanceProject
 							.getFormationIndex(formationIndex)
 							.setPositions(changes)
@@ -102,7 +195,9 @@ export function Project() {
 
 			<Timeline
 				formationTimesChanged={(formationTimes) => {
-					setProject(performanceProject.updateFormationTimes(formationTimes));
+					projectUpdated(
+						performanceProject.updateFormationTimes(formationTimes)
+					);
 				}}
 				formationSelected={(i) => {
 					setTimeline(getTimelineByFormationIndex(performanceProject, i));
@@ -111,7 +206,7 @@ export function Project() {
 				timelineState={timeline}
 				currentFormationIndex={currentFormationIndex}
 				newFormationCreated={() => {
-					setProject(
+					projectUpdated(
 						performanceProject.pushFormation(newFormationName(), 5000, 3000)
 					);
 				}}
