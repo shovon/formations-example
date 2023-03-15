@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import { PerformanceProject } from "./performance-project";
 import { Project } from "./Project";
+import { ThemeProvider } from "./theme";
 
 function App() {
 	const [{ formations, entities }, setProject] = useState<PerformanceProject>({
@@ -43,10 +44,12 @@ function App() {
 	});
 
 	return (
-		<Project
-			performance={{ formations, entities }}
-			projectUpdated={setProject}
-		></Project>
+		<ThemeProvider>
+			<Project
+				performance={{ formations, entities }}
+				projectUpdated={setProject}
+			></Project>
+		</ThemeProvider>
 	);
 }
 

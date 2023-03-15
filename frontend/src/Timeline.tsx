@@ -7,7 +7,6 @@ import { useMouseUp } from "./use-mouse-up";
 import { equals, sub, Vector2 } from "./vector2";
 import { SvgWrapper, SvgWrapperObject } from "./SvgWrapper";
 import { LogarithmicValue } from "./logarithmic-value";
-import { theme } from "./theme";
 
 // TODO: maybe this should go to the constants file?
 const pixelsToMillisecondsRatio = 0.017;
