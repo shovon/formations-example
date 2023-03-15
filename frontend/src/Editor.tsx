@@ -24,6 +24,7 @@ import {
 import { getKV } from "./iterable-helpers";
 import { getCurrentFormationIndex, TimelineState } from "./timeline-state";
 import { useMouseUp } from "./use-mouse-up";
+import { theme } from "./theme";
 
 const CIRCLE_RADIUS = ENTITY_DIAMETER_IN_PIXELS / 2;
 
@@ -458,7 +459,7 @@ export const Editor = ({
 		camera.position[1]
 	}) translate(${width / 2}, ${height / 2}) scale(${camera.zoom.linear})`;
 
-	const editorStyle = { ...style, background: "black" };
+	const editorStyle = { ...style, background: theme.stageBackground };
 
 	return isEditorHidden ? (
 		<div style={editorStyle}></div>

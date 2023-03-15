@@ -151,29 +151,43 @@ export function Project({
 				background: "black",
 			}}
 		>
-			<Editor
-				timelineState={timeline}
-				performance={performanceProject}
+			<div
 				style={{
 					flex: "1",
-					width: "100vw",
+					display: "flex",
 				}}
-				selections={selections}
-				onPositionsChange={(changes, formationIndex) => {
-					projectUpdated(
-						performanceProject
-							.getFormationIndex(formationIndex)
-							.setPositions(changes)
-					);
-				}}
-				onSelectionsChange={(newSelections) => {
-					selections.clear();
-					selections.add(...newSelections);
-				}}
-				onFormationIndexChange={(i) => {
-					setTimeline(getTimelineByFormationIndex(performanceProject, i));
-				}}
-			/>
+			>
+				<div
+					style={{
+						width: 200,
+						background: "black",
+					}}
+				></div>
+				<Editor
+					timelineState={timeline}
+					performance={performanceProject}
+					style={{
+						flex: "1",
+						height: "100%",
+						width: "100vw",
+					}}
+					selections={selections}
+					onPositionsChange={(changes, formationIndex) => {
+						projectUpdated(
+							performanceProject
+								.getFormationIndex(formationIndex)
+								.setPositions(changes)
+						);
+					}}
+					onSelectionsChange={(newSelections) => {
+						selections.clear();
+						selections.add(...newSelections);
+					}}
+					onFormationIndexChange={(i) => {
+						setTimeline(getTimelineByFormationIndex(performanceProject, i));
+					}}
+				/>
+			</div>
 
 			<div
 				style={{
