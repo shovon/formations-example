@@ -1,10 +1,10 @@
 import dark from "./dark/dark";
 import light from "./light/light";
 
-type Icons = {
+type Icons = Readonly<{
 	formations: string;
 	performers: string;
-};
+}>;
 
 export function icon(mode: "dark" | "light"): Icons {
 	switch (mode) {

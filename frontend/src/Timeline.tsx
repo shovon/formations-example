@@ -444,6 +444,7 @@ export function Timeline({
 								{Array.from({ length: 5 }).map((_, j) => {
 									return (
 										<line
+											key={j}
 											x1={`${
 												(i + j / 5) * tickSpacing -
 												(camera.position % tickSpacing)

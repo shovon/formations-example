@@ -163,18 +163,27 @@ export function Project({
 				<div
 					style={{
 						width: 200,
-						background: theme.background,
+						background: theme.sidebar.background,
 					}}
 				>
 					<Tabbed style={{ height: "100%" }}>
 						<Tab icon={icon(themeLabel).formations}>
 							<div
 								style={{
+									height: "100%",
 									display: "flex",
 									flexDirection: "column",
 								}}
 							>
-								<div style={{ flex: "1" }}></div>
+								<div
+									style={{
+										flex: "1",
+										flexGrow: "1",
+										backgroundColor: theme.sidebar.tabs.background,
+									}}
+								>
+									Formations
+								</div>
 								<div style={{ textAlign: "center", paddingBottom: "10px" }}>
 									<Button
 										onClick={() => {
@@ -202,19 +211,7 @@ export function Project({
 							>
 								<div style={{ flex: "1" }}></div>
 								<div style={{ textAlign: "center", paddingBottom: "10px" }}>
-									<Button
-										onClick={() => {
-											projectUpdated(
-												performanceProject.pushFormation(
-													newFormationName(),
-													5000,
-													3000
-												)
-											);
-										}}
-									>
-										New Formation
-									</Button>
+									Here be the performers!
 								</div>
 							</div>
 						</Tab>

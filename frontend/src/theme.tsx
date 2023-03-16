@@ -13,6 +13,12 @@ export type Theme = Readonly<{
 	background: string;
 	stageBackground: string;
 	primary: string;
+	sidebar: Readonly<{
+		background: string;
+		tabs: Readonly<{
+			background: string;
+		}>;
+	}>;
 }>;
 
 export const dark: Theme = Object.freeze({
@@ -26,6 +32,12 @@ export const dark: Theme = Object.freeze({
 	background: "#1b1b1b",
 	stageBackground: "black",
 	primary: "rgb(180, 255, 135)",
+	sidebar: Object.freeze({
+		background: "rgb(15, 15, 15)",
+		tabs: Object.freeze({
+			background: "rgb(38, 38, 38)",
+		}),
+	}),
 });
 
 export const light: Theme = Object.freeze({
@@ -39,6 +51,12 @@ export const light: Theme = Object.freeze({
 	background: "#f0f0f0",
 	stageBackground: "white",
 	primary: "rgb(180, 255, 135)",
+	sidebar: Object.freeze({
+		background: "rgb(143, 141, 141)",
+		tabs: Object.freeze({
+			background: "rgb(38, 38, 38)",
+		}),
+	}),
 });
 
 const matchMediaDark = window.matchMedia("(prefers-color-scheme: dark)");
