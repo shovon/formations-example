@@ -467,7 +467,7 @@ export const Editor = ({
 		camera.position[1]
 	}) translate(${width / 2}, ${height / 2}) scale(${camera.zoom.linear})`;
 
-	const editorStyle = { ...style, background: theme.stageBackground };
+	const editorStyle = { ...style, background: theme.stage.background };
 
 	return isEditorHidden ? (
 		<div style={editorStyle}></div>
@@ -588,7 +588,12 @@ export const Editor = ({
 						).flat()
 					).value;
 
-					return <path d={`M${startX} ${startY} V ${endY}`} stroke="#ccc" />;
+					return (
+						<path
+							d={`M${startX} ${startY} V ${endY}`}
+							stroke={theme.stage.centerLine}
+						/>
+					);
 				})()}
 				{(() => {
 					const { left, right } = getViewportBounds();
@@ -609,7 +614,12 @@ export const Editor = ({
 						).flat()
 					).value;
 
-					return <path d={`M${startX} ${startY} H ${endX}`} stroke="#ccc" />;
+					return (
+						<path
+							d={`M${startX} ${startY} H ${endX}`}
+							stroke={theme.stage.centerLine}
+						/>
+					);
 				})()}
 
 				{(() => {

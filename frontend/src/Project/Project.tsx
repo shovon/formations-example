@@ -162,7 +162,7 @@ export function Project({
 			>
 				<div
 					style={{
-						width: 200,
+						width: 280,
 						background: theme.sidebar.background,
 					}}
 				>
@@ -177,27 +177,40 @@ export function Project({
 							>
 								<div
 									style={{
-										flex: "1",
-										flexGrow: "1",
 										backgroundColor: theme.sidebar.tabs.background,
+										marginBottom: 2,
 									}}
 								>
 									Formations
 								</div>
-								<div style={{ textAlign: "center", paddingBottom: "10px" }}>
-									<Button
-										onClick={() => {
-											projectUpdated(
-												performanceProject.pushFormation(
-													newFormationName(),
-													5000,
-													3000
-												)
-											);
+								<div
+									style={{
+										flex: "1",
+										display: "flex",
+										flexDirection: "column",
+										backgroundColor: theme.sidebar.tabs.background,
+									}}
+								>
+									<div
+										style={{
+											flex: "1",
 										}}
-									>
-										New Formation
-									</Button>
+									></div>
+									<div style={{ textAlign: "center", paddingBottom: "20px" }}>
+										<Button
+											onClick={() => {
+												projectUpdated(
+													performanceProject.pushFormation(
+														newFormationName(),
+														5000,
+														3000
+													)
+												);
+											}}
+										>
+											New Formation
+										</Button>
+									</div>
 								</div>
 							</div>
 						</Tab>

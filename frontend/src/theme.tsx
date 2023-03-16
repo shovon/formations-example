@@ -4,6 +4,7 @@ type ThemeColorIdentifier = "dark" | "light";
 
 export type Theme = Readonly<{
 	timeline: Readonly<{
+		background: string;
 		tickColor: string;
 		formation: Readonly<{
 			selected: string;
@@ -11,7 +12,6 @@ export type Theme = Readonly<{
 		}>;
 	}>;
 	background: string;
-	stageBackground: string;
 	primary: string;
 	sidebar: Readonly<{
 		background: string;
@@ -19,10 +19,15 @@ export type Theme = Readonly<{
 			background: string;
 		}>;
 	}>;
+	stage: Readonly<{
+		background: string;
+		centerLine: string;
+	}>;
 }>;
 
 export const dark: Theme = Object.freeze({
 	timeline: Object.freeze({
+		background: "rgb(27, 27, 27)",
 		tickColor: "white",
 		formation: Object.freeze({
 			selected: "rgba(64,177,171,0.3)",
@@ -30,7 +35,6 @@ export const dark: Theme = Object.freeze({
 		}),
 	}),
 	background: "#1b1b1b",
-	stageBackground: "black",
 	primary: "rgb(180, 255, 135)",
 	sidebar: Object.freeze({
 		background: "rgb(15, 15, 15)",
@@ -38,10 +42,15 @@ export const dark: Theme = Object.freeze({
 			background: "rgb(38, 38, 38)",
 		}),
 	}),
+	stage: Object.freeze({
+		background: "black",
+		centerLine: "#4a4a4a",
+	}),
 });
 
 export const light: Theme = Object.freeze({
 	timeline: Object.freeze({
+		background: "#f0f0f0",
 		tickColor: "black",
 		formation: Object.freeze({
 			selected: "rgba(64,177,171,0.3)",
@@ -49,13 +58,16 @@ export const light: Theme = Object.freeze({
 		}),
 	}),
 	background: "#f0f0f0",
-	stageBackground: "white",
 	primary: "rgb(180, 255, 135)",
 	sidebar: Object.freeze({
 		background: "rgb(143, 141, 141)",
 		tabs: Object.freeze({
 			background: "rgb(38, 38, 38)",
 		}),
+	}),
+	stage: Object.freeze({
+		background: "white",
+		centerLine: "#ccc",
 	}),
 });
 

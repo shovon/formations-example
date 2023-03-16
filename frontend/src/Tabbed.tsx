@@ -27,7 +27,14 @@ export function Tabbed({ children, style }: TabbedProps) {
 	const child = childrenArray[tabIndex] ?? [];
 
 	return (
-		<div style={{ display: "flex", flexDirection: "column", ...style }}>
+		<div
+			style={{
+				display: "flex",
+				flexDirection: "column",
+				paddingTop: "10px",
+				...style,
+			}}
+		>
 			<div
 				className={css`
 					display: flex;
@@ -46,7 +53,7 @@ export function Tabbed({ children, style }: TabbedProps) {
 
 						height: 30px;
 						&.active {
-							height: 33px;
+							height: 35px;
 						}
 
 						&:not(.active) {
