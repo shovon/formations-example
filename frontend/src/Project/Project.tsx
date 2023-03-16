@@ -16,6 +16,7 @@ import { Timeline } from "../Timeline";
 import { ThemeContext } from "../theme";
 import { Button } from "../Button";
 import { Tab, Tabbed } from "../Tabbed";
+import { hasKV } from "../iterable-helpers";
 
 import { icon } from "./icons/icons";
 import { css } from "@emotion/css";
@@ -73,6 +74,7 @@ export function Project({
 		() => performance({ formations, entities }),
 		[formations, entities]
 	);
+
 	const [timeline, setTimeline] = useState<TimelineState>({
 		mode: "CURRENT_FORMATION",
 		index: 0,
@@ -130,12 +132,14 @@ export function Project({
 
 		const placement = { position } satisfies EntityPlacement;
 
-		// TODO: don't use a random string
-		let id = newPerformerName();
+		let id = randomString();
+		while (hasKV(entities, id)) {
+			id = randomString();
+		}
 
 		draft = performance(draft).addEntity(id, {
 			color: hslToStr(arbitraryHSL()),
-			name: randomString(),
+			name: newPerformerName(),
 		});
 
 		draft = performance(draft)
