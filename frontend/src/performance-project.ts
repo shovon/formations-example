@@ -39,6 +39,9 @@ const entityPlacement =
 		}
 
 		const formation = formations[index];
+		if (!formation) {
+			return { position: [0, 0] };
+		}
 		const placement = getKV(formation.positions, entityId);
 
 		if (placement) {

@@ -40,7 +40,7 @@ export function Tabbed({ children, style }: TabbedProps) {
 					display: flex;
 					flex-direction: row;
 
-					div {
+					> div {
 						display: flex;
 						align-items: center;
 						justify-content: center;

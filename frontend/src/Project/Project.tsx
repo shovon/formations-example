@@ -18,6 +18,7 @@ import { Button } from "../Button";
 import { Tab, Tabbed } from "../Tabbed";
 
 import { icon } from "./icons/icons";
+import { css } from "@emotion/css";
 
 // We will have two modes:
 //
@@ -179,6 +180,9 @@ export function Project({
 									style={{
 										backgroundColor: theme.sidebar.tabs.background,
 										marginBottom: 2,
+										textTransform: "uppercase",
+										padding: 13,
+										fontWeight: "bold",
 									}}
 								>
 									Formations
@@ -192,10 +196,54 @@ export function Project({
 									}}
 								>
 									<div
-										style={{
-											flex: "1",
-										}}
-									></div>
+										className={css`
+											flex: 1;
+
+											padding: 13px;
+
+											> div {
+												box-sizing: border-box;
+												height: 60px;
+												border: 3px solid
+													${theme.formationsList.listItem.unselected};
+												background-color: ${theme.formationsList.listItem
+													.unselected};
+												padding: 7px;
+												border-radius: 5px;
+
+												&:not(:last-child) {
+													margin-bottom: 5px;
+												}
+											}
+										`}
+									>
+										{[...formations].map((formation, index) => (
+											<div
+												onClick={() => {
+													setTimeline(
+														getTimelineByFormationIndex(
+															performanceProject,
+															index
+														)
+													);
+												}}
+												key={formation.id}
+												style={{
+													backgroundColor:
+														index === currentFormationIndex
+															? theme.formationsList.listItem.selected
+																	.background
+															: undefined,
+													borderColor:
+														index === currentFormationIndex
+															? theme.formationsList.listItem.selected.border
+															: undefined,
+												}}
+											>
+												{formation.name}
+											</div>
+										))}
+									</div>
 									<div style={{ textAlign: "center", paddingBottom: "20px" }}>
 										<Button
 											onClick={() => {
@@ -218,13 +266,43 @@ export function Project({
 						<Tab icon={icon(themeLabel).performers}>
 							<div
 								style={{
+									height: "100%",
 									display: "flex",
 									flexDirection: "column",
 								}}
 							>
-								<div style={{ flex: "1" }}></div>
-								<div style={{ textAlign: "center", paddingBottom: "10px" }}>
-									Here be the performers!
+								<div
+									style={{
+										backgroundColor: theme.sidebar.tabs.background,
+										marginBottom: 2,
+										textTransform: "uppercase",
+										padding: 13,
+										fontWeight: "bold",
+									}}
+								>
+									Performers
+									<button
+										style={{
+											cursor: "pointer",
+										}}
+										onClick={addEntity}
+									>
+										Add Entity
+									</button>
+								</div>
+								<div
+									style={{
+										flex: "1",
+										display: "flex",
+										flexDirection: "column",
+										backgroundColor: theme.sidebar.tabs.background,
+									}}
+								>
+									<ul>
+										{[...entities].map(([, { name }]) => (
+											<li>{name}</li>
+										))}
+									</ul>
 								</div>
 							</div>
 						</Tab>
@@ -255,24 +333,6 @@ export function Project({
 						setTimeline(getTimelineByFormationIndex(performanceProject, i));
 					}}
 				/>
-			</div>
-
-			<div
-				style={{
-					top: 4,
-					right: 10,
-					position: "absolute",
-					fontSize: "1.5em",
-				}}
-			>
-				<button
-					style={{
-						cursor: "pointer",
-					}}
-					onClick={addEntity}
-				>
-					Add Entity
-				</button>
 			</div>
 
 			<Timeline

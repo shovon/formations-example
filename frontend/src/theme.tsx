@@ -23,6 +23,15 @@ export type Theme = Readonly<{
 		background: string;
 		centerLine: string;
 	}>;
+	formationsList: Readonly<{
+		listItem: Readonly<{
+			unselected: string;
+			selected: {
+				background: string;
+				border: string;
+			};
+		}>;
+	}>;
 }>;
 
 export const dark: Theme = Object.freeze({
@@ -46,6 +55,15 @@ export const dark: Theme = Object.freeze({
 		background: "black",
 		centerLine: "#4a4a4a",
 	}),
+	formationsList: Object.freeze({
+		listItem: {
+			unselected: "black",
+			selected: {
+				background: "rgba(64, 109, 177, 0.3)",
+				border: "rgba(64, 109, 177, 0.9)",
+			},
+		},
+	}),
 });
 
 export const light: Theme = Object.freeze({
@@ -62,12 +80,21 @@ export const light: Theme = Object.freeze({
 	sidebar: Object.freeze({
 		background: "rgb(143, 141, 141)",
 		tabs: Object.freeze({
-			background: "rgb(38, 38, 38)",
+			background: "rgb(212, 212, 212)",
 		}),
 	}),
 	stage: Object.freeze({
 		background: "white",
 		centerLine: "#ccc",
+	}),
+	formationsList: Object.freeze({
+		listItem: {
+			unselected: "white",
+			selected: {
+				background: "rgba(64, 109, 177, 0.3)",
+				border: "rgba(64, 109, 177, 0.9)",
+			},
+		},
 	}),
 });
 
