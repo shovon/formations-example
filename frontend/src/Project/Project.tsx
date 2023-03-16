@@ -192,6 +192,32 @@ export function Project({
 								</div>
 							</div>
 						</Tab>
+
+						<Tab icon={icon(themeLabel).performers}>
+							<div
+								style={{
+									display: "flex",
+									flexDirection: "column",
+								}}
+							>
+								<div style={{ flex: "1" }}></div>
+								<div style={{ textAlign: "center", paddingBottom: "10px" }}>
+									<Button
+										onClick={() => {
+											projectUpdated(
+												performanceProject.pushFormation(
+													newFormationName(),
+													5000,
+													3000
+												)
+											);
+										}}
+									>
+										New Formation
+									</Button>
+								</div>
+							</div>
+						</Tab>
 					</Tabbed>
 				</div>
 

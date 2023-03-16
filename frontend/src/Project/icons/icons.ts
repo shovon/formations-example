@@ -3,6 +3,7 @@ import light from "./light/light";
 
 type Icons = {
 	formations: string;
+	performers: string;
 };
 
 export function icon(mode: "dark" | "light"): Icons {
