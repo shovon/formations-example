@@ -1,5 +1,12 @@
 import { css } from "@emotion/css";
-import { useReducer, useRef, useState, useEffect, useCallback } from "react";
+import {
+	useReducer,
+	useRef,
+	useState,
+	useEffect,
+	useCallback,
+	useContext,
+} from "react";
 import { LogarithmicValue } from "./logarithmic-value";
 import {
 	hadamard as hadamard2,
@@ -24,7 +31,7 @@ import {
 import { getKV } from "./iterable-helpers";
 import { getCurrentFormationIndex, TimelineState } from "./timeline-state";
 import { useMouseUp } from "./use-mouse-up";
-import { theme } from "./theme";
+import { ThemeContext } from "./theme";
 
 const CIRCLE_RADIUS = ENTITY_DIAMETER_IN_PIXELS / 2;
 
@@ -162,6 +169,7 @@ export const Editor = ({
 	});
 	const selectionsSet = new Set(selections);
 	const { onMouseDown, onMouseUp: mouseUp } = useMouseUp();
+	const { theme } = useContext(ThemeContext);
 
 	const currentFormationIndex = getCurrentFormationIndex(
 		performance,

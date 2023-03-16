@@ -1,5 +1,5 @@
 import { css } from "@emotion/css";
-import { useEffect, useReducer, useRef, useState } from "react";
+import { useContext, useEffect, useReducer, useRef, useState } from "react";
 import { Formation, Performance } from "./performance-project";
 import { time, TimelineState } from "./timeline-state";
 import { mouseUpEvents } from "./document";
@@ -7,6 +7,7 @@ import { useMouseUp } from "./use-mouse-up";
 import { equals, sub, Vector2 } from "./vector2";
 import { SvgWrapper, SvgWrapperObject } from "./SvgWrapper";
 import { LogarithmicValue } from "./logarithmic-value";
+import { ThemeContext } from "./theme";
 
 // TODO: maybe this should go to the constants file?
 const pixelsToMillisecondsRatio = 0.017;
@@ -45,7 +46,6 @@ type TimelineProps = {
 	timelineState: TimelineState;
 	formationSelected: (index: number) => void;
 	currentFormationIndex: number;
-	newFormationCreated: () => void;
 	timelineSeeked: (time: number) => void;
 	timelineStoppedSeeking: (time: number) => void;
 	formationTimesChanged: (formationTimes: Iterable<FormationTime>) => void;
@@ -74,7 +74,6 @@ export function Timeline({
 	performance,
 	formationSelected,
 	currentFormationIndex,
-	newFormationCreated,
 	timelineState,
 	timelineSeeked,
 	timelineStoppedSeeking,
@@ -105,6 +104,7 @@ export function Timeline({
 	const [, setMousePosition] = useState<Vector2>([NaN, NaN]);
 	const drawingAreaRef = useRef<SvgWrapperObject | null>(null);
 	const [, update] = useReducer(() => ({}), {});
+	const { theme } = useContext(ThemeContext);
 
 	useEffect(() => {
 		setLocalFormations(performance.formations);
@@ -431,7 +431,7 @@ export function Timeline({
 									x={i * tickSpacing - (camera.position % tickSpacing) + 3}
 									y="12"
 									style={{
-										fill: "white",
+										fill: theme.timeline.tickColor,
 										fontSize: "0.75em",
 									}}
 								>
@@ -454,7 +454,7 @@ export function Timeline({
 											}`}
 											y1={`${j === 0 ? 0 : rulerHeight * 0.8}`}
 											y2={`${rulerHeight}`}
-											stroke="white"
+											stroke={theme.timeline.tickColor}
 										/>
 									);
 								})}
@@ -479,8 +479,8 @@ export function Timeline({
 						const bottomRight = `${right},${bottom}`;
 						const middle = `${(left + right) / 2},${(top + bottom) / 2}`;
 
-						const unselectedColor = "rgba(201, 201, 201, 0.3)";
-						const selectedColor = "rgba(64,177,171,0.3)";
+						const unselectedColor = theme.timeline.formation.unselected;
+						const selectedColor = theme.timeline.formation.selected;
 
 						return (
 							<g
@@ -579,19 +579,6 @@ export function Timeline({
 					</g>
 				</SvgWrapper>
 			</div>
-
-			<button
-				style={{
-					position: "absolute",
-					right: 10,
-					top: 13,
-				}}
-				onClick={() => {
-					newFormationCreated();
-				}}
-			>
-				Create Formation
-			</button>
 		</div>
 	);
 }

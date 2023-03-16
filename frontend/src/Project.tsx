@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useContext, useMemo, useState } from "react";
 import { Editor } from "./Editor";
 import {
 	PerformanceProject,
@@ -14,6 +14,8 @@ import { useSet } from "./use-set";
 import { add } from "./vector2";
 import { hasKV } from "./iterable-helpers";
 import { Timeline } from "./Timeline";
+import { ThemeContext } from "./theme";
+import { Button } from "./Button";
 
 // We will have two modes:
 //
@@ -68,17 +70,16 @@ export function Project({
 		() => performance({ formations, entities }),
 		[formations, entities]
 	);
-
 	const [timeline, setTimeline] = useState<TimelineState>({
 		mode: "CURRENT_FORMATION",
 		index: 0,
 		position: 0,
 	});
-
 	const currentFormationIndex = getCurrentFormationIndex(
 		performanceProject,
 		timeline
 	);
+	const { theme } = useContext(ThemeContext);
 
 	const selections = useSet<string>();
 
@@ -148,7 +149,7 @@ export function Project({
 				height: "100vh",
 				display: "flex",
 				flexDirection: "column",
-				background: "black",
+				background: theme.background,
 			}}
 		>
 			<div
@@ -159,10 +160,29 @@ export function Project({
 			>
 				<div
 					style={{
+						display: "flex",
+						flexDirection: "column",
 						width: 200,
-						background: "black",
+						background: theme.background,
 					}}
-				></div>
+				>
+					<div style={{ flex: "1" }}></div>
+					<div style={{ textAlign: "center", paddingBottom: "10px" }}>
+						<Button
+							onClick={() => {
+								projectUpdated(
+									performanceProject.pushFormation(
+										newFormationName(),
+										5000,
+										3000
+									)
+								);
+							}}
+						>
+							New Formation
+						</Button>
+					</div>
+				</div>
 				<Editor
 					timelineState={timeline}
 					performance={performanceProject}
@@ -219,11 +239,6 @@ export function Project({
 				performance={performanceProject}
 				timelineState={timeline}
 				currentFormationIndex={currentFormationIndex}
-				newFormationCreated={() => {
-					projectUpdated(
-						performanceProject.pushFormation(newFormationName(), 5000, 3000)
-					);
-				}}
 				timelineStoppedSeeking={(time) => {
 					const form = performanceProject.getFormationAtTime(time);
 					if (!form) return;
