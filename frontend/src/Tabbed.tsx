@@ -7,7 +7,7 @@ type TabProps = {
 
 type TabElementChild = React.ReactElement<TabProps>;
 
-export function Tab({ icon }: TabProps) {
+export function Tab(_: TabProps) {
 	return <></>;
 }
 
@@ -19,11 +19,18 @@ type TabbedProps = {
 export function Tabbed({ children, style }: TabbedProps) {
 	const [tabIndex, setTabIndex] = useState(0);
 
+	const childrenArray = Array.isArray(children) ? children : [children];
+
+	const child = childrenArray[tabIndex] ?? [];
+
 	return (
 		<div style={style}>
-			{(Array.isArray(children) ? children : [children]).map((child) => {
-				return child.props.children;
-			})}
+			<div>
+				{childrenArray.map((child) => (
+					<img src={child.props.icon} />
+				))}
+			</div>
+			{child?.props?.children ?? null}
 		</div>
 	);
 }

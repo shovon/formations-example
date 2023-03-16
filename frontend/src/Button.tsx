@@ -10,8 +10,6 @@ export const Button = ({
 >) => {
 	const { theme } = useContext(ThemeContext);
 
-	console.log(theme.primary);
-
 	return (
 		<button
 			style={{
