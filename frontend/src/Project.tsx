@@ -16,6 +16,7 @@ import { hasKV } from "./iterable-helpers";
 import { Timeline } from "./Timeline";
 import { ThemeContext } from "./theme";
 import { Button } from "./Button";
+import { Tab, Tabbed } from "./Tabbed";
 
 // We will have two modes:
 //
@@ -160,29 +161,39 @@ export function Project({
 			>
 				<div
 					style={{
-						display: "flex",
-						flexDirection: "column",
 						width: 200,
 						background: theme.background,
 					}}
 				>
-					<div style={{ flex: "1" }}></div>
-					<div style={{ textAlign: "center", paddingBottom: "10px" }}>
-						<Button
-							onClick={() => {
-								projectUpdated(
-									performanceProject.pushFormation(
-										newFormationName(),
-										5000,
-										3000
-									)
-								);
-							}}
-						>
-							New Formation
-						</Button>
-					</div>
+					<Tabbed style={{ height: "100%" }}>
+						<Tab icon={"cool"}>
+							<div
+								style={{
+									display: "flex",
+									flexDirection: "column",
+								}}
+							>
+								<div style={{ flex: "1" }}></div>
+								<div style={{ textAlign: "center", paddingBottom: "10px" }}>
+									<Button
+										onClick={() => {
+											projectUpdated(
+												performanceProject.pushFormation(
+													newFormationName(),
+													5000,
+													3000
+												)
+											);
+										}}
+									>
+										New Formation
+									</Button>
+								</div>
+							</div>
+						</Tab>
+					</Tabbed>
 				</div>
+
 				<Editor
 					timelineState={timeline}
 					performance={performanceProject}
