@@ -15,19 +15,22 @@ type Action<T> =
 	| { type: "fetched"; payload: T }
 	| { type: "error"; payload: Error };
 
-function useFetch<T = unknown>(url?: string, options?: RequestInit): State<T> {
-	const cache = useRef<Cache<T>>({});
+function useFetch(url?: string, options?: RequestInit): State<ArrayBuffer> {
+	const cache = useRef<Cache<ArrayBuffer>>({});
 
 	// Used to prevent state update if the component is unmounted
 	const cancelRequest = useRef<boolean>(false);
 
-	const initialState: State<T> = {
+	const initialState: State<ArrayBuffer> = {
 		error: undefined,
 		data: undefined,
 	};
 
 	// Keep state logic separated
-	const fetchReducer = (state: State<T>, action: Action<T>): State<T> => {
+	const fetchReducer = (
+		state: State<ArrayBuffer>,
+		action: Action<ArrayBuffer>
+	): State<ArrayBuffer> => {
 		switch (action.type) {
 			case "loading":
 				return { ...initialState };
@@ -63,7 +66,7 @@ function useFetch<T = unknown>(url?: string, options?: RequestInit): State<T> {
 					throw new Error(response.statusText);
 				}
 
-				const data = (await response.json()) as T;
+				const data = await response.arrayBuffer();
 				cache.current[url] = data;
 				if (cancelRequest.current) return;
 

@@ -9,6 +9,7 @@ import { SvgWrapper, SvgWrapperObject } from "../SvgWrapper";
 import { LogarithmicValue } from "../../lib/logarithmic-value";
 import { ThemeContext } from "../theme";
 import { pixelsToMillisecondsRatio } from "./timeline-constants";
+import { AudioVisualizer } from "./AudioVisualizer";
 
 // TODO: maybe this should go to the constants file?
 const timelineHeight = 145;
@@ -422,6 +423,11 @@ export function Timeline({
 						}
 					}}
 				>
+					<AudioVisualizer
+						startTime={playbackProgress}
+						zoom={camera.zoom.linear}
+						audioSource={performance.info.audioSource}
+					/>
 					{Array.from({
 						length: Math.ceil(getDrawingAreaDimensions()[0] / tickSpacing) + 1,
 					}).map((_, i) => {

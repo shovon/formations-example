@@ -14,6 +14,11 @@ type AudioVisualizerProps = {
 export function AudioVisualizer({ audioSource }: AudioVisualizerProps) {
 	const { data, error } = useFetch(audioSource);
 
+	useEffect(() => {
+		console.log(error);
+		console.log(data);
+	}, [data]);
+
 	if (error) {
 		return <></>;
 	}

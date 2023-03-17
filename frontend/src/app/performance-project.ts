@@ -230,6 +230,10 @@ export const performance = ({
 	formations,
 	...project
 }: PerformanceProject) => ({
+	get info() {
+		return project.info;
+	},
+
 	get entities() {
 		return entities;
 	},
