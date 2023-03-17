@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import useFetch from "../../hooks/use-fetch";
+import { useFetchArrayBuffer } from "../../hooks/use-fetch-array-buffer";
 
 type AudioVisualizerProps = {
 	audioSource: string;
@@ -12,14 +12,16 @@ type AudioVisualizerProps = {
 };
 
 export function AudioVisualizer({ audioSource }: AudioVisualizerProps) {
-	const { data, error } = useFetch(audioSource);
+	const state = useFetchArrayBuffer(audioSource);
 
-	useEffect(() => {
-		console.log(error);
-		console.log(data);
-	}, [data]);
+	useEffect(() => {}, [state]);
 
-	if (error) {
+	if (state.type === "ERROR") {
+		console.error(state.error);
+		return <></>;
+	}
+
+	if (state.type === "LOADING") {
 		return <></>;
 	}
 
