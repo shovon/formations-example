@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+
 type AudioVisualizerProps = {
 	audioSource: string;
 	zoom: number;
@@ -8,4 +10,4 @@ type AudioVisualizerProps = {
 	startTime: number;
 };
 
-export function AudioVisualizer() {}
+export function AudioVisualizer({ audioSource }: AudioVisualizerProps) {}

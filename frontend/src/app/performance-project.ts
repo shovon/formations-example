@@ -244,8 +244,8 @@ export const performance = ({
 		name: string,
 		duration: number,
 		transitionDuration: number
-	) => {
-		return produce({ entities, formations }, (draft) => {
+	): PerformanceProject => {
+		return produce({ entities, formations, ...project }, (draft) => {
 			const ids = new Set(formations.map(({ id }) => id));
 			let idNumber = formations.length;
 			while (ids.has(idNumber.toString())) {
@@ -267,11 +267,13 @@ export const performance = ({
 		});
 	},
 
-	updateFormationTimes: (formationTimes: Iterable<FormationTime>) => {
+	updateFormationTimes: (
+		formationTimes: Iterable<FormationTime>
+	): PerformanceProject => {
 		const formationsMap = new Map<string, FormationTime>(
 			[...formationTimes].map((f) => [f.id, f])
 		);
-		return produce({ entities, formations }, (draft) => {
+		return produce({ entities, formations, ...project }, (draft) => {
 			for (const [
 				index,
 				{ id, duration, transitionDuration },

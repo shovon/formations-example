@@ -67,11 +67,11 @@ type ProjectProps = {
 };
 
 export function Project({
-	performance: { formations, entities },
+	performance: { formations, entities, ...project },
 	projectUpdated,
 }: ProjectProps) {
 	const performanceProject = useMemo(
-		() => performance({ formations, entities }),
+		() => performance({ formations, entities, ...project }),
 		[formations, entities]
 	);
 
@@ -112,7 +112,7 @@ export function Project({
 	};
 
 	const addEntity = useCallback(() => {
-		let draft = { formations, entities };
+		let draft = { formations, entities, ...project };
 
 		// The basis case where the formations list is empty:
 
