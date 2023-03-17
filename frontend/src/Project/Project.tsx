@@ -1,5 +1,5 @@
 import { useCallback, useContext, useMemo, useState } from "react";
-import { Editor } from "../Editor";
+import { Editor } from "../Editor/Editor";
 import {
 	PerformanceProject,
 	performance,
