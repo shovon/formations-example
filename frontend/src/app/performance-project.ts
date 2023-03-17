@@ -26,6 +26,9 @@ export type Formation = {
 type UnorderedIterable<T> = Iterable<T>;
 
 export type PerformanceProject = {
+	info: {
+		audioSource: string;
+	};
 	entities: UnorderedIterable<[string, Entity]>;
 	formations: Formation[];
 };
@@ -134,10 +137,13 @@ const entityPlacementAtTime =
 	};
 
 const getFormation = (
-	{ formations, entities }: PerformanceProject,
+	{ formations, entities, ...project }: PerformanceProject,
 	index: number
 ) => {
-	const getEntityPlacement = entityPlacement({ formations, entities }, index);
+	const getEntityPlacement = entityPlacement(
+		{ formations, entities, ...project },
+		index
+	);
 
 	return {
 		get exists(): boolean {
@@ -150,7 +156,7 @@ const getFormation = (
 			},
 
 			setPlacement: (placement: EntityPlacement): PerformanceProject => {
-				return produce({ entities, formations }, (draft) => {
+				return produce({ entities, formations, ...project }, (draft) => {
 					if (index < 0 || index > formations.length) {
 						return;
 					}
@@ -162,7 +168,7 @@ const getFormation = (
 			},
 
 			setAttributes: (attributes: Partial<Entity>): PerformanceProject => {
-				return produce({ entities, formations }, (draft) => {
+				return produce({ entities, formations, ...project }, (draft) => {
 					draft.entities = setKV(entities, id, {
 						...(getKV(entities, id) || { color: "black", name: "" }),
 						...attributes,
@@ -177,7 +183,7 @@ const getFormation = (
 
 		getPlacementAtTime(time: number): Iterable<[string, EntityPlacement]> {
 			const getEntityPlacementAtTime = entityPlacementAtTime(
-				{ formations, entities },
+				{ formations, entities, ...project },
 				time
 			);
 			return map(entities, ([id]) => [id, getEntityPlacementAtTime(id)]);
@@ -186,7 +192,7 @@ const getFormation = (
 		setPlacements(
 			placements: Iterable<[string, EntityPlacement]>
 		): PerformanceProject {
-			return produce({ entities, formations }, (draft) => {
+			return produce({ entities, formations, ...project }, (draft) => {
 				if (index < 0 || index >= formations.length) return;
 				draft.formations[index].positions = unionKV(
 					formations[index].positions,
@@ -196,7 +202,7 @@ const getFormation = (
 		},
 
 		setPositions(positions: Iterable<[string, Vector2]>): PerformanceProject {
-			return produce({ entities, formations }, (draft) => {
+			return produce({ entities, formations, ...project }, (draft) => {
 				if (index < 0 || index >= formations.length) return;
 				draft.formations[index].positions = unionKV(
 					map(entities, ([id]) => [id, getEntityPlacement(id)]),
@@ -219,13 +225,17 @@ const getFormationIndexById = (
 };
 
 // TODO: unit test this
-export const performance = ({ entities, formations }: PerformanceProject) => ({
+export const performance = ({
+	entities,
+	formations,
+	...project
+}: PerformanceProject) => ({
 	get entities() {
 		return entities;
 	},
 
 	addEntity: (id: string, entity: Entity): PerformanceProject => {
-		return produce({ entities, formations }, (draft) => {
+		return produce({ entities, formations, ...project }, (draft) => {
 			draft.entities = [...entities, [id, entity]];
 		});
 	},
@@ -326,16 +336,16 @@ export const performance = ({ entities, formations }: PerformanceProject) => ({
 	},
 
 	getFormationIndexById: (id: string) =>
-		getFormationIndexById({ entities, formations }, id),
+		getFormationIndexById({ entities, formations, ...project }, id),
 
 	getFormationById: (id: string): ReturnType<typeof getFormation> =>
 		getFormation(
-			{ entities, formations },
-			getFormationIndexById({ entities, formations }, id) || -1
+			{ entities, formations, ...project },
+			getFormationIndexById({ entities, formations, ...project }, id) || -1
 		),
 
 	getFormationIndex: (index: number) =>
-		getFormation({ entities, formations }, index),
+		getFormation({ entities, formations, ...project }, index),
 });
 
 export type Performance = ReturnType<typeof performance>;

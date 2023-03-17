@@ -1,6 +1,6 @@
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { PerformanceProject } from "./performance-project";
-import { Project } from "./app/Project/Project";
+import { Project } from "./Project/Project";
 import { ThemeProvider } from "./theme";
 
 function App() {

@@ -1,16 +1,16 @@
 import { css } from "@emotion/css";
 import { useContext, useEffect, useReducer, useRef, useState } from "react";
-import { Formation, Performance } from "./performance-project";
-import { time, TimelineState } from "./timeline-state";
-import { mouseUpEvents } from "../services/document";
-import { useMouseUp } from "../hooks/use-mouse-up";
-import { equals, sub, Vector2 } from "../lib/vector2";
-import { SvgWrapper, SvgWrapperObject } from "./SvgWrapper";
-import { LogarithmicValue } from "../lib/logarithmic-value";
-import { ThemeContext } from "./theme";
+import { Performance } from "../performance-project";
+import { time, TimelineState } from "../timeline-state";
+import { mouseUpEvents } from "../../services/document";
+import { useMouseUp } from "../../hooks/use-mouse-up";
+import { equals, sub, Vector2 } from "../../lib/vector2";
+import { SvgWrapper, SvgWrapperObject } from "../SvgWrapper";
+import { LogarithmicValue } from "../../lib/logarithmic-value";
+import { ThemeContext } from "../theme";
+import { pixelsToMillisecondsRatio } from "./timeline-constants";
 
 // TODO: maybe this should go to the constants file?
-const pixelsToMillisecondsRatio = 0.017;
 const timelineHeight = 145;
 const rulerHeight = 25;
 const defaultTickSpacing = pixelsToMillisecondsRatio * 1000;
