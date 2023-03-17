@@ -7,7 +7,8 @@ function App() {
 	const [{ formations, entities, info }, setProject] =
 		useState<PerformanceProject>({
 			info: {
-				audioSource: "",
+				audioSource:
+					"https://res.cloudinary.com/stagekeep/video/upload/v1670787456/files/iy8cxmf2xlevvtzxqppr.mp3",
 			},
 			entities: [
 				["1", { color: "red", name: "A" }],

@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import useFetch from "../../hooks/use-fetch";
 
 type AudioVisualizerProps = {
 	audioSource: string;
@@ -10,4 +11,12 @@ type AudioVisualizerProps = {
 	startTime: number;
 };
 
-export function AudioVisualizer({ audioSource }: AudioVisualizerProps) {}
+export function AudioVisualizer({ audioSource }: AudioVisualizerProps) {
+	const { data, error } = useFetch(audioSource);
+
+	if (error) {
+		return <></>;
+	}
+
+	return <></>;
+}
