@@ -7,7 +7,7 @@ import {
 	useCallback,
 	useContext,
 } from "react";
-import { LogarithmicValue } from "./logarithmic-value";
+import { LogarithmicValue } from "./lib/logarithmic-value";
 import {
 	hadamard as hadamard2,
 	scalarMul as scalarMul2,
@@ -16,9 +16,9 @@ import {
 	add as add2,
 	distance as distance2,
 	equals as equals2,
-} from "./vector2";
-import { start } from "./pipe";
-import { scale2D, translate2D } from "./matrix";
+} from "./lib/vector2";
+import { start } from "./lib/pipe";
+import { scale2D, translate2D } from "./lib/matrix";
 import { array } from "vectorious";
 import { SvgWrapper, SvgWrapperObject } from "./SvgWrapper";
 import { ENTITY_DIAMETER_IN_PIXELS } from "./constants";
@@ -28,9 +28,9 @@ import {
 	joinPlacements,
 	Performance,
 } from "./performance-project";
-import { getKV } from "./iterable-helpers";
+import { getKV } from "./lib/iterable-helpers";
 import { getCurrentFormationIndex, TimelineState } from "./timeline-state";
-import { useMouseUp } from "./use-mouse-up";
+import { useMouseUp } from "./hooks/use-mouse-up";
 import { ThemeContext } from "./theme";
 
 const CIRCLE_RADIUS = ENTITY_DIAMETER_IN_PIXELS / 2;

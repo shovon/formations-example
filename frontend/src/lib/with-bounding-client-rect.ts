@@ -1,3 +1,6 @@
+/**
+ * Represents an object that has a getBoundingClientRect() method.
+ */
 export type WithBoundingClientRect = {
 	getBoundingClientRect(): {
 		left: number;

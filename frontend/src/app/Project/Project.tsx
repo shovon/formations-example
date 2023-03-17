@@ -1,22 +1,22 @@
 import { useCallback, useContext, useMemo, useState } from "react";
-import { Editor } from "../Editor";
+import { Editor } from "../../Editor";
 import {
 	PerformanceProject,
 	performance,
 	EntityPlacement,
-} from "../performance-project";
+} from "../../performance-project";
 import {
 	getCurrentFormationIndex,
 	getTimelineByFormationIndex,
 	TimelineState,
-} from "../timeline-state";
-import { useSet } from "../use-set";
-import { add } from "../vector2";
-import { Timeline } from "../Timeline";
-import { ThemeContext } from "../theme";
-import { Button } from "../Button";
-import { Tab, Tabbed } from "../Tabbed";
-import { hasKV } from "../iterable-helpers";
+} from "../../timeline-state";
+import { useSet } from "../../hooks/use-set";
+import { add } from "../../lib/vector2";
+import { Timeline } from "../../Timeline";
+import { ThemeContext } from "../../theme";
+import { Button } from "../../Button";
+import { Tab, Tabbed } from "../../Tabbed";
+import { hasKV } from "../../lib/iterable-helpers";
 
 import { icon } from "./icons/icons";
 import { css } from "@emotion/css";

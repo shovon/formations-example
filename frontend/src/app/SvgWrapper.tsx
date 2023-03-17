@@ -1,7 +1,7 @@
 import { forwardRef, useEffect, useRef } from "react";
-import { sub as sub2, Vector2 } from "./vector2";
-import { WithBoundingClientRect } from "./with-bounding-client-rect";
-import { mouseUpEvents } from "./document";
+import { sub as sub2, Vector2 } from "../lib/vector2";
+import { WithBoundingClientRect } from "../lib/with-bounding-client-rect";
+import { mouseUpEvents } from "../services/document";
 
 export type SvgWrapperProps = Omit<
 	React.SVGProps<SVGSVGElement>,

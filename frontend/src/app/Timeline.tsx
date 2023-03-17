@@ -2,11 +2,11 @@ import { css } from "@emotion/css";
 import { useContext, useEffect, useReducer, useRef, useState } from "react";
 import { Formation, Performance } from "./performance-project";
 import { time, TimelineState } from "./timeline-state";
-import { mouseUpEvents } from "./document";
-import { useMouseUp } from "./use-mouse-up";
-import { equals, sub, Vector2 } from "./vector2";
+import { mouseUpEvents } from "../services/document";
+import { useMouseUp } from "../hooks/use-mouse-up";
+import { equals, sub, Vector2 } from "../lib/vector2";
 import { SvgWrapper, SvgWrapperObject } from "./SvgWrapper";
-import { LogarithmicValue } from "./logarithmic-value";
+import { LogarithmicValue } from "../lib/logarithmic-value";
 import { ThemeContext } from "./theme";
 
 // TODO: maybe this should go to the constants file?

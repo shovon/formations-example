@@ -1,6 +1,6 @@
-import { getKV, hasKV, map, setKV, unionKV } from "./iterable-helpers";
+import { getKV, hasKV, map, setKV, unionKV } from "../lib/iterable-helpers";
 import produce from "immer";
-import { Vector2 } from "./vector2";
+import { Vector2 } from "../lib/vector2";
 
 export type Entity = {
 	color: string;
