@@ -10,6 +10,7 @@ import { LogarithmicValue } from "../../lib/logarithmic-value";
 import { ThemeContext } from "../theme";
 import { pixelsToMillisecondsRatio } from "./timeline-constants";
 import { AudioVisualizer } from "./AudioVisualizer";
+import Worker from "./worker?worker";
 
 // TODO: maybe this should go to the constants file?
 const timelineHeight = 145;
