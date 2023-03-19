@@ -9,6 +9,12 @@ type AudioVisualizerProps = {
 	 * The start time in milliseconds.
 	 */
 	startTime: number;
+	duration: number;
+
+	/**
+	 * THe width is in pixels
+	 */
+	width: number;
 };
 
 export function AudioVisualizer({ audioSource }: AudioVisualizerProps) {

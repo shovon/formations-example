@@ -5,21 +5,22 @@ import {
 } from "~/hooks/use-fetch-array-buffer";
 import { useDecodeAudioBuffer } from "./use-decode-audio-buffer";
 import { useGetAveragePCM } from "./use-get-pcm/use-get-pcm";
+import Worker from "./worker?worker";
 
 type VisualizationData = {
 	startTime: number;
 	duration: number;
+	samples: ArrayLike<number>;
 };
 
 export function useGetVisualizationData(
 	audioSource: string | null,
 	startTime: number,
-	duration: number
+	duration: number,
+	maxSamples: number
 ): ArrayLike<number> | null {
-	// TODO: separating things into different hooks is just stupid. Consider
-	//   refactoring this so that hooks are not used.
-
-	console.log(startTime, duration);
+	// TODO: using React hooks to load audio data like this is fucking stupid.
+	//   Just define ONE hook, and a set of non-hook functions. That's it!
 
 	const fetchState = useFetchArrayBuffer(audioSource);
 	const audioBuffer = useDecodeAudioBuffer(
@@ -28,8 +29,37 @@ export function useGetVisualizationData(
 	const pcm = useGetAveragePCM(audioBuffer);
 
 	useEffect(() => {
-		console.log(pcm);
-	}, [pcm]);
+		let worker: Worker | null = null;
+
+		if (!audioBuffer || !pcm) return;
+
+		worker = new Worker();
+
+		type Data = {
+			startTime: number;
+			duration: number;
+			sampleRate: number;
+			pcm: ArrayLike<number>;
+			maxSamples: number;
+		};
+
+		const data: Data = {
+			startTime,
+			duration,
+			sampleRate: audioBuffer.sampleRate,
+			pcm,
+			maxSamples,
+		};
+
+		worker.onmessage = (msg) => {
+			console.log(msg.data);
+		};
+		worker.postMessage(data);
+
+		return () => {
+			worker?.terminate();
+		};
+	}, [audioBuffer, pcm, startTime, duration]);
 
 	return null;
 }

@@ -130,7 +130,8 @@ export function Timeline({
 		//   We need to refactor the
 		//   code in the entire render function to use absolute positions.
 		camera.position / camera.zoom.linear,
-		getDrawingAreaDimensions()[0] / camera.zoom.linear
+		getDrawingAreaDimensions()[0] / camera.zoom.linear,
+		getDrawingAreaDimensions()[0]
 	);
 
 	useEffect(() => {
