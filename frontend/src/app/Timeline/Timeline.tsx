@@ -85,6 +85,11 @@ export function Timeline({
 	const cursorPositionRef = useRef<Vector2>([NaN, NaN]);
 	const { onMouseDown, onMouseUp: mouseUp } = useMouseUp();
 	const seekerStateRef = useRef<SeekerState>({ type: "INACTIVE" });
+
+	// TODO: I fucked up the camera position here.
+	//
+	//   The camera position was supposed to be absolute, but we *have* to divide
+	//   by the camera zoom to get the absolute camera position!
 	const [camera, updateCamera] = useReducer<
 		(state: Camera, partialState: Partial<Camera>) => Camera
 	>(
@@ -107,7 +112,11 @@ export function Timeline({
 	const drawingAreaRef = useRef<SvgWrapperObject | null>(null);
 	const [, update] = useReducer(() => ({}), {});
 	const { theme } = useContext(ThemeContext);
-	useGetVisualizationData(performance.info.audioSource, 0);
+
+	useGetVisualizationData(
+		performance.info.audioSource,
+		camera.position / camera.zoom.linear
+	);
 
 	useEffect(() => {
 		setLocalFormations(performance.formations);

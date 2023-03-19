@@ -12,12 +12,13 @@ export function useGetVisualizationData(
 	// TODO: separating things into different hooks is just stupid. Consider
 	//   refactoring this so that hooks are not used.
 
+	console.log(startTime);
+
 	const fetchState = useFetchArrayBuffer(audioSource);
 	const audioBuffer = useDecodeAudioBuffer(
 		fetchState.type === "LOADED" ? fetchState.data : null
 	);
 	const pcm = useGetAveragePCM(audioBuffer);
-	console.log(pcm);
 
 	return null;
 }
