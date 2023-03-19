@@ -7,7 +7,7 @@ import { useMouseUp } from "../../hooks/use-mouse-up";
 import { equals, sub, Vector2 } from "../../lib/vector2";
 import { SvgWrapper, SvgWrapperObject } from "../SvgWrapper";
 import { LogarithmicValue } from "../../lib/logarithmic-value";
-import { ThemeContext } from "../theme";
+import { ThemeContext } from "../../contexts/theme";
 import { pixelsToMillisecondsRatio } from "./timeline-constants";
 import { AudioVisualizer } from "./AudioVisualizer";
 import Worker from "./worker?worker";

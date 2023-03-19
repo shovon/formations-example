@@ -31,7 +31,7 @@ import {
 import { getKV } from "../lib/iterable-helpers";
 import { getCurrentFormationIndex, TimelineState } from "./timeline-state";
 import { useMouseUp } from "../hooks/use-mouse-up";
-import { ThemeContext } from "./theme";
+import { ThemeContext } from "../contexts/theme";
 
 const CIRCLE_RADIUS = ENTITY_DIAMETER_IN_PIXELS / 2;
 

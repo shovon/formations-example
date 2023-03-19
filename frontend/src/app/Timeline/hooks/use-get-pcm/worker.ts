@@ -1,3 +1,0 @@
-self.onmessage = (msg) => {};
-
-export {};

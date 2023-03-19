@@ -1,6 +1,6 @@
 import { ReactNode, useContext, useState } from "react";
 import { css } from "@emotion/css";
-import { ThemeContext } from "./theme";
+import { ThemeContext } from "../contexts/theme";
 
 type TabProps = {
 	icon: string;

@@ -13,7 +13,7 @@ import {
 import { useSet } from "../../hooks/use-set";
 import { add } from "../../lib/vector2";
 import { Timeline } from "../Timeline/Timeline";
-import { ThemeContext } from "../theme";
+import { ThemeContext } from "../../contexts/theme";
 import { Button } from "../Button";
 import { Tab, Tabbed } from "../Tabbed";
 import { hasKV } from "../../lib/iterable-helpers";

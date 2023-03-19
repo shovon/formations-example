@@ -2,7 +2,7 @@
 
 import { useEffect, useReducer, useRef } from "react";
 
-type State<T> =
+export type State<T> =
 	| { type: "LOADING" }
 	| { type: "LOADED"; data: T }
 	| { type: "ERROR"; error: Error };

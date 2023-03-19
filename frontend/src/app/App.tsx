@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { PerformanceProject } from "./performance-project";
 import { Project } from "./Project/Project";
-import { ThemeProvider } from "./theme";
+import { ThemeProvider } from "../contexts/theme";
 
 function App() {
 	const [{ formations, entities, info }, setProject] =
