@@ -435,6 +435,8 @@ export function Timeline({
 						camera={camera}
 						width={getDrawingAreaDimensions()[0]}
 						height={timelineHeight - rulerHeight}
+						x={0}
+						y={rulerHeight}
 					/>
 					{Array.from({
 						length: Math.ceil(getDrawingAreaDimensions()[0] / tickSpacing) + 1,

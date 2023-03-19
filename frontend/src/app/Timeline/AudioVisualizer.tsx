@@ -15,6 +15,9 @@ type AudioVisualizerProps = {
 	 */
 	width: number;
 	height: number;
+
+	x: number;
+	y: number;
 };
 
 export function AudioVisualizer({
@@ -22,6 +25,8 @@ export function AudioVisualizer({
 	camera,
 	width,
 	height,
+	x,
+	y,
 }: AudioVisualizerProps) {
 	const samples = useGetVisualizationData(
 		audioSource,
@@ -67,5 +72,5 @@ export function AudioVisualizer({
 
 	if (!imageSource) return null;
 
-	return <image href={imageSource} height={height} width={width} x={0} y={0} />;
+	return <image href={imageSource} height={height} width={width} x={0} y={y} />;
 }
