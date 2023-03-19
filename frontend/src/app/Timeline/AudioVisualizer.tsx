@@ -1,35 +1,66 @@
 import { useEffect } from "react";
 import { useFetchArrayBuffer } from "../../hooks/use-fetch-array-buffer";
+import { LogarithmicValue } from "../../lib/logarithmic-value";
+import { useGetVisualizationData } from "./hooks/use-get-visualization-data/use-get-visualization-data";
 
 type AudioVisualizerProps = {
 	audioSource: string;
-	zoom: number;
-
-	/**
-	 * The start time in milliseconds.
-	 */
-	startTime: number;
-	duration: number;
+	camera: Readonly<{
+		position: number;
+		zoom: LogarithmicValue;
+	}>;
 
 	/**
 	 * THe width is in pixels
 	 */
 	width: number;
+	height: number;
 };
 
-export function AudioVisualizer({ audioSource }: AudioVisualizerProps) {
-	const state = useFetchArrayBuffer(audioSource);
+export function AudioVisualizer({
+	audioSource,
+	camera,
+	width,
+	height,
+}: AudioVisualizerProps) {
+	const samples = useGetVisualizationData(
+		audioSource,
 
-	useEffect(() => {}, [state]);
+		// TODO: having to divide by the zoom is fucked.
+		//
+		//   We need to refactor the
+		//   code in the entire render function to use absolute positions.
+		camera.position / camera.zoom.linear,
+		width / camera.zoom.linear,
+		width
+	);
 
-	if (state.type === "ERROR") {
-		console.error(state.error);
-		return <></>;
-	}
+	useEffect(() => {
+		if (!samples) return;
+		const canvas = document.createElement("canvas");
 
-	if (state.type === "LOADING") {
-		return <></>;
-	}
+		canvas.height = height;
+		canvas.width = width;
+
+		const ctx = canvas.getContext("2d");
+		if (!ctx) {
+			return;
+		}
+
+		for (const [i, sample] of Array.from(samples).entries()) {
+			ctx.beginPath();
+			ctx.lineWidth = 1;
+
+			ctx.fillRect(
+				i,
+				(canvas.height - sample * canvas.height) / 2,
+				1,
+				sample * canvas.height
+			);
+
+			ctx.stroke();
+		}
+	}, [samples]);
 
 	return <></>;
 }

@@ -122,18 +122,6 @@ export function Timeline({
 		return [clientRect.width, clientRect.height] satisfies Vector2;
 	};
 
-	useGetVisualizationData(
-		performance.info.audioSource,
-
-		// TODO: having to divide by the zoom is fucked.
-		//
-		//   We need to refactor the
-		//   code in the entire render function to use absolute positions.
-		camera.position / camera.zoom.linear,
-		getDrawingAreaDimensions()[0] / camera.zoom.linear,
-		getDrawingAreaDimensions()[0]
-	);
-
 	useEffect(() => {
 		setLocalFormations(performance.formations);
 	}, [performance.formations]);
@@ -443,9 +431,10 @@ export function Timeline({
 					}}
 				>
 					<AudioVisualizer
-						startTime={playbackProgress}
-						zoom={camera.zoom.linear}
 						audioSource={performance.info.audioSource}
+						camera={camera}
+						width={getDrawingAreaDimensions()[0]}
+						height={timelineHeight - rulerHeight}
 					/>
 					{Array.from({
 						length: Math.ceil(getDrawingAreaDimensions()[0] / tickSpacing) + 1,

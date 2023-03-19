@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
 	State as FetchState,
 	useFetchArrayBuffer,
@@ -7,18 +7,14 @@ import { useDecodeAudioBuffer } from "./use-decode-audio-buffer";
 import { useGetAveragePCM } from "./use-get-pcm/use-get-pcm";
 import Worker from "./worker?worker";
 
-type VisualizationData = {
-	startTime: number;
-	duration: number;
-	samples: ArrayLike<number>;
-};
-
 export function useGetVisualizationData(
 	audioSource: string | null,
 	startTime: number,
 	duration: number,
 	maxSamples: number
 ): ArrayLike<number> | null {
+	const [samples, setSamples] = useState<ArrayLike<number> | null>(null);
+
 	// TODO: using React hooks to load audio data like this is fucking stupid.
 	//   Just define ONE hook, and a set of non-hook functions. That's it!
 
@@ -52,7 +48,8 @@ export function useGetVisualizationData(
 		};
 
 		worker.onmessage = (msg) => {
-			console.log(msg.data);
+			// console.log(msg.data);
+			setSamples(msg.data);
 		};
 		worker.postMessage(data);
 
@@ -61,5 +58,5 @@ export function useGetVisualizationData(
 		};
 	}, [audioBuffer, pcm, startTime, duration]);
 
-	return null;
+	return samples;
 }
