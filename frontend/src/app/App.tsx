@@ -4,11 +4,14 @@ import { Project } from "./Project/Project";
 import { ThemeProvider } from "../contexts/theme";
 
 function App() {
-	const [{ formations, entities, info }, setProject] =
+	const [{ formations, entities, music }, setProject] =
 		useState<PerformanceProject>({
-			info: {
-				audioSource:
-					"https://res.cloudinary.com/stagekeep/video/upload/v1670787456/files/iy8cxmf2xlevvtzxqppr.mp3",
+			music: {
+				type: "custom",
+				value: {
+					name: "audio.mp3",
+					url: "https://res.cloudinary.com/stagekeep/video/upload/v1670787456/files/iy8cxmf2xlevvtzxqppr.mp3",
+				},
 			},
 			entities: [
 				["1", { color: "red", name: "A" }],
@@ -51,7 +54,7 @@ function App() {
 	return (
 		<ThemeProvider>
 			<Project
-				performance={{ formations, entities, info }}
+				performance={{ formations, entities, music }}
 				projectUpdated={setProject}
 			></Project>
 		</ThemeProvider>

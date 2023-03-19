@@ -430,14 +430,16 @@ export function Timeline({
 						}
 					}}
 				>
-					<AudioVisualizer
-						audioSource={performance.info.audioSource}
-						camera={camera}
-						width={getDrawingAreaDimensions()[0]}
-						height={timelineHeight - rulerHeight}
-						x={0}
-						y={rulerHeight}
-					/>
+					{performance.music?.type === "custom" ? (
+						<AudioVisualizer
+							audioSource={performance.music.value.url}
+							camera={camera}
+							width={getDrawingAreaDimensions()[0]}
+							height={timelineHeight - rulerHeight}
+							x={0}
+							y={rulerHeight}
+						/>
+					) : null}
 					{Array.from({
 						length: Math.ceil(getDrawingAreaDimensions()[0] / tickSpacing) + 1,
 					}).map((_, i) => {

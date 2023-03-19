@@ -26,11 +26,20 @@ export type Formation = {
 type UnorderedIterable<T> = Iterable<T>;
 
 export type PerformanceProject = {
-	info: {
-		audioSource: string;
-	};
 	entities: UnorderedIterable<[string, Entity]>;
 	formations: Formation[];
+	music:
+		| null
+		| {
+				type: "8CountBeat";
+		  }
+		| {
+				type: "custom";
+				value: {
+					name: string;
+					url: string;
+				};
+		  };
 };
 
 // TODO: unit test this
@@ -230,8 +239,8 @@ export const performance = ({
 	formations,
 	...project
 }: PerformanceProject) => ({
-	get info() {
-		return project.info;
+	get music() {
+		return project.music;
 	},
 
 	get entities() {
