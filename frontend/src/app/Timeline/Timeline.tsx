@@ -89,7 +89,8 @@ export function Timeline({
 	// TODO: I fucked up the camera position here.
 	//
 	//   The camera position was supposed to be absolute, but we *have* to divide
-	//   by the camera zoom to get the absolute camera position!
+	//   by the camera zoom to get the absolute camera position, which is
+	//   incorrect!
 	const [camera, updateCamera] = useReducer<
 		(state: Camera, partialState: Partial<Camera>) => Camera
 	>(
@@ -113,6 +114,14 @@ export function Timeline({
 	const [, update] = useReducer(() => ({}), {});
 	const { theme } = useContext(ThemeContext);
 
+	const getDrawingAreaDimensions = () => {
+		const svg = drawingAreaRef.current;
+		const clientRect = svg
+			? svg.getBoundingClientRect()
+			: { width: 1, height: 1 };
+		return [clientRect.width, clientRect.height] satisfies Vector2;
+	};
+
 	useGetVisualizationData(
 		performance.info.audioSource,
 
@@ -120,7 +129,8 @@ export function Timeline({
 		//
 		//   We need to refactor the
 		//   code in the entire render function to use absolute positions.
-		camera.position / camera.zoom.linear
+		camera.position / camera.zoom.linear,
+		getDrawingAreaDimensions()[0] / camera.zoom.linear
 	);
 
 	useEffect(() => {
@@ -352,14 +362,6 @@ export function Timeline({
 				seekerStateRef.current.start = cursorPosition;
 			}
 		}
-	};
-
-	const getDrawingAreaDimensions = () => {
-		const svg = drawingAreaRef.current;
-		const clientRect = svg
-			? svg.getBoundingClientRect()
-			: { width: 1, height: 1 };
-		return [clientRect.width, clientRect.height] satisfies Vector2;
 	};
 
 	const tickSpacing =
