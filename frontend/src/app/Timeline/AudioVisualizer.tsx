@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useReducer, useRef, useState } from "react";
 import { LogarithmicValue } from "../../lib/logarithmic-value";
 import { useGetVisualizationData } from "./hooks/use-get-visualization-data/use-get-visualization-data";
 
@@ -18,6 +18,54 @@ type AudioVisualizerProps = {
 	x: number;
 	y: number;
 };
+
+function Image({
+	src,
+	width,
+	height,
+	x,
+	y,
+}: {
+	src: string;
+	width: number;
+	height: number;
+	x: number;
+	y: number;
+}) {
+	const previousSrc = useRef<string | null>(null);
+	const [, update] = useReducer((obj) => ({}), {});
+
+	useEffect(() => {
+		previousSrc.current = src;
+		update();
+	}, [src]);
+
+	if (previousSrc.current === null) {
+		return <></>;
+	}
+
+	return (
+		<>
+			<image
+				href={previousSrc.current}
+				height={height}
+				width={width}
+				x={x}
+				y={y}
+				preserveAspectRatio="none"
+				opacity={0}
+			/>
+			<image
+				href={previousSrc.current}
+				height={height}
+				width={width}
+				x={x}
+				y={y}
+				preserveAspectRatio="none"
+			/>
+		</>
+	);
+}
 
 export function AudioVisualizer({
 	audioSource,
@@ -75,13 +123,12 @@ export function AudioVisualizer({
 	if (!imageSource || !avData) return null;
 
 	return (
-		<image
-			href={imageSource}
+		<Image
+			src={imageSource}
 			height={height}
 			width={(width * camera.zoom.linear) / avData.zoom}
 			x={x - (camera.position - avData.startTime * camera.zoom.linear)}
 			y={y}
-			preserveAspectRatio="none"
 		/>
 	);
 }
