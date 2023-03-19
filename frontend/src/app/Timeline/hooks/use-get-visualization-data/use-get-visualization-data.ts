@@ -6,15 +6,18 @@ import { useDecodeAudioBuffer } from "./use-decode-audio-buffer";
 import { useGetAveragePCM } from "./use-get-pcm/use-get-pcm";
 
 export function useGetVisualizationData(
-	audioSource: string | null
+	audioSource: string | null,
+	startTime: number
 ): ArrayLike<number> | null {
 	// TODO: separating things into different hooks is just stupid. Consider
 	//   refactoring this so that hooks are not used.
 
-	if (!audioSource) return null;
 	const fetchState = useFetchArrayBuffer(audioSource);
-	if (fetchState.type !== "LOADED") return null;
-	const audioBuffer = useDecodeAudioBuffer(fetchState.data);
-	if (!audioBuffer) return null;
+	const audioBuffer = useDecodeAudioBuffer(
+		fetchState.type === "LOADED" ? fetchState.data : null
+	);
 	const pcm = useGetAveragePCM(audioBuffer);
+	console.log(pcm);
+
+	return null;
 }

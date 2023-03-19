@@ -6,16 +6,28 @@ self.onmessage = (msg) => {
 		// Check if data is even array-like
 		if (typeof msg.data.length !== "number") return;
 
-		const data = Array.from<any>(msg.data);
+		const d = Array.from<any>(msg.data);
 
-		if (!data.some((item) => item && typeof item.length === "number")) return;
+		if (!d.some((item) => item && typeof item.length === "number")) return;
 
-		const minPCM = (data satisfies ArrayLike<number>[]).reduce(
+		const data: ArrayLike<number>[] = d;
+
+		const minPCMLength = (data satisfies ArrayLike<number>[]).reduce(
 			(min, channel) => (channel.length < min ? channel.length : min),
 			Infinity
 		);
 
-		for (let i = 0; i < minPCM; i++) {}
+		const pcm = new Float32Array(minPCMLength);
+
+		for (let i = 0; i < minPCMLength; i++) {
+			let sum = 0;
+			for (const channel of data) {
+				sum += channel[i];
+			}
+			pcm[i] = sum / data.length;
+		}
+
+		self.postMessage(pcm);
 	} catch (e) {}
 };
 

@@ -16,7 +16,7 @@ type Action<T> =
 	| { type: "error"; payload: Error };
 
 export function useFetchArrayBuffer(
-	url?: string,
+	url?: string | null,
 	options?: RequestInit
 ): State<ArrayBuffer> {
 	const cache = useRef<Cache<ArrayBuffer>>({});

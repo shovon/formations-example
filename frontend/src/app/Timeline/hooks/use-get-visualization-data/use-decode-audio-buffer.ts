@@ -8,9 +8,12 @@ import { useEffect, useState } from "react";
  * @returns Null if the buf is null or cannot be decoded, otherwise an
  *   AudioBuffer is returned
  */
-export function useDecodeAudioBuffer(buf: ArrayBuffer): AudioBuffer | null {
+export function useDecodeAudioBuffer(
+	buf: ArrayBuffer | null
+): AudioBuffer | null {
 	const [audioBuffer, setAudioBuffer] = useState<AudioBuffer | null>(null);
 	useEffect(() => {
+		if (!buf) return;
 		(async () => {
 			const audioCtx = new AudioContext();
 			const audioBuffer = await audioCtx.decodeAudioData(buf);

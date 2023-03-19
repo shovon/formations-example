@@ -10,7 +10,7 @@ import { LogarithmicValue } from "../../lib/logarithmic-value";
 import { ThemeContext } from "../../contexts/theme";
 import { pixelsToMillisecondsRatio } from "./timeline-constants";
 import { AudioVisualizer } from "./AudioVisualizer";
-import Worker from "./worker?worker";
+import { useGetVisualizationData } from "./hooks/use-get-visualization-data/use-get-visualization-data";
 
 // TODO: maybe this should go to the constants file?
 const timelineHeight = 145;
@@ -107,6 +107,7 @@ export function Timeline({
 	const drawingAreaRef = useRef<SvgWrapperObject | null>(null);
 	const [, update] = useReducer(() => ({}), {});
 	const { theme } = useContext(ThemeContext);
+	useGetVisualizationData(performance.info.audioSource, 0);
 
 	useEffect(() => {
 		setLocalFormations(performance.formations);

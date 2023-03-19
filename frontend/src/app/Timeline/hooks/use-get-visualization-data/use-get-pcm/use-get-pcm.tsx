@@ -8,19 +8,21 @@ import Worker from "./worker?worker";
  * @returns Null if AudioBuffer is null or if it hasn't been averaged yet;
  *   otherwise returns an array of PCM data.
  */
-export function useGetAveragePCM(audioBuffer: AudioBuffer) {
+export function useGetAveragePCM(audioBuffer: AudioBuffer | null) {
 	const [audioPcm, setAudioPcm] = useState<Float32Array | null>(null);
 
 	useEffect(() => {
 		let worker: Worker | null = null;
-		if (!audioPcm) {
+		if (audioBuffer && !audioPcm) {
 			worker = new Worker();
 			const channels = Array.from(
 				{ length: audioBuffer.numberOfChannels },
 				(_, i) => audioBuffer.getChannelData(i)
 			);
 			worker.onmessage = (event) => {
-				console.log(event.data);
+				if (event.data instanceof Float32Array) {
+					setAudioPcm(event.data);
+				}
 			};
 			worker.postMessage(channels);
 		}
