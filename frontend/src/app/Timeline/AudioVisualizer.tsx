@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useFetchArrayBuffer } from "../../hooks/use-fetch-array-buffer";
 import { LogarithmicValue } from "../../lib/logarithmic-value";
 import { useGetVisualizationData } from "./hooks/use-get-visualization-data/use-get-visualization-data";
 
@@ -28,7 +27,7 @@ export function AudioVisualizer({
 	x,
 	y,
 }: AudioVisualizerProps) {
-	const samples = useGetVisualizationData(
+	const avData = useGetVisualizationData(
 		audioSource,
 
 		// TODO: having to divide by the zoom is fucked.
@@ -37,12 +36,13 @@ export function AudioVisualizer({
 		//   code in the entire render function to use absolute positions.
 		camera.position / camera.zoom.linear,
 		width / camera.zoom.linear,
-		width
+		width,
+		camera.zoom.linear
 	);
 	const [imageSource, setImageSource] = useState<string | null>(null);
 
 	useEffect(() => {
-		if (!samples) return;
+		if (!avData) return;
 		const canvas = document.createElement("canvas");
 
 		canvas.height = height;
@@ -53,9 +53,11 @@ export function AudioVisualizer({
 			return;
 		}
 
-		for (const [i, sample] of Array.from(samples).entries()) {
+		for (const [i, sample] of Array.from(avData.samples).entries()) {
 			ctx.beginPath();
 			ctx.lineWidth = 1;
+			ctx.strokeStyle = "rgb(128, 128, 128)";
+			ctx.fillStyle = "rgb(200, 200, 200)";
 
 			ctx.fillRect(
 				i,
@@ -68,9 +70,18 @@ export function AudioVisualizer({
 		}
 
 		setImageSource(canvas.toDataURL());
-	}, [samples]);
+	}, [avData]);
 
-	if (!imageSource) return null;
+	if (!imageSource || !avData) return null;
 
-	return <image href={imageSource} height={height} width={width} x={0} y={y} />;
+	return (
+		<image
+			href={imageSource}
+			height={height}
+			width={(width * camera.zoom.linear) / avData.zoom}
+			x={x - (camera.position - avData.startTime * camera.zoom.linear)}
+			y={y}
+			preserveAspectRatio="none"
+		/>
+	);
 }
