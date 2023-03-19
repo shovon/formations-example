@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useFetchArrayBuffer } from "../../hooks/use-fetch-array-buffer";
 import { LogarithmicValue } from "../../lib/logarithmic-value";
 import { useGetVisualizationData } from "./hooks/use-get-visualization-data/use-get-visualization-data";
@@ -34,6 +34,7 @@ export function AudioVisualizer({
 		width / camera.zoom.linear,
 		width
 	);
+	const [imageSource, setImageSource] = useState<string | null>(null);
 
 	useEffect(() => {
 		if (!samples) return;
@@ -60,7 +61,11 @@ export function AudioVisualizer({
 
 			ctx.stroke();
 		}
+
+		setImageSource(canvas.toDataURL());
 	}, [samples]);
 
-	return <></>;
+	if (!imageSource) return null;
+
+	return <image href={imageSource} height={height} width={width} x={0} y={0} />;
 }
