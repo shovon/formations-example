@@ -115,6 +115,11 @@ export function Timeline({
 
 	useGetVisualizationData(
 		performance.info.audioSource,
+
+		// TODO: having to divide by the zoom is fucked.
+		//
+		//   We need to refactor the
+		//   code in the entire render function to use absolute positions.
 		camera.position / camera.zoom.linear
 	);
 
