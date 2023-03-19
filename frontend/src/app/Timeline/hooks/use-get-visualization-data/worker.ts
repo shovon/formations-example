@@ -37,8 +37,8 @@ self.onmessage = (msg) => {
 
 		const { startTime, duration, sampleRate, pcm, maxSamples } = data;
 
-		const startSample = Math.floor(startTime * (sampleRate / 1000));
-		const endSample = Math.floor((startTime + duration) * (sampleRate / 1000));
+		const startSample = Math.round(startTime * (sampleRate / 1000));
+		const endSample = Math.round((startTime + duration) * (sampleRate / 1000));
 
 		self.postMessage(
 			downsample(Array.from(pcm).slice(startSample, endSample), maxSamples)

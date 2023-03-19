@@ -61,8 +61,6 @@ export function useGetVisualizationData(
 		);
 
 		worker.onmessage = (msg) => {
-			// console.log(msg.data);
-			// setSamples(msg.data);
 			setSamples({
 				samples: msg.data,
 				startTime,

@@ -303,8 +303,8 @@ export function Project({
 									}}
 								>
 									<ul>
-										{[...entities].map(([, { name }]) => (
-											<li>{name}</li>
+										{[...entities].map(([id, { name }]) => (
+											<li key={id}>{name}</li>
 										))}
 									</ul>
 								</div>
