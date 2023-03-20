@@ -6,6 +6,12 @@ import { ThemeProvider } from "../contexts/theme";
 function App() {
 	const [{ formations, entities, music }, setProject] =
 		useState<PerformanceProject>({
+			name: "Some performance",
+
+			// TODO: use something that isn't fake
+			imageUrl:
+				"https://res.cloudinary.com/stagekeep/image/upload/v1670787456/files/iy8cxmf2xlevvtzxqppr.jpg",
+
 			music: {
 				type: "custom",
 				value: {

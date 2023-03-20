@@ -25,21 +25,25 @@ export type Formation = {
 
 type UnorderedIterable<T> = Iterable<T>;
 
+type Music =
+	| null
+	| {
+			type: "8CountBeat";
+	  }
+	| {
+			type: "custom";
+			value: {
+				name: string;
+				url: string;
+			};
+	  };
+
 export type PerformanceProject = {
+	name: string;
+	imageUrl: string;
 	entities: UnorderedIterable<[string, Entity]>;
 	formations: Formation[];
-	music:
-		| null
-		| {
-				type: "8CountBeat";
-		  }
-		| {
-				type: "custom";
-				value: {
-					name: string;
-					url: string;
-				};
-		  };
+	music: Music;
 };
 
 // TODO: unit test this
